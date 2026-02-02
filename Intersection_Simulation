@@ -1,0 +1,50 @@
+import pygame
+import random
+
+# 1. Define the Object Class
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((30, 30))
+        self.image.fill((255, 0, 0)) # Red enemies
+        self.rect = self.image.get_rect(center=(random.randint(0, 800), -50))
+        self.speed = random.randint(2, 6)
+
+    def update(self):
+        # Movement logic happens inside the class
+        self.rect.y += self.speed
+        # If the enemy goes off screen, remove it
+        if self.rect.top > 600:
+            self.kill() 
+
+# 2. Setup
+pygame.init()
+screen = pygame.display.set_mode((800, 600))
+clock = pygame.time.Clock()
+
+# 3. Create the Group
+enemies = pygame.sprite.Group()
+
+# Simple timer to spawn enemies
+SPAWN_EVENT = pygame.USEREVENT + 1
+pygame.time.set_timer(SPAWN_EVENT, 1000) # Every 1000ms (1 sec)
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == SPAWN_EVENT:
+            enemies.add(Enemy()) # Add a new enemy to the group
+
+    # 4. The Magic Lines
+    enemies.update() # Calls the update() method of every enemy in the group
+    
+    screen.fill((0, 0, 0))
+    
+    enemies.draw(screen) # Draws every enemy image at its rect position
+    
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
