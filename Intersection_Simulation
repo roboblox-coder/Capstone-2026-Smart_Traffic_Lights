@@ -1,50 +1,100 @@
 import pygame
-import random
+import os
 
-# 1. Define the Object Class
-class Enemy(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.Surface((30, 30))
-        self.image.fill((255, 0, 0)) # Red enemies
-        self.rect = self.image.get_rect(center=(random.randint(0, 800), -50))
-        self.speed = random.randint(2, 6)
-
-    def update(self):
-        # Movement logic happens inside the class
-        self.rect.y += self.speed
-        # If the enemy goes off screen, remove it
-        if self.rect.top > 600:
-            self.kill() 
-
-# 2. Setup
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
 clock = pygame.time.Clock()
 
-# 3. Create the Group
-enemies = pygame.sprite.Group()
+# 1. Load an Image (Make sure you have an image file in the same folder!)
+# Use .convert_alpha() for faster rendering and transparency support
+try:
+    player_image = pygame.image.load("player_ship.png").convert_alpha()
+    # Resize the image if it's too big
+    player_image = pygame.transform.scale(player_image, (50, 50))
+except:
+    # Fallback if you don't have an image yet
+    player_image = pygame.Surface((50, 50))
+    player_image.fill((255, 0, 0))
 
-# Simple timer to spawn enemies
-SPAWN_EVENT = pygame.USEREVENT + 1
-pygame.time.set_timer(SPAWN_EVENT, 1000) # Every 1000ms (1 sec)
+# 2. Use a 'Rect' for positioning and collision
+# This creates a box the same size as our image
+player_rect = player_image.get_rect(center=(400, 300))
+
+# Barrier dimensions
+B_WIDTH = 225
+B_HEIGHT = 140
+
+# Define the 4 corner rectangles: (x, y, width, height)
+barriers = [
+    pygame.Rect(0, 0, B_WIDTH, B_HEIGHT),              # Top-Left
+    pygame.Rect(800 - B_WIDTH, 0, B_WIDTH, B_HEIGHT),  # Top-Right
+    pygame.Rect(0, 600 - B_HEIGHT, B_WIDTH, B_HEIGHT), # Bottom-Left
+    pygame.Rect(800 - B_WIDTH, 600 - B_HEIGHT, B_WIDTH, B_HEIGHT) # Bottom-Right
+]
+
+# Define road strips
+white_lines = [
+    ((B_WIDTH, B_HEIGHT), (400, B_HEIGHT)), # Top horizontal
+    ((800 - B_WIDTH, B_HEIGHT), (800 - B_WIDTH, 300)), # Right vertical
+    ((800 - B_WIDTH, 600 - B_HEIGHT), (400, 600 - B_HEIGHT)), # Bottom horizontal
+    ((B_WIDTH, 600 - B_HEIGHT), (B_WIDTH, 300))  # Left vertical
+]
+
+yellow_lines = [
+    ((405, 0), (405, B_HEIGHT)),   # 1st Top edge to white line
+    ((395, 0), (395, B_HEIGHT)),   # 2nd Top edge to white line
+    ((800, 305), (800 - B_WIDTH, 305)), # 1st Right edge to white line
+    ((800, 295), (800 - B_WIDTH, 295)), # 2nd Right edge to white line
+    ((405, 800), (405, 600 - B_HEIGHT)), # 1st Bottom edge to white line
+    ((395, 800), (395, 600 - B_HEIGHT)), # 2nd Bottom edge to white line
+    ((0, 305), (B_WIDTH, 305)),   # 1st Left edge to white line
+    ((0, 295), (B_WIDTH, 295))    # 2st Left edge to white line
+]
 
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == SPAWN_EVENT:
-            enemies.add(Enemy()) # Add a new enemy to the group
 
-    # 4. The Magic Lines
-    enemies.update() # Calls the update() method of every enemy in the group
+    # Store the position before moving
+    old_pos = player_rect.topleft
+
+    # 3. Movement with Boundary Detection
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_rect.left > 0:
+        player_rect.x -= 7
+    if keys[pygame.K_RIGHT] and player_rect.right < 800:
+        player_rect.x += 7
+    if keys[pygame.K_UP] and player_rect.top > 0:
+        player_rect.y -= 7
+    if keys[pygame.K_DOWN] and player_rect.bottom < 600:
+        player_rect.y += 7
     
-    screen.fill((0, 0, 0))
+    # COLLISION CHECK: If player hits any barrier, undo the move
+    for wall in barriers:
+        if player_rect.colliderect(wall):
+            player_rect.topleft = old_pos
+
+    # 4. Rendering
+    screen.fill((150, 150, 150)) # Dark gray background
+    # Draw barriers
+    for wall in barriers:
+        pygame.draw.rect(screen, (50, 150, 50), wall) # (Surface, Color, Rect)
     
-    enemies.draw(screen) # Draws every enemy image at its rect position
-    
+    # Draw traffic lines
+    # Draw the yellow lines
+    for start, end in yellow_lines:
+        pygame.draw.line(screen, (255, 255, 0), start, end, 5)
+
+    # Draw the white lines
+    for start, end in white_lines:
+        pygame.draw.line(screen, (255, 255, 255), start, end, 10)
+
+    # We draw the image AT the position of the rect
+    screen.blit(player_image, player_rect)
+
     pygame.display.flip()
     clock.tick(60)
 
-pygame.quit()
+pygame.quit() 
