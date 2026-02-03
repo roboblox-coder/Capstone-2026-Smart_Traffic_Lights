@@ -1,0 +1,91 @@
+#Cory Maccini
+#CS482
+
+import pandas as pd
+import numpy as np
+
+np.random.seed(42)
+NUM_SAMPLES = 1000  
+
+intersections = {
+    'Mercer St amd Fairview': {
+        'type': 'Principal Arterial', 
+        'cycle_len_range': (120, 150), 
+        'adt': 60000, 
+        'lanes': 3
+    },
+    'Broadway amd Pike': {
+        'type': 'Urban Village', 
+        'cycle_len_range': (60, 90), 
+        'adt': 15000, 
+        'lanes': 2
+    },
+    'Rainier Ave S and S Alaska': { 
+        'type': 'Major Arterial', 
+        'cycle_len_range': (100, 120), 
+        'adt': 35000, 
+        'lanes': 2
+    },
+    '15th Ave NW Market': {
+        'type': 'Industrial Access', 
+        'cycle_len_range': (110, 140), 
+        'adt': 40000, 
+        'lanes': 2
+    },
+    'Ravenna Blvd and 15th': {
+        'type': 'Neighborhood Collector', 
+        'cycle_len_range': (60, 80), 
+        'adt': 12000, 
+        'lanes': 1
+    }
+}
+
+data = []
+
+for _ in range(NUM_SAMPLES):
+    loc_name, profile = list(intersections.items())[np.random.randint(0, len(intersections))]
+    hour = np.random.randint(6, 22)  
+    
+    is_peak = (7 <= hour <= 9) or (16 <= hour <= 18)
+    vol_factor = np.random.uniform(0.8, 1.2) if is_peak else np.random.uniform(0.3, 0.6)
+    
+    hourly_vol = (profile['adt'] * 0.1) * vol_factor 
+    arrival_rate_vph = hourly_vol / profile['lanes'] 
+    lambda_arrival = arrival_rate_vph / 3600.0 
+    saturation_flow = 1900 / 3600.0                  
+    
+    cycle_length = np.random.randint(*profile['cycle_len_range'])
+    
+    green_ratio = np.random.uniform(0.4, 0.7)
+    effective_green = cycle_length * green_ratio
+    effective_red = cycle_length * (1 - green_ratio)
+    
+
+    x = lambda_arrival / (saturation_flow * green_ratio)
+    x = min(x, 0.95) 
+    
+    term1 = (cycle_length * (1 - green_ratio)**2) / (2 * (1 - (lambda_arrival / saturation_flow)))
+    term2 = (x**2) / (2 * lambda_arrival * (1 - x)) if x > 0 else 0
+    
+    total_delay = term1 + term2
+    
+    actual_wait = total_delay * np.random.uniform(0.9, 1.3)
+
+    data.append({
+        'Intersection ID': loc_name,
+        'Arterial Class': profile['type'],
+        'Hour of Day': hour,
+        'Peak Hour': int(is_peak),
+        'Cycle Length Second': cycle_length,
+        'Green Split Ratio': round(green_ratio, 2),
+        'Vehicles Per Hour': int(hourly_vol),
+        'Saturation Degree': round(x, 2),
+        'Est Wait Time Seconds': round(actual_wait, 1)
+    })
+
+df = pd.DataFrame(data)
+
+print("Dataset Preview:")
+print(df.head())
+print("Wait Time Stats by Intersection:")
+print(df.groupby('Intersection ID')['Est Wait Time Seconds'].mean())
