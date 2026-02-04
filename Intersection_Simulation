@@ -51,11 +51,38 @@ yellow_lines = [
     ((0, 295), (B_WIDTH, 295))    # 2st Left edge to white line
 ]
 
+cars = [] # List to hold active blue squares
+CAR_SPEED = 5
+WAIT_TIME = 1000 # 5 seconds in milliseconds
+
+# Mapping keys to: [spawn_pos, direction_vector, stop_at_y_or_x]
+# This defines where they start and which white line they target
+spawn_data = {
+    pygame.K_w: {"pos": [400, 600], "vel": [0, -1], "target": 450, "axis": 1}, # From Bottom
+    pygame.K_s: {"pos": [400, 0],   "vel": [0, 1],  "target": 150, "axis": 1}, # From Top
+    pygame.K_a: {"pos": [800, 300], "vel": [-1, 0], "target": 600, "axis": 0}, # From Right
+    pygame.K_d: {"pos": [0, 300],   "vel": [1, 0],  "target": 200, "axis": 0}  # From Left
+}
+
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    if event.type == pygame.KEYDOWN:
+            if event.key in spawn_data:
+                data = spawn_data[event.key]
+                # Only spawn if a probe of this type isn't already active
+                new_rect = pygame.Rect(data["pos"][0]-25, data["pos"][1]-25, 50, 50)
+                cars.append({
+                    "rect": new_rect,
+                    "vel": data["vel"],
+                    "target": data["target"],
+                    "axis": data["axis"],
+                    "state": "moving",
+                    "wait_timer": 0
+                })
 
     # Store the position before moving
     old_pos = player_rect.topleft
@@ -76,6 +103,33 @@ while running:
         if player_rect.colliderect(wall):
             player_rect.topleft = old_pos
 
+    current_time = pygame.time.get_ticks()
+
+    for p in cars[:]: # Iterate over a copy to allow removing
+        if p["state"] == "moving":
+            p["rect"].x += p["vel"][0] * CAR_SPEED
+            p["rect"].y += p["vel"][1] * CAR_SPEED
+            
+            # Check if we reached the white line target
+            pos = p["rect"].x if p["axis"] == 0 else p["rect"].y
+            # Check if we passed the target based on direction
+            if (p["vel"][0] + p["vel"][1] > 0 and pos >= p["target"]) or \
+               (p["vel"][0] + p["vel"][1] < 0 and pos <= p["target"]):
+                p["state"] = "waiting"
+                p["wait_timer"] = current_time
+
+        elif p["state"] == "waiting":
+            if current_time - p["wait_timer"] >= WAIT_TIME:
+                p["state"] = "exiting"
+
+        elif p["state"] == "exiting":
+            p["rect"].x += p["vel"][0] * CAR_SPEED
+            p["rect"].y += p["vel"][1] * CAR_SPEED
+            
+            # Despawn if off-screen
+            if not screen.get_rect().colliderect(p["rect"]):
+                cars.remove(p)
+
     # 4. Rendering
     screen.fill((150, 150, 150)) # Dark gray background
     # Draw barriers
@@ -90,6 +144,10 @@ while running:
     # Draw the white lines
     for start, end in white_lines:
         pygame.draw.line(screen, (255, 255, 255), start, end, 10)
+
+    # Draw Blue Cars
+    for p in cars:
+        pygame.draw.rect(screen, (0, 0, 255), p["rect"])
 
     # We draw the image AT the position of the rect
     screen.blit(player_image, player_rect)
