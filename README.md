@@ -1,2 +1,2 @@
-# Capstone-2026-Smart_Traffic_Lights
-Repository &amp; workspace for everything related to BC's Team 5 Capstone project.
+# ATLAS Traffic Management System
+Capstone project for adaptive traffic light simulation using PyTorch
