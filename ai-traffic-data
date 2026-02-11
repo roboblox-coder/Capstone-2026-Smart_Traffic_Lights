@@ -1,91 +1,131 @@
 #Cory Maccini
-#CS482
-
+#CS 482
 import pandas as pd
 import numpy as np
 
+#Uses random seed
 np.random.seed(42)
 NUM_SAMPLES = 1000  
 
+#Source: 2024-2029 TIP (Project TFP-263) & Vision Zero Reports
+
 intersections = {
-    'Mercer St amd Fairview': {
-        'type': 'Principal Arterial', 
-        'cycle_len_range': (120, 150), 
-        'adt': 60000, 
+    #Source: 148th Ave NE Transportation Analysis Report
+    #SCATS Max Cycle: 140s. ADT approx 55,000.
+    'NE 8th and 148th': {
+        'type': 'Major Arterial (SCATS)', 
+        'cycle len range': (110, 140), 
+        'adt': 55000, 
+        'lanes': 4  # Dominant approach (EB/WB) has 4 lanes
+    },
+    
+    #Source: 140th Ave NE Intersection Study
+    #Known for queuing in the issues and rear-end collision risks.
+    #SCATS Max Cycle: 140s. ADT approx 42,000.
+    'NE 8th and 140th': {
+        'type': 'Major Arterial (SCATS)', 
+        'cycle len range': (100, 140), 
+        'adt': 42000, 
+        'lanes': 3 
+    },
+
+    #Source: Bellevue Downtown Transportation Plan
+    #Comparison point: Standard downtown adaptive signal
+    'NE 4th and Bellevue Way': {
+        'type': 'Urban Principal', 
+        'cycle len range': (90, 120), 
+        'adt': 35000, 
         'lanes': 3
     },
-    'Broadway amd Pike': {
-        'type': 'Urban Village', 
-        'cycle_len_range': (60, 90), 
-        'adt': 15000, 
-        'lanes': 2
-    },
-    'Rainier Ave S and S Alaska': { 
-        'type': 'Major Arterial', 
-        'cycle_len_range': (100, 120), 
-        'adt': 35000, 
-        'lanes': 2
-    },
-    '15th Ave NW Market': {
-        'type': 'Industrial Access', 
-        'cycle_len_range': (110, 140), 
-        'adt': 40000, 
-        'lanes': 2
-    },
-    'Ravenna Blvd and 15th': {
+
+    #Source: Mobility Management Area 12 Data
+    #Lower volume collector for contrast
+    '140th Ave NE and NE 24th': {
         'type': 'Neighborhood Collector', 
-        'cycle_len_range': (60, 80), 
-        'adt': 12000, 
-        'lanes': 1
+        'cycle len range': (60, 90), 
+        'adt': 18000, 
+        'lanes': 2
     }
 }
 
 data = []
 
 for _ in range(NUM_SAMPLES):
+    #Select a random intersection from the Bellevue set
     loc_name, profile = list(intersections.items())[np.random.randint(0, len(intersections))]
+    
     hour = np.random.randint(6, 22)  
     
+    #Determine Peak Hours (Bellevue AM Peak: 7-9, PM Peak: 4-6)
     is_peak = (7 <= hour <= 9) or (16 <= hour <= 18)
-    vol_factor = np.random.uniform(0.8, 1.2) if is_peak else np.random.uniform(0.3, 0.6)
     
-    hourly_vol = (profile['adt'] * 0.1) * vol_factor 
+    #Traffic Volume Factor
+    #Peak hour volumes in Bellevue are significantly higher (1.2x) due to tech commuter traffic
+    vol_factor = np.random.uniform(0.9, 1.2) if is_peak else np.random.uniform(0.4, 0.7)
+    
+    #Calculate Flows
+    hourly_vol = (profile['adt'] * 0.1) * vol_factor # Approx 10% of ADT in peak hour
     arrival_rate_vph = hourly_vol / profile['lanes'] 
     lambda_arrival = arrival_rate_vph / 3600.0 
-    saturation_flow = 1900 / 3600.0                  
+    saturation_flow = 1900 / 3600.0                   
     
-    cycle_length = np.random.randint(*profile['cycle_len_range'])
+    #Cycle Length (SCATS Adaptive Logic Simulation)
+    cycle_length = np.random.randint(*profile['cycle len range'])
     
-    green_ratio = np.random.uniform(0.4, 0.7)
+    #Green Split Calculation
+    #Major arterials in Bellevue get priority green time (0.5 to 0.75 split)
+    green_ratio = np.random.uniform(0.5, 0.75)
     effective_green = cycle_length * green_ratio
     effective_red = cycle_length * (1 - green_ratio)
     
-
+    #Webster's Delay Calculation (Approximation)
+    #x = Degree of Saturation (v/c ratio)
     x = lambda_arrival / (saturation_flow * green_ratio)
-    x = min(x, 0.95) 
     
-    term1 = (cycle_length * (1 - green_ratio)**2) / (2 * (1 - (lambda_arrival / saturation_flow)))
+    #Cap x at 0.98 to prevent division by zero in the simplified formula
+    #Real Bellevue data showed v/c ratios of 0.96 in PM Peak
+    x = min(x, 0.98) 
+    
+    #Term 1: Uniform Delay
+    term1_numerator = (cycle_length * (1 - green_ratio)**2)
+    term1_denominator = (2 * (1 - (lambda_arrival / saturation_flow)))
+  
+    #Safety check to avoid zero division if arrival > saturation (oversaturation)
+    if term1_denominator <= 0:
+        term1 = cycle_length * 0.5 # Fallback for oversaturated state
+    else:
+        term1 = term1_numerator / term1_denominator
+
+    #Term 2: Random/Incremental Delay (due to queuing)
     term2 = (x**2) / (2 * lambda_arrival * (1 - x)) if x > 0 else 0
     
     total_delay = term1 + term2
     
+    #Adds noise to simulate driver reaction/weather variability
     actual_wait = total_delay * np.random.uniform(0.9, 1.3)
 
     data.append({
         'Intersection ID': loc_name,
         'Arterial Class': profile['type'],
         'Hour of Day': hour,
-        'Peak Hour': int(is_peak),
-        'Cycle Length Second': cycle_length,
+        'Is Peak Hour': int(is_peak),
+        'Cycle Length Sec': cycle_length,
         'Green Split Ratio': round(green_ratio, 2),
         'Vehicles Per Hour': int(hourly_vol),
         'Saturation Degree': round(x, 2),
-        'Est Wait Time Seconds': round(actual_wait, 1)
+        'Est Wait Time Sec': round(actual_wait, 1)
     })
 
 df = pd.DataFrame(data)
 
-print("Dataset Preview:")
-print(df.head())
-print("Wait Time Stats by Intersection:")
-print(df.groupby('Intersection ID')['Est Wait Time Seconds'].mean())
+#OUTPUTS
+#---------------------------------------------------------
+print("--- Bellevue Traffic Simulation (2023 Base Data) ---")
+print("\n AI Dataset Preview:")
+print(df[['Intersection ID', 'Hour of Day', 'Saturation Degree', 'Est Wait Time Sec']].head())
+
+print("\nAverage Wait Time by Intersection (Seconds):")
+print(df.groupby('Intersection ID')['Est Wait Time Sec'].mean().sort_values(ascending=False))
+
+print("\nCongestion Analysis (Peak Hour vs Off-Peak):")
+print(df.groupby('Is Peak Hour')['Est Wait Time Sec'].mean().rename({0: "Off-Peak", 1: "Peak Hour"}))
