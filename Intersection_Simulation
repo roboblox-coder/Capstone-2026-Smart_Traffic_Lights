@@ -1,43 +1,37 @@
 import pygame
 import os
 
+# Initialize PyGame
 pygame.init()
-screen = pygame.display.set_mode((800, 600))
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
-# 1. Load an Image (Make sure you have an image file in the same folder!)
-# Use .convert_alpha() for faster rendering and transparency support
+# --- 1. Player Setup ---
 try:
     player_image = pygame.image.load("player_ship.png").convert_alpha()
-    # Resize the image if it's too big
     player_image = pygame.transform.scale(player_image, (50, 50))
 except:
-    # Fallback if you don't have an image yet
     player_image = pygame.Surface((50, 50))
     player_image.fill((255, 0, 0))
 
-# 2. Use a 'Rect' for positioning and collision
-# This creates a box the same size as our image
 player_rect = player_image.get_rect(center=(400, 300))
 
-# Barrier dimensions
-B_WIDTH = 225
-B_HEIGHT = 140
-
-# Define the 4 corner rectangles: (x, y, width, height)
+# --- 2. Barriers (Green Corners) ---
+B_WIDTH, B_HEIGHT = 200, 150
 barriers = [
-    pygame.Rect(0, 0, B_WIDTH, B_HEIGHT),              # Top-Left
-    pygame.Rect(800 - B_WIDTH, 0, B_WIDTH, B_HEIGHT),  # Top-Right
-    pygame.Rect(0, 600 - B_HEIGHT, B_WIDTH, B_HEIGHT), # Bottom-Left
-    pygame.Rect(800 - B_WIDTH, 600 - B_HEIGHT, B_WIDTH, B_HEIGHT) # Bottom-Right
+    pygame.Rect(0, 0, B_WIDTH, B_HEIGHT),
+    pygame.Rect(WIDTH - B_WIDTH, 0, B_WIDTH, B_HEIGHT),
+    pygame.Rect(0, HEIGHT - B_HEIGHT, B_WIDTH, B_HEIGHT),
+    pygame.Rect(WIDTH - B_WIDTH, HEIGHT - B_HEIGHT, B_WIDTH, B_HEIGHT)
 ]
 
-# Define road strips
+# --- 3. Lines (White & Yellow) ---
 white_lines = [
-    ((B_WIDTH, B_HEIGHT), (400, B_HEIGHT)), # Top horizontal
-    ((800 - B_WIDTH, B_HEIGHT), (800 - B_WIDTH, 300)), # Right vertical
-    ((800 - B_WIDTH, 600 - B_HEIGHT), (400, 600 - B_HEIGHT)), # Bottom horizontal
-    ((B_WIDTH, 600 - B_HEIGHT), (B_WIDTH, 300))  # Left vertical
+    ((200, 150), (400, 150)), # Top
+    ((600, 150), (600, 300)), # Right
+    ((600, 450), (400, 450)), # Bottom
+    ((200, 450), (200, 300))  # Left
 ]
 
 yellow_lines = [
@@ -51,105 +45,107 @@ yellow_lines = [
     ((0, 295), (B_WIDTH, 295))    # 2st Left edge to white line
 ]
 
-cars = [] # List to hold active blue squares
+# --- 4. Car Setup (The Blue Squares) ---
+cars = []
 CAR_SPEED = 5
-WAIT_TIME = 1000 # 5 seconds in milliseconds
+WAIT_TIME = 5000 # 5 seconds
 
-# Mapping keys to: [spawn_pos, direction_vector, stop_at_y_or_x]
-# This defines where they start and which white line they target
+# Mapping keys to: [spawn_center, velocity, target_coord, axis_to_check]
 spawn_data = {
-    pygame.K_w: {"pos": [400, 600], "vel": [0, -1], "target": 450, "axis": 1}, # From Bottom
-    pygame.K_s: {"pos": [400, 0],   "vel": [0, 1],  "target": 150, "axis": 1}, # From Top
-    pygame.K_a: {"pos": [800, 300], "vel": [-1, 0], "target": 600, "axis": 0}, # From Right
-    pygame.K_d: {"pos": [0, 300],   "vel": [1, 0],  "target": 200, "axis": 0}  # From Left
+    pygame.K_w: {"pos": (450, 599), "vel": (0, -1), "target": 450, "axis": 1}, # Up from Bottom
+    pygame.K_s: {"pos": (350, 1),   "vel": (0, 1),  "target": 150, "axis": 1}, # Down from Top
+    pygame.K_a: {"pos": (799, 250), "vel": (-1, 0), "target": 600, "axis": 0}, # Left from Right
+    pygame.K_d: {"pos": (1, 350),   "vel": (1, 0),  "target": 200, "axis": 0}  # Right from Left
 }
 
+# --- MAIN LOOP ---
 running = True
 while running:
+    current_time = pygame.time.get_ticks()
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-    if event.type == pygame.KEYDOWN:
+        
+        # SPAWN LOGIC
+        if event.type == pygame.KEYDOWN:
             if event.key in spawn_data:
-                data = spawn_data[event.key]
-                # Only spawn if a probe of this type isn't already active
-                new_rect = pygame.Rect(data["pos"][0]-25, data["pos"][1]-25, 50, 50)
+                sd = spawn_data[event.key]
+                new_car_rect = pygame.Rect(0, 0, 50, 50)
+                new_car_rect.center = sd["pos"]
+                
                 cars.append({
-                    "rect": new_rect,
-                    "vel": data["vel"],
-                    "target": data["target"],
-                    "axis": data["axis"],
+                    "rect": new_car_rect,
+                    "vel": sd["vel"],
+                    "target": sd["target"],
+                    "axis": sd["axis"],
                     "state": "moving",
-                    "wait_timer": 0
+                    "timer": 0
                 })
 
-    # Store the position before moving
+    # --- 5. Movement & Collisions (Player) ---
     old_pos = player_rect.topleft
-
-    # 3. Movement with Boundary Detection
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and player_rect.left > 0:
-        player_rect.x -= 7
-    if keys[pygame.K_RIGHT] and player_rect.right < 800:
-        player_rect.x += 7
-    if keys[pygame.K_UP] and player_rect.top > 0:
-        player_rect.y -= 7
-    if keys[pygame.K_DOWN] and player_rect.bottom < 600:
-        player_rect.y += 7
-    
-    # COLLISION CHECK: If player hits any barrier, undo the move
+    if keys[pygame.K_LEFT]:  player_rect.x -= 7
+    if keys[pygame.K_RIGHT]: player_rect.x += 7
+    if keys[pygame.K_UP]:    player_rect.y -= 7
+    if keys[pygame.K_DOWN]:  player_rect.y += 7
+
+    # Screen Boundaries
+    if player_rect.left < 0: player_rect.left = 0
+    if player_rect.right > WIDTH: player_rect.right = WIDTH
+    if player_rect.top < 0: player_rect.top = 0
+    if player_rect.bottom > HEIGHT: player_rect.bottom = HEIGHT
+
+    # Barrier Collisions
     for wall in barriers:
         if player_rect.colliderect(wall):
             player_rect.topleft = old_pos
 
-    current_time = pygame.time.get_ticks()
-
-    for p in cars[:]: # Iterate over a copy to allow removing
+    # --- 6. Update Carss ---
+    for p in cars[:]:
         if p["state"] == "moving":
             p["rect"].x += p["vel"][0] * CAR_SPEED
             p["rect"].y += p["vel"][1] * CAR_SPEED
             
-            # Check if we reached the white line target
-            pos = p["rect"].x if p["axis"] == 0 else p["rect"].y
-            # Check if we passed the target based on direction
-            if (p["vel"][0] + p["vel"][1] > 0 and pos >= p["target"]) or \
-               (p["vel"][0] + p["vel"][1] < 0 and pos <= p["target"]):
+            # Check if reached white line
+            val = p["rect"].centery if p["axis"] == 1 else p["rect"].centerx
+            # Logic: did we cross the target?
+            reached = False
+            if p["vel"][0] + p["vel"][1] > 0 and val >= p["target"]: reached = True
+            if p["vel"][0] + p["vel"][1] < 0 and val <= p["target"]: reached = True
+            
+            if reached:
                 p["state"] = "waiting"
-                p["wait_timer"] = current_time
+                p["timer"] = current_time
 
         elif p["state"] == "waiting":
-            if current_time - p["wait_timer"] >= WAIT_TIME:
+            if current_time - p["timer"] >= WAIT_TIME:
                 p["state"] = "exiting"
 
         elif p["state"] == "exiting":
             p["rect"].x += p["vel"][0] * CAR_SPEED
             p["rect"].y += p["vel"][1] * CAR_SPEED
             
-            # Despawn if off-screen
-            if not screen.get_rect().colliderect(p["rect"]):
+            # Remove if fully off-screen
+            if not screen.get_rect().inflate(100, 100).colliderect(p["rect"]):
                 cars.remove(p)
 
-    # 4. Rendering
-    screen.fill((150, 150, 150)) # Dark gray background
-    # Draw barriers
+    # --- 7. Rendering ---
+    screen.fill((150, 150, 150))
+
     for wall in barriers:
-        pygame.draw.rect(screen, (50, 150, 50), wall) # (Surface, Color, Rect)
+        pygame.draw.rect(screen, (50, 150, 50), wall)
+
+    for start, end in white_lines:
+        pygame.draw.line(screen, (255, 255, 255), start, end, 10)
     
-    # Draw traffic lines
-    # Draw the yellow lines
     for start, end in yellow_lines:
         pygame.draw.line(screen, (255, 255, 0), start, end, 5)
 
-    # Draw the white lines
-    for start, end in white_lines:
-        pygame.draw.line(screen, (255, 255, 255), start, end, 10)
-
-    # Draw Blue Cars
     for p in cars:
         pygame.draw.rect(screen, (0, 0, 255), p["rect"])
 
-    # We draw the image AT the position of the rect
     screen.blit(player_image, player_rect)
 
     pygame.display.flip()
