@@ -1,154 +1,326 @@
 import pygame
-import os
 
-# Initialize PyGame
 pygame.init()
-WIDTH, HEIGHT = 800, 600
+
+# --- SCALING FACTOR ---
+SCALE = 0.6
+
+def s(value):
+    return int(value * SCALE)
+
+# --- 1. Setup & Dimensions ---
+TILE_W, TILE_H = s(800), s(600)
+WIDTH, HEIGHT = TILE_W * 3, TILE_H * 3
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Traffic Simulation - Complex Loops")
 clock = pygame.time.Clock()
 
-# --- 1. Player Setup ---
+# --- 2. Geometry Setup ---
+B_WIDTH, B_HEIGHT = s(200), s(150)
+OFFSET = s(40) # Lane Discipline Offset
+
+base_barriers = [
+    pygame.Rect(0, 0, B_WIDTH, B_HEIGHT),
+    pygame.Rect(TILE_W - B_WIDTH, 0, B_WIDTH, B_HEIGHT),
+    pygame.Rect(0, TILE_H - B_HEIGHT, B_WIDTH, B_HEIGHT),
+    pygame.Rect(TILE_W - B_WIDTH, TILE_H - B_HEIGHT, B_WIDTH, B_HEIGHT)
+]
+
+base_white = [
+    ((s(200), s(150)), (s(400), s(150))),
+    ((s(600), s(150)), (s(600), s(300))),
+    ((s(600), s(450)), (s(400), s(450))),
+    ((s(200), s(450)), (s(200), s(300)))  
+]
+
+base_yellow = [
+    ((s(400), 0),       (s(400), s(150))),
+    ((s(800), s(300)),  (s(600), s(300))),
+    ((s(400), s(600)),  (s(400), s(450))),
+    ((0,      s(300)),  (s(200), s(300)))  
+]
+
+# Map Offsets
+map_offsets = [
+    (TILE_W * 1, TILE_H * 1), # Center
+    (TILE_W * 1, 0),          # North
+    (TILE_W * 1, TILE_H * 2), # South
+    (0,          TILE_H * 1), # West
+    (TILE_W * 2, TILE_H * 1)  # East
+]
+
+final_barriers = []
+final_white_lines = []
+final_yellow_lines = []
+
+# Store center points of all intersections for navigation
+intersection_centers = []
+
+for offset_x, offset_y in map_offsets:
+    # Save the center point of this tile
+    cx = offset_x + s(400)
+    cy = offset_y + s(300)
+    intersection_centers.append((cx, cy))
+
+    for b in base_barriers:
+        final_barriers.append(b.move(offset_x, offset_y))
+    for start, end in base_white:
+        final_white_lines.append(((start[0] + offset_x, start[1] + offset_y), (end[0] + offset_x, end[1] + offset_y)))
+    for start, end in base_yellow:
+        final_yellow_lines.append(((start[0] + offset_x, start[1] + offset_y), (end[0] + offset_x, end[1] + offset_y)))
+
+black_void_rects = [
+    pygame.Rect(0, 0, TILE_W, TILE_H),
+    pygame.Rect(TILE_W * 2, 0, TILE_W, TILE_H),
+    pygame.Rect(0, TILE_H * 2, TILE_W, TILE_H),
+    pygame.Rect(TILE_W * 2, TILE_H * 2, TILE_W, TILE_H)
+]
+final_barriers.extend(black_void_rects)
+
+# White Line Collision Rects
+white_line_rects = []
+line_thick = max(1, s(10))
+for start, end in final_white_lines:
+    if start[0] == end[0]:
+        w, h = line_thick, abs(start[1] - end[1])
+        x, y = start[0] - w // 2, min(start[1], end[1])
+        white_line_rects.append(pygame.Rect(x, y, w, h))
+    else:
+        w, h = abs(start[0] - end[0]), line_thick
+        x, y = min(start[0], end[0]), start[1] - h // 2
+        white_line_rects.append(pygame.Rect(x, y, w, h))
+
+# --- 3. Player Setup ---
+PLAYER_SIZE = s(50)
+PLAYER_SPEED = s(7)
+
 try:
     player_image = pygame.image.load("player_ship.png").convert_alpha()
-    player_image = pygame.transform.scale(player_image, (50, 50))
+    player_image = pygame.transform.scale(player_image, (PLAYER_SIZE, PLAYER_SIZE))
 except:
-    player_image = pygame.Surface((50, 50))
+    player_image = pygame.Surface((PLAYER_SIZE, PLAYER_SIZE))
     player_image.fill((255, 0, 0))
 
-player_rect = player_image.get_rect(center=(400, 300))
+player_rect = player_image.get_rect(center=(WIDTH // 2, HEIGHT // 2))
 
-# --- 2. Barriers (Green Corners) ---
-B_WIDTH, B_HEIGHT = 200, 150
-barriers = [
-    pygame.Rect(0, 0, B_WIDTH, B_HEIGHT),
-    pygame.Rect(WIDTH - B_WIDTH, 0, B_WIDTH, B_HEIGHT),
-    pygame.Rect(0, HEIGHT - B_HEIGHT, B_WIDTH, B_HEIGHT),
-    pygame.Rect(WIDTH - B_WIDTH, HEIGHT - B_HEIGHT, B_WIDTH, B_HEIGHT)
-]
+# --- 4. Advanced Probe Logic ---
+probes = []
+PROBE_SPEED = s(5)
+WAIT_TIME = 1000
 
-# --- 3. Lines (White & Yellow) ---
-white_lines = [
-    ((200, 150), (400, 150)), # Top
-    ((600, 150), (600, 300)), # Right
-    ((600, 450), (400, 450)), # Bottom
-    ((200, 450), (200, 300))  # Left
-]
+def get_pivot_target(center, velocity, turn_type):
+    """
+    Calculates the exact (x, y) point where a car should turn inside an intersection.
+    Based on its velocity and whether it's turning Left or Right.
+    """
+    cx, cy = center
+    vx, vy = velocity
 
-yellow_lines = [
-    ((405, 0), (405, B_HEIGHT)),   # 1st Top edge to white line
-    ((395, 0), (395, B_HEIGHT)),   # 2nd Top edge to white line
-    ((800, 305), (800 - B_WIDTH, 305)), # 1st Right edge to white line
-    ((800, 295), (800 - B_WIDTH, 295)), # 2nd Right edge to white line
-    ((405, 800), (405, 600 - B_HEIGHT)), # 1st Bottom edge to white line
-    ((395, 800), (395, 600 - B_HEIGHT)), # 2nd Bottom edge to white line
-    ((0, 305), (B_WIDTH, 305)),   # 1st Left edge to white line
-    ((0, 295), (B_WIDTH, 295))    # 2st Left edge to white line
-]
+    # OFFSET is s(40)
+    # Logic:
+    # Left Turn: Go 40 units PAST the center (relative to direction)
+    # Right Turn: Go 40 units BEFORE the center (relative to direction)
 
-# --- 4. Car Setup (The Blue Squares) ---
-cars = []
-CAR_SPEED = 5
-WAIT_TIME = 5000 # 5 seconds
+    # Moving North (0, -1)
+    if vy < 0:
+        if turn_type == "LEFT":  return (cx + OFFSET, cy - OFFSET) # Past center
+        if turn_type == "RIGHT": return (cx + OFFSET, cy + OFFSET) # Before center
 
-# Mapping keys to: [spawn_center, velocity, target_coord, axis_to_check]
-spawn_data = {
-    pygame.K_w: {"pos": (450, 599), "vel": (0, -1), "target": 450, "axis": 1}, # Up from Bottom
-    pygame.K_s: {"pos": (350, 1),   "vel": (0, 1),  "target": 150, "axis": 1}, # Down from Top
-    pygame.K_a: {"pos": (799, 250), "vel": (-1, 0), "target": 600, "axis": 0}, # Left from Right
-    pygame.K_d: {"pos": (1, 350),   "vel": (1, 0),  "target": 200, "axis": 0}  # Right from Left
-}
+    # Moving South (0, 1)
+    if vy > 0:
+        if turn_type == "LEFT":  return (cx - OFFSET, cy + OFFSET) # Past center
+        if turn_type == "RIGHT": return (cx - OFFSET, cy - OFFSET) # Before center
+
+    # Moving West (-1, 0)
+    if vx < 0:
+        if turn_type == "LEFT":  return (cx - OFFSET, cy - OFFSET) # Past center
+        if turn_type == "RIGHT": return (cx + OFFSET, cy - OFFSET) # Before center
+
+    # Moving East (1, 0)
+    if vx > 0:
+        if turn_type == "LEFT":  return (cx + OFFSET, cy + OFFSET) # Past center
+        if turn_type == "RIGHT": return (cx - OFFSET, cy + OFFSET) # Before center
+
+    return None
+
+def get_pivot_target(center, velocity, turn_type):
+    cx, cy = center
+    vx, vy = velocity
+  
+    # Moving North (0, -1)
+    if vy < 0:
+        if turn_type == "LEFT":  return (cx + OFFSET, cy - OFFSET)
+        if turn_type == "RIGHT": return (cx + OFFSET, cy + OFFSET)
+       
+    # Moving South (0, 1)
+    if vy > 0:
+        if turn_type == "LEFT":  return (cx - OFFSET, cy + OFFSET)
+        if turn_type == "RIGHT": return (cx - OFFSET, cy - OFFSET)
+
+    # Moving West (-1, 0)
+    if vx < 0:
+        if turn_type == "LEFT":  return (cx - OFFSET, cy - OFFSET)
+        if turn_type == "RIGHT": return (cx + OFFSET, cy - OFFSET)
+
+    # Moving East (1, 0)
+    if vx > 0:
+        if turn_type == "LEFT":  return (cx + OFFSET, cy + OFFSET)
+        if turn_type == "RIGHT": return (cx - OFFSET, cy + OFFSET)
+       
+    return (cx, cy)
+
+def spawn_probe(key):
+    keys = pygame.key.get_pressed()
+   
+    # Explicit Shift Detection
+    mode = "STRAIGHT"
+    if keys[pygame.K_LSHIFT]: mode = "LEFT"
+    elif keys[pygame.K_RSHIFT] or keys[pygame.K_RETURN]: mode = "RIGHT"
+
+    # Intersection Indices: 1:N, 2:S, 3:W, 4:E
+    INT_N, INT_S, INT_W, INT_E = intersection_centers[1], intersection_centers[2], intersection_centers[3], intersection_centers[4]
+   
+    p_rect = pygame.Rect(0, 0, PLAYER_SIZE, PLAYER_SIZE)
+    vel = (0, 0)
+   
+    # SPAWN DISTANCES
+    # Straight cars can spawn far out (s(400))
+    # Turning cars spawn closer (s(250)) to stay clear of corner black voids
+    ALT_DIST = s(250)
+    STR_DIST = s(400)
+   
+    if key == pygame.K_w: # SOUTH INT
+        target_int = INT_S
+        if mode == "STRAIGHT":
+            p_rect.center = (target_int[0] + OFFSET, target_int[1] + STR_DIST); vel = (0, -1)
+        elif mode == "LEFT": # From West side of South Int
+            p_rect.center = (target_int[0] - ALT_DIST, target_int[1] - OFFSET); vel = (1, 0)
+        elif mode == "RIGHT": # From East side of South Int
+            p_rect.center = (target_int[0] + ALT_DIST, target_int[1] + OFFSET); vel = (-1, 0)
+
+    elif key == pygame.K_s: # NORTH INT
+        target_int = INT_N
+        if mode == "STRAIGHT":
+            p_rect.center = (target_int[0] - OFFSET, target_int[1] - STR_DIST); vel = (0, 1)
+        elif mode == "LEFT": # From East side of North Int
+            p_rect.center = (target_int[0] + ALT_DIST, target_int[1] + OFFSET); vel = (-1, 0)
+        elif mode == "RIGHT": # From West side of North Int
+            p_rect.center = (target_int[0] - ALT_DIST, target_int[1] - OFFSET); vel = (1, 0)
+
+    elif key == pygame.K_a: # EAST INT
+        target_int = INT_E
+        if mode == "STRAIGHT":
+            p_rect.center = (target_int[0] + STR_DIST, target_int[1] - OFFSET); vel = (-1, 0)
+        elif mode == "LEFT": # From South side of East Int
+            p_rect.center = (target_int[0] + OFFSET, target_int[1] + ALT_DIST); vel = (0, -1)
+        elif mode == "RIGHT": # From North side of East Int
+            p_rect.center = (target_int[0] - OFFSET, target_int[1] - ALT_DIST); vel = (0, 1)
+
+    elif key == pygame.K_d: # WEST INT
+        target_int = INT_W
+        if mode == "STRAIGHT":
+            p_rect.center = (target_int[0] - STR_DIST, target_int[1] + OFFSET); vel = (1, 0)
+        elif mode == "LEFT": # From North side of West Int
+            p_rect.center = (target_int[0] - OFFSET, target_int[1] - ALT_DIST); vel = (0, 1)
+        elif mode == "RIGHT": # From South side of West Int
+            p_rect.center = (target_int[0] + OFFSET, target_int[1] + ALT_DIST); vel = (0, -1)
+    else: return
+
+    probes.append({
+        "rect": p_rect, "vel": vel, "mode": mode, "state": "moving",
+        "timer": 0, "last_line_idx": -1, "turn_cooldown": 0, "spawn_time": pygame.time.get_ticks()
+    })
 
 # --- MAIN LOOP ---
 running = True
 while running:
     current_time = pygame.time.get_ticks()
-    
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        # SPAWN LOGIC
+        if event.type == pygame.QUIT: running = False
         if event.type == pygame.KEYDOWN:
-            if event.key in spawn_data:
-                sd = spawn_data[event.key]
-                new_car_rect = pygame.Rect(0, 0, 50, 50)
-                new_car_rect.center = sd["pos"]
-                
-                cars.append({
-                    "rect": new_car_rect,
-                    "vel": sd["vel"],
-                    "target": sd["target"],
-                    "axis": sd["axis"],
-                    "state": "moving",
-                    "timer": 0
-                })
+            if event.key in [pygame.K_w, pygame.K_s, pygame.K_a, pygame.K_d]:
+                spawn_probe(event.key)
 
-    # --- 5. Movement & Collisions (Player) ---
-    old_pos = player_rect.topleft
+    # Player Move
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT]:  player_rect.x -= 7
-    if keys[pygame.K_RIGHT]: player_rect.x += 7
-    if keys[pygame.K_UP]:    player_rect.y -= 7
-    if keys[pygame.K_DOWN]:  player_rect.y += 7
+    old_pos = player_rect.topleft
+    if keys[pygame.K_LEFT]:  player_rect.x -= PLAYER_SPEED
+    if keys[pygame.K_RIGHT]: player_rect.x += PLAYER_SPEED
+    if keys[pygame.K_UP]:    player_rect.y -= PLAYER_SPEED
+    if keys[pygame.K_DOWN]:  player_rect.y += PLAYER_SPEED
 
-    # Screen Boundaries
+    # Bounds
     if player_rect.left < 0: player_rect.left = 0
     if player_rect.right > WIDTH: player_rect.right = WIDTH
     if player_rect.top < 0: player_rect.top = 0
     if player_rect.bottom > HEIGHT: player_rect.bottom = HEIGHT
+    for wall in final_barriers:
+        if player_rect.colliderect(wall): player_rect.topleft = old_pos
 
-    # Barrier Collisions
-    for wall in barriers:
-        if player_rect.colliderect(wall):
-            player_rect.topleft = old_pos
-
-    # --- 6. Update Carss ---
-    for p in cars[:]:
+    # --- Probe Update ---
+    for p in probes[:]:
         if p["state"] == "moving":
-            p["rect"].x += p["vel"][0] * CAR_SPEED
-            p["rect"].y += p["vel"][1] * CAR_SPEED
-            
-            # Check if reached white line
-            val = p["rect"].centery if p["axis"] == 1 else p["rect"].centerx
-            # Logic: did we cross the target?
-            reached = False
-            if p["vel"][0] + p["vel"][1] > 0 and val >= p["target"]: reached = True
-            if p["vel"][0] + p["vel"][1] < 0 and val <= p["target"]: reached = True
-            
-            if reached:
-                p["state"] = "waiting"
-                p["timer"] = current_time
+            # 1. Move
+            p["rect"].x += p["vel"][0] * PROBE_SPEED
+            p["rect"].y += p["vel"][1] * PROBE_SPEED
+           
+            # Decrease turn cooldown
+            if p["turn_cooldown"] > 0: p["turn_cooldown"] -= 1
+
+            # 2. White Line Stop Logic
+            hit_any_line = False
+            for i, line_rect in enumerate(white_line_rects):
+                if p["rect"].colliderect(line_rect):
+                    hit_any_line = True
+                    if p["last_line_idx"] != i:
+                        p["state"] = "waiting"
+                        p["timer"] = current_time
+                        p["last_line_idx"] = i
+                    break
+            if not hit_any_line: p["last_line_idx"] = -1
+
+            # 3. Turning Logic (Only if not STRAIGHT)
+            if p["mode"] != "STRAIGHT" and p["turn_cooldown"] == 0:
+                for center in intersection_centers:
+                    target = get_pivot_target(center, p["vel"], p["mode"])
+               
+                    # Check if car has overlapped the target point
+                    # Using a slightly larger 'hitbox' for the turn trigger
+                    if p["rect"].collidepoint(target):
+                        p["rect"].center = target # Snap to lane
+                        vx, vy = p["vel"]
+                        if p["mode"] == "LEFT": p["vel"] = (vy, -vx) # CCW
+                        else: p["vel"] = (-vy, vx) # CW
+                        p["turn_cooldown"] = 30
+                        break
+
+            # 4. Despawn Logic (Ignore collision for first 500ms of life)
+            if pygame.time.get_ticks() - p["spawn_time"] > 500:
+                if p["rect"].collidelist(black_void_rects) != -1:
+                    probes.remove(p)
+                    continue
+            # Use larger buffer for screen bounds so they can spawn from outside
+            if not screen.get_rect().inflate(s(1000), s(1000)).colliderect(p["rect"]):
+                probes.remove(p)
 
         elif p["state"] == "waiting":
             if current_time - p["timer"] >= WAIT_TIME:
-                p["state"] = "exiting"
+                p["state"] = "moving"
 
-        elif p["state"] == "exiting":
-            p["rect"].x += p["vel"][0] * CAR_SPEED
-            p["rect"].y += p["vel"][1] * CAR_SPEED
-            
-            # Remove if fully off-screen
-            if not screen.get_rect().inflate(100, 100).colliderect(p["rect"]):
-                cars.remove(p)
-
-    # --- 7. Rendering ---
+    # --- Rendering ---
     screen.fill((150, 150, 150))
+    for void in black_void_rects: pygame.draw.rect(screen, (0, 0, 0), void)
+    for wall in final_barriers:
+        if wall not in black_void_rects: pygame.draw.rect(screen, (0, 255, 0), wall)
 
-    for wall in barriers:
-        pygame.draw.rect(screen, (50, 150, 50), wall)
+    for start, end in final_white_lines:
+        pygame.draw.line(screen, (255, 255, 255), start, end, line_thick)
+    for start, end in final_yellow_lines:
+        pygame.draw.line(screen, (255, 255, 0), start, end, line_thick)
 
-    for start, end in white_lines:
-        pygame.draw.line(screen, (255, 255, 255), start, end, 10)
-    
-    for start, end in yellow_lines:
-        pygame.draw.line(screen, (255, 255, 0), start, end, 5)
-
-    for p in cars:
-        pygame.draw.rect(screen, (0, 0, 255), p["rect"])
-
+    for p in probes: pygame.draw.rect(screen, (0, 0, 255), p["rect"])
     screen.blit(player_image, player_rect)
-
     pygame.display.flip()
     clock.tick(60)
 
-pygame.quit() 
+pygame.quit()
