@@ -26,7 +26,7 @@ Project: ATLAS is an affordable, privacy-first traffic management solution desig
 
 List the key features of your project. Use bullet points for clarity.
 
-- Feature 1: AI ALgorithm using PyGame & PyTorch
+- Feature 1: AI ALgorithm using PyGame, SUMO (Simulation of Urban MObility) & PyTorch AI
 - Feature 2: Cameras
 
 - ... (AI expanded version):
@@ -44,7 +44,7 @@ Explain the high-level design decisions and architecture of your project. Includ
 
 - AI Engine (PyTorch): We use a lightweight PyTorch model optimized for the "edge." The model performs object detection (identifying cars vs. pedestrians) and immediately converts these into numerical data points (e.g., "3 cars in Lane A, 1 pedestrian at Crosswalk B").
 
-- Simulation & Logic (PyGame): A PyGame environment acts as the central logic controller. It ingests the numerical data points to simulate the most efficient signal phase, testing and executing timing changes in a virtual-to-physical loop.
+- Simulation & Logic (PyGame & SUMO): The SUMO simulation environment acts as the central logic controller. It ingests the numerical data points to simulate the most efficient signal phase, testing and executing timing changes in a virtual-to-physical loop. This simulation will then be "re-drawn" by PyGame in order to make the visual aspects of the simulation more visually appealing.
 
 - Ephemeral Data Pipeline: To ensure privacy, the system follows an In-Flight Processing model. Once the AI extracts the necessary metadata (object count and position), the raw video buffer is overwritten. No footage is saved to a hard drive or sent to a central cloud server.
 
