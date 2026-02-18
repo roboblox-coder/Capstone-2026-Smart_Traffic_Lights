@@ -1,0 +1,26 @@
+<data>
+    <interval id="harvard" begin="0" end="3600">
+        <edge id="427906774" entered="737"/>
+        <edge id="243441994#0" entered="734"/>
+        <edge id="513490801#0" entered="710"/>
+        <edge id="513503501#0" entered="1160"/>
+        <edge id="770771941#0" entered="547"/>
+        <edge id="-622484162#7" entered="390"/>
+        <edge id="513503512" entered="919"/>
+        <edge id="513503507" entered="1421"/>
+        <edge id="402083655#0" entered="609"/>
+        <edge id="-427906729#2" entered="263"/>
+        <edge id="1262800969" entered="695"/>
+        <edge id="592232752#0" entered="1071"/>
+        <edge id="750007896#0" entered="1426"/>
+        <edge id="885517650#0" entered="1792"/>
+        <edge id="-513238726" entered="479"/>
+        <edge id="402083657#0" entered="381"/>
+        <edge id="427906923" entered="1359"/>
+        <edge id="427906927#0" entered="1623"/>
+        <edge id="421760949" entered="807"/>
+        <edge id="-428073486" entered="1227"/>
+        <edge id="428073532" entered="1501"/>
+        <edge id="428073550#0" entered="1323"/>
+    </interval>
+</data>
