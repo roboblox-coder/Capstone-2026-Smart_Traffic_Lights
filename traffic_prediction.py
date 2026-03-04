@@ -1,3 +1,9 @@
+"""
+ATLAS Traffic Prediction Model - Baseline Implementation
+Author: Synaptix Team
+Date: December 2024
+"""
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
