@@ -6,9 +6,15 @@ import sys
 # Base name for your output folders
 base_folder_name = "Simulation_Data"
 
-# Path to your SUMO tools (Using your specific path from previous screenshots)
-# If this fails, we will try to detect it automatically.
-tools_path = r"C:\Users\Duke3\AppData\Local\Programs\Python\Python313\Lib\site-packages\sumo\tools"
+# Auto-detect SUMO tools path
+SUMO_HOME = os.environ.get("SUMO_HOME")
+if not SUMO_HOME:
+    try:
+        import sumolib as _sl
+        SUMO_HOME = os.path.dirname(os.path.dirname(_sl.__file__))
+    except ImportError:
+        sys.exit("❌ Error: Set SUMO_HOME or install sumolib (pip install sumolib)")
+tools_path = os.path.join(SUMO_HOME, "tools")
 xml2csv_script = os.path.join(tools_path, "xml", "xml2csv.py")
 
 # --- 1. FIND THE NEXT FOLDER NUMBER ---

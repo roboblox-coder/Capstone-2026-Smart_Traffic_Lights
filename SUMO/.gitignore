@@ -1,0 +1,15 @@
+# Virtual environment
+.venv/
+
+# Simulation output data (regenerated per run)
+v2/Simulation_Data_*/
+v2/TraCI_Simulation_Data_*/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp

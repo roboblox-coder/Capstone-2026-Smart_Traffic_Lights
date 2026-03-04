@@ -16,14 +16,18 @@ OUTPUT_ROUTES = "harvard_simulation.rou.xml"
 TARGET_INTS = [7, 16, 21, 27, 26, 30]
 
 # Auto-detect SUMO Tools
-SUMO_HOME = os.environ.get("SUMO_HOME", r"C:\Users\Duke3\AppData\Local\Programs\Python\Python313\Lib\site-packages\sumo")
-RANDOM_TRIPS = os.path.join(SUMO_HOME, "tools", "randomTrips.py")
-ROUTE_SAMPLER = os.path.join(SUMO_HOME, "tools", "routeSampler.py")
-
 try:
     import sumolib
 except ImportError:
     sys.exit("❌ Error: 'sumolib' not found. Run: pip install sumolib")
+
+SUMO_HOME = os.environ.get("SUMO_HOME")
+if not SUMO_HOME:
+    # Auto-detect from installed sumolib package
+    SUMO_HOME = os.path.dirname(os.path.dirname(sumolib.__file__))
+
+RANDOM_TRIPS = os.path.join(SUMO_HOME, "tools", "randomTrips.py")
+ROUTE_SAMPLER = os.path.join(SUMO_HOME, "tools", "routeSampler.py")
 
 # --- HELPER FUNCTIONS ---
 def normalize_name(name):
