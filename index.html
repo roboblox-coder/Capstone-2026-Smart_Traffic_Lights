@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synaptix AI Architecture</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Babel for in-browser JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Import Map for ES Modules -->
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react"
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#0a0f1c] m-0 p-0 overflow-hidden font-sans text-slate-100">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useEffect, useRef } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import * as THREE from 'three';
+    import { ChevronRight, ChevronLeft, Brain, Activity, Database, Network, Cpu, Wifi, WifiOff, MessageSquare, Send, X, Sparkles, Loader2, Users } from 'lucide-react';
+
+    function App() {
+      const mountRef = useRef(null);
+      const [currentStep, setCurrentStep] = useState(0);
+      const [wsStatus, setWsStatus] = useState('connecting'); // 'connecting', 'connected', 'disconnected'
+      const [liveMetrics, setLiveMetrics] = useState({ activeVehicles: 0, avgWaitTime: 0 });
+      
+      // --- AI Assistant State ---
+      const [isChatOpen, setIsChatOpen] = useState(false);
+      const [chatMessages, setChatMessages] = useState([
+        { role: 'assistant', text: "Hello! I'm the Synaptix AI. I am actively monitoring the traffic simulation. Ask me anything about our architecture or the data on the current slide." }
+      ]);
+      const [chatInput, setChatInput] = useState('');
+      const [isChatLoading, setIsChatLoading] = useState(false);
+      const chatEndRef = useRef(null);
+
+      // Use a ref for live data so the ThreeJS animation loop can read it without triggering re-renders
+      const liveDataRef = useRef({ intensity: 1.0 });
+
+      // --- WebSocket Connection ---
+      useEffect(() => {
+        // Replace with your actual WebSocket domain and endpoint when deployed
+        const WS_URL = 'wss://api.synaptixai-traffic-optimization.com/ws/sumo';
+        let socket;
+        let mockInterval;
+
+        const connectWebSocket = () => {
+          try {
+            // BYPASSED FOR PROTOTYPING: 
+            // Commenting this out prevents the browser's DNS "ERR_NAME_NOT_RESOLVED" error 
+            // since the domain is not currently live.
+            // socket = new WebSocket(WS_URL);
+
+            // Simulate an immediate fallback to offline mode
+            setTimeout(() => {
+              setWsStatus('disconnected');
+              console.log("WebSocket bypassed for prototyping: Operating in OFFLINE MODE.");
+            }, 100);
+
+            /* --- UNCOMMENT THIS BLOCK WHEN YOUR BACKEND IS LIVE ---
+            socket.onopen = () => {
+              setWsStatus('connected');
+              console.log('Connected to SUMO live data stream.');
+            };
+
+            socket.onmessage = (event) => {
+              try {
+                const data = JSON.parse(event.data);
+                // Example: Update React UI state
+                if (data.metrics) setLiveMetrics(data.metrics);
+                // Example: Update ThreeJS animation variables
+                if (data.networkIntensity) liveDataRef.current.intensity = data.networkIntensity;
+              } catch (e) {
+                console.error("Error parsing WS data", e);
+              }
+            };
+
+            socket.onclose = () => {
+              setWsStatus('disconnected');
+              // Optional: Implement reconnection logic here
+            };
+
+            socket.onerror = (error) => {
+              setWsStatus('disconnected');
+              console.warn("WebSocket unavailable: Operating in OFFLINE MODE with mock data.");
+            };
+            ------------------------------------------------------ */
+          } catch (err) {
+            setWsStatus('disconnected');
+          }
+        };
+
+        connectWebSocket();
+
+        // MOCK DATA GENERATOR (For presentation purposes if the WS fails to connect)
+        // Remove this in production once your backend is live!
+        mockInterval = setInterval(() => {
+          if (wsStatus !== 'connected') {
+            setLiveMetrics({
+              activeVehicles: Math.floor(1200 + Math.random() * 300),
+              avgWaitTime: (12.4 + Math.random() * 2.1).toFixed(1)
+            });
+            liveDataRef.current.intensity = 0.8 + Math.random() * 0.4; // Fluctuate network brightness
+          }
+        }, 2000);
+
+        return () => {
+          if (socket) socket.close();
+          clearInterval(mockInterval);
+        };
+      }, [wsStatus]);
+
+      // Presentation Content Data
+      const presentationSteps = [
+        {
+          title: "The Synaptix Architecture",
+          subtitle: "Next-Generation Traffic Optimization",
+          description: "Our advanced AI pipeline bridges the gap between raw traffic simulations and real-time, adaptive neural control.",
+          icon: <Network className="w-8 h-8 text-cyan-400" />,
+          camPos: new THREE.Vector3(0, 0, 15),
+          lookAt: new THREE.Vector3(0, 0, 0)
+        },
+        {
+          title: "Data Ingestion (SUMO)",
+          subtitle: "Live Telemetry & State Extraction",
+          description: "Extracting high-fidelity vehicle coordinates, velocities, and queue lengths via TraCI API from the SUMO backend at 60 ticks per second.",
+          icon: <Database className="w-8 h-8 text-blue-400" />,
+          camPos: new THREE.Vector3(-8, 3, 6),
+          lookAt: new THREE.Vector3(-4, 0, 0)
+        },
+        {
+          title: "Neural Core Processing",
+          subtitle: "Deep Reinforcement Learning",
+          description: "Data flows into our DRL model. Multi-layer perceptrons evaluate state spaces to determine optimal phase durations and minimize wait times.",
+          icon: <Brain className="w-8 h-8 text-purple-400" />,
+          camPos: new THREE.Vector3(0, 2, 5),
+          lookAt: new THREE.Vector3(0, 0, 0)
+        },
+        {
+          title: "Adaptive Signal Output",
+          subtitle: "Dynamic Actuation",
+          description: "The agent pushes state changes back to the SUMO network, immediately alleviating congestion and adapting to spontaneous traffic events.",
+          icon: <Activity className="w-8 h-8 text-emerald-400" />,
+          camPos: new THREE.Vector3(8, -2, 6),
+          lookAt: new THREE.Vector3(4, 0, 0)
+        },
+        {
+          title: "Created by",
+          subtitle: "The Synaptix Team",
+          description: "", // Omitting standard description for custom content
+          icon: <Users className="w-8 h-8 text-rose-400" />,
+          camPos: new THREE.Vector3(0, 8, 4), // Higher angle looking down
+          lookAt: new THREE.Vector3(0, 0, 0),
+          content: (
+            <div className="flex flex-col space-y-3 mt-4 w-full">
+              <div className="flex items-center space-x-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-colors shadow-sm">
+                <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]"></div>
+                <span className="text-xl font-medium text-white tracking-wide">Duke Schnepf</span>
+              </div>
+              <div className="flex items-center space-x-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-colors shadow-sm">
+                <div className="w-3 h-3 rounded-full bg-purple-400 shadow-[0_0_10px_rgba(192,38,211,0.5)]"></div>
+                <span className="text-xl font-medium text-white tracking-wide">Nikolaus Henkel</span>
+              </div>
+              <div className="flex items-center space-x-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-colors shadow-sm">
+                <div className="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"></div>
+                <span className="text-xl font-medium text-white tracking-wide">Cory Maccini</span>
+              </div>
+              <div className="flex items-center space-x-4 bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-colors shadow-sm">
+                <div className="w-3 h-3 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]"></div>
+                <span className="text-xl font-medium text-white tracking-wide">Ryan Liang</span>
+              </div>
+            </div>
+          )
+        }
+      ];
+
+      useEffect(() => {
+        if (!mountRef.current) return;
+
+        // --- Scene Setup ---
+        const scene = new THREE.Scene();
+        // Add a subtle fog for depth
+        scene.fog = new THREE.FogExp2(0x0a0f1c, 0.04);
+
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          mountRef.current.clientWidth / mountRef.current.clientHeight,
+          0.1,
+          1000
+        );
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        mountRef.current.appendChild(renderer.domElement);
+
+        // --- Create AI Architecture Visualization ---
+        const mainGroup = new THREE.Group();
+        scene.add(mainGroup);
+
+        // 1. Central AI Core (Glowing Sphere)
+        const coreGeometry = new THREE.IcosahedronGeometry(1.5, 3);
+        const coreMaterial = new THREE.MeshBasicMaterial({ 
+          color: 0xbd00ff, 
+          wireframe: true,
+          transparent: true,
+          opacity: 0.3
+        });
+        const core = new THREE.Mesh(coreGeometry, coreMaterial);
+        mainGroup.add(core);
+
+        // Inner solid core
+        const innerCoreGeo = new THREE.IcosahedronGeometry(1.2, 2);
+        const innerCoreMat = new THREE.MeshBasicMaterial({ color: 0x8a2be2 });
+        const innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat);
+        mainGroup.add(innerCore);
+
+        // 2. Nodes and Connections (Neural Network / SUMO Intersections)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particleCount = 200;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        const color1 = new THREE.Color(0x00f3ff); // Cyan (Data/SUMO)
+        const color2 = new THREE.Color(0xbd00ff); // Purple (AI)
+
+        for (let i = 0; i < particleCount; i++) {
+          // Create an elliptical/cloud distribution
+          const r = 4 + Math.random() * 6;
+          const theta = Math.random() * 2 * Math.PI;
+          const phi = Math.acos((Math.random() * 2) - 1);
+
+          const x = r * Math.sin(phi) * Math.cos(theta);
+          const y = (r * Math.sin(phi) * Math.sin(theta)) * 0.5; // Flatten Y for a disk-like network
+          const z = r * Math.cos(phi);
+
+          positions[i * 3] = x;
+          positions[i * 3 + 1] = y;
+          positions[i * 3 + 2] = z;
+
+          // Mix colors based on X position (Left = Cyan/Data, Right = Purple/Output)
+          const mixRatio = (x + 10) / 20; 
+          const mixedColor = color1.clone().lerp(color2, mixRatio);
+          
+          colors[i * 3] = mixedColor.r;
+          colors[i * 3 + 1] = mixedColor.g;
+          colors[i * 3 + 2] = mixedColor.b;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+          size: 0.15,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.8,
+          blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+        mainGroup.add(particles);
+
+        // 3. Lines connecting nearby nodes
+        const lineMaterial = new THREE.LineBasicMaterial({
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.15,
+          blending: THREE.AdditiveBlending
+        });
+
+        const lineGeometry = new THREE.BufferGeometry();
+        const linePositions = [];
+        const lineColors = [];
+
+        // Connect particles that are close to each other
+        for (let i = 0; i < particleCount; i++) {
+          for (let j = i + 1; j < particleCount; j++) {
+            const dx = positions[i * 3] - positions[j * 3];
+            const dy = positions[i * 3 + 1] - positions[j * 3 + 1];
+            const dz = positions[i * 3 + 2] - positions[j * 3 + 2];
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+            if (dist < 2.5) {
+              linePositions.push(
+                positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2],
+                positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]
+              );
+              lineColors.push(
+                colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2],
+                colors[j * 3], colors[j * 3 + 1], colors[j * 3 + 2]
+              );
+            }
+          }
+        }
+
+        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+        lineGeometry.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 3));
+        const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+        mainGroup.add(lines);
+
+        // Set initial camera position
+        camera.position.copy(presentationSteps[0].camPos);
+        camera.lookAt(presentationSteps[0].lookAt);
+
+        // --- Animation & Interaction ---
+        let animationFrameId;
+        let clock = new THREE.Clock();
+
+        // Store current target for smooth interpolation
+        const currentCamPos = camera.position.clone();
+        const currentLookAt = presentationSteps[0].lookAt.clone();
+
+        // Make target variables accessible to the render loop but updatable by React state
+        mountRef.current.targetCamPos = presentationSteps[0].camPos;
+        mountRef.current.targetLookAt = presentationSteps[0].lookAt;
+
+        const animate = () => {
+          const elapsedTime = clock.getElapsedTime();
+          
+          // Get live intensity from WebSocket (or mock)
+          const currentIntensity = liveDataRef.current.intensity;
+
+          // Rotate entire structure slowly
+          mainGroup.rotation.y = elapsedTime * 0.05 * currentIntensity;
+          mainGroup.rotation.z = Math.sin(elapsedTime * 0.1) * 0.05;
+
+          // Pulse the core based on live data
+          const pulseScale = 1 + Math.sin(elapsedTime * 2) * 0.05 * currentIntensity;
+          core.scale.set(pulseScale, pulseScale, pulseScale);
+          coreMaterial.opacity = (0.3 + Math.sin(elapsedTime * 3) * 0.1) * currentIntensity;
+
+          // Smoothly interpolate camera position and lookAt based on current step
+          if (mountRef.current.targetCamPos) {
+            currentCamPos.lerp(mountRef.current.targetCamPos, 0.03);
+            camera.position.copy(currentCamPos);
+          }
+          
+          if (mountRef.current.targetLookAt) {
+            currentLookAt.lerp(mountRef.current.targetLookAt, 0.03);
+            camera.lookAt(currentLookAt);
+          }
+
+          renderer.render(scene, camera);
+          animationFrameId = requestAnimationFrame(animate);
+        };
+
+        animate();
+
+        // Handle Window Resize
+        const handleResize = () => {
+          if (!mountRef.current) return;
+          camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+        };
+        window.addEventListener('resize', handleResize);
+
+        // Cleanup
+        return () => {
+          window.removeEventListener('resize', handleResize);
+          cancelAnimationFrame(animationFrameId);
+          if (mountRef.current && renderer.domElement) {
+            mountRef.current.removeChild(renderer.domElement);
+          }
+          renderer.dispose();
+          scene.clear();
+        };
+      }, []); // Run once on mount
+
+      // Update ThreeJS target positions when React state changes
+      useEffect(() => {
+        if (mountRef.current) {
+          mountRef.current.targetCamPos = presentationSteps[currentStep].camPos;
+          mountRef.current.targetLookAt = presentationSteps[currentStep].lookAt;
+        }
+      }, [currentStep]);
+
+      const nextStep = () => {
+        setCurrentStep((prev) => Math.min(prev + 1, presentationSteps.length - 1));
+      };
+
+      const prevStep = () => {
+        setCurrentStep((prev) => Math.max(prev - 1, 0));
+      };
+
+      // --- Gemini AI Integration ---
+      const handleAskGemini = async (userText, isQuickAction = false) => {
+        if (!userText.trim()) return;
+        
+        const newMessages = [...chatMessages, { role: 'user', text: userText }];
+        if (!isQuickAction) {
+            setChatMessages(newMessages);
+            setChatInput('');
+        }
+        setIsChatLoading(true);
+
+        const apiKey = ""; // The execution environment will inject the API key here
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        
+        const currentSlide = presentationSteps[currentStep];
+        
+        // Dynamically build prompt context based on UI state
+        const systemContext = `You are the Synaptix AI Assistant, an advanced conversational AI helping a user understand a traffic optimization presentation. 
+        Current Context:
+        - Active Slide Title: "${currentSlide.title}"
+        - Slide Details: "${currentSlide.description}"
+        - Live Simulation Data: ${liveMetrics.activeVehicles} active vehicles, ${liveMetrics.avgWaitTime}s average wait time.
+        
+        Adopt a concise, highly professional, and slightly futuristic tone. Explain technical concepts clearly. Do not invent new company features, just elaborate on the slide concepts and how the mock live metrics relate to them. Limit responses to 2 short paragraphs maximum.`;
+
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userText }] }],
+              systemInstruction: { parts: [{ text: systemContext }] },
+              generationConfig: { temperature: 0.7 }
+            })
+          });
+          const result = await response.json();
+          if (result.error) throw new Error(result.error.message);
+          
+          const botResponse = result.candidates[0].content.parts[0].text;
+          setChatMessages(prev => [...prev, { role: 'assistant', text: botResponse }]);
+        } catch (err) {
+          console.error("Gemini API Error:", err);
+          setChatMessages(prev => [...prev, { role: 'assistant', text: "My neural link to the language model is currently unstable. Please try again in a moment." }]);
+        } finally {
+          setIsChatLoading(false);
+        }
+      };
+
+      const handleQuickExplain = () => {
+        setIsChatOpen(true);
+        const prompt = `Can you elaborate on the concepts on this slide ("${presentationSteps[currentStep].title}") and tell me how they might affect our current live metrics (${liveMetrics.activeVehicles} vehicles, ${liveMetrics.avgWaitTime}s wait)?`;
+        setChatMessages(prev => [...prev, { role: 'user', text: prompt }]);
+        handleAskGemini(prompt, true);
+      };
+
+      // Auto-scroll chat to bottom
+      useEffect(() => {
+        if (chatEndRef.current) {
+          chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, [chatMessages, isChatOpen]);
+
+      return (
+        <div className="relative w-full h-screen bg-[#0a0f1c] text-slate-100 overflow-hidden font-sans">
+          {/* Three.js Canvas Container */}
+          <div ref={mountRef} className="absolute inset-0 z-0" />
+
+          {/* UI Overlay */}
+          <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-6 md:p-12">
+            
+            {/* Header */}
+            <header className="flex justify-between items-center pointer-events-auto">
+              <a href="https://www.synaptixai-traffic-optimization.com" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                  <Cpu className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <h1 className="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 leading-none">
+                    SYNAPTIX
+                  </h1>
+                  <span className="text-[10px] text-slate-400 tracking-widest mt-1 uppercase">www.synaptixai-traffic-optimization.com</span>
+                </div>
+              </a>
+
+              {/* Center Navigation Steps */}
+              <div className="hidden md:flex space-x-2 absolute left-1/2 transform -translate-x-1/2">
+                {presentationSteps.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      idx === currentStep ? 'w-8 bg-cyan-400' : 'w-2 bg-slate-700'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* WebSocket Status & Live Metrics */}
+              <div className="flex items-center space-x-4 bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/5">
+                <div className="hidden lg:flex items-center space-x-4 mr-4 border-r border-white/10 pr-4">
+                  <div className="flex flex-col text-right">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-widest">Active Vehicles</span>
+                    <span className="text-sm font-mono text-cyan-400">{liveMetrics.activeVehicles.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-col text-right">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-widest">Avg Wait</span>
+                    <span className="text-sm font-mono text-purple-400">{liveMetrics.avgWaitTime}s</span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {wsStatus === 'connected' ? (
+                    <Wifi className="w-4 h-4 text-emerald-400 animate-pulse" />
+                  ) : (
+                    <WifiOff className="w-4 h-4 text-rose-400" />
+                  )}
+                  <span className={`text-xs font-medium tracking-wide ${wsStatus === 'connected' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {wsStatus === 'connected' ? 'LIVE SUMO LINK' : 'OFFLINE MODE'}
+                  </span>
+                </div>
+              </div>
+            </header>
+
+            {/* Presentation Content Panel */}
+            <div className="flex items-end justify-between pointer-events-auto">
+              
+              <div className="max-w-xl bg-slate-900/40 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl transform transition-all duration-700 hover:bg-slate-900/50">
+                <div className="mb-4 inline-block p-3 bg-white/5 rounded-xl border border-white/5">
+                  {presentationSteps[currentStep].icon}
+                </div>
+                <p className="text-cyan-400 font-medium tracking-widest text-sm mb-2 uppercase">
+                  {currentStep === presentationSteps.length - 1 ? 'Finale' : `Step 0${currentStep + 1}`}
+                </p>
+                <h2 className="text-3xl md:text-4xl font-bold mb-3 text-white">
+                  {presentationSteps[currentStep].title}
+                </h2>
+                <h3 className="text-xl text-slate-300 mb-4 font-light">
+                  {presentationSteps[currentStep].subtitle}
+                </h3>
+                {presentationSteps[currentStep].description && (
+                  <p className="text-slate-400 leading-relaxed text-lg">
+                    {presentationSteps[currentStep].description}
+                  </p>
+                )}
+
+                {/* Render custom content like the team list if it exists */}
+                {presentationSteps[currentStep].content && presentationSteps[currentStep].content}
+
+                {/* Quick Action AI Button */}
+                <button 
+                  onClick={handleQuickExplain}
+                  disabled={isChatLoading}
+                  className="mt-6 flex items-center space-x-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/30 border border-purple-500/30 rounded-full text-purple-300 transition-all duration-300 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)] text-sm font-medium"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>✨ Ask AI to elaborate</span>
+                </button>
+              </div>
+
+              {/* Controls */}
+              <div className="flex flex-col space-y-4 ml-8">
+                <button 
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  className={`p-4 rounded-full border border-white/10 backdrop-blur-md transition-all ${
+                    currentStep === 0 
+                    ? 'opacity-30 cursor-not-allowed bg-slate-800/30' 
+                    : 'bg-white/5 hover:bg-white/10 hover:scale-105 active:scale-95'
+                  }`}
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button 
+                  onClick={nextStep}
+                  disabled={currentStep === presentationSteps.length - 1}
+                  className={`p-4 rounded-full border border-white/10 backdrop-blur-md transition-all ${
+                    currentStep === presentationSteps.length - 1 
+                    ? 'opacity-30 cursor-not-allowed bg-slate-800/30' 
+                    : 'bg-gradient-to-br from-cyan-500/20 to-purple-600/20 hover:from-cyan-500/40 hover:to-purple-600/40 hover:scale-105 active:scale-95 shadow-lg shadow-cyan-500/10'
+                  }`}
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Floating Chat Toggle Button */}
+          <button
+            onClick={() => setIsChatOpen(!isChatOpen)}
+            className={`absolute bottom-8 right-8 z-50 p-4 rounded-full shadow-2xl transition-all duration-500 ${isChatOpen ? 'bg-slate-800 text-white border border-white/10 rotate-90 scale-0 opacity-0 pointer-events-none' : 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white hover:scale-110 hover:shadow-cyan-500/20 rotate-0 scale-100 opacity-100'}`}
+          >
+            <MessageSquare className="w-6 h-6" />
+          </button>
+
+          {/* AI Assistant Chat Panel */}
+          <div className={`absolute top-0 right-0 h-full w-full sm:w-[400px] bg-slate-900/95 backdrop-blur-2xl border-l border-white/10 z-40 transform transition-transform duration-500 ease-in-out flex flex-col ${isChatOpen ? 'translate-x-0 shadow-[-20px_0_50px_rgba(0,0,0,0.5)]' : 'translate-x-full'}`}>
+            {/* Chat Header */}
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-cyan-500/10 to-purple-600/10">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg border border-purple-500/30">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-white">Synaptix AI</h3>
+                  <p className="text-xs text-cyan-400 flex items-center"><span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse mr-2"></span> Neural Link Active</p>
+                </div>
+              </div>
+              <button onClick={() => setIsChatOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] rounded-2xl p-4 ${
+                    msg.role === 'user' 
+                      ? 'bg-gradient-to-br from-cyan-600 to-blue-600 text-white rounded-tr-sm' 
+                      : 'bg-slate-800/80 border border-white/5 text-slate-200 rounded-tl-sm'
+                  }`}>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                  </div>
+                </div>
+              ))}
+              {isChatLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-slate-800/80 border border-white/5 rounded-2xl p-4 rounded-tl-sm flex items-center space-x-3">
+                    <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                    <span className="text-sm text-slate-400">Processing telemetry...</span>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Chat Input */}
+            <div className="p-6 border-t border-white/10 bg-slate-900">
+              <form 
+                onSubmit={(e) => { e.preventDefault(); handleAskGemini(chatInput); }}
+                className="flex items-center space-x-2"
+              >
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Ask about the architecture..."
+                  className="flex-1 bg-slate-800 border border-white/10 rounded-full px-5 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder-slate-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim() || isChatLoading}
+                  className="p-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-full text-white transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      );
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html> 
