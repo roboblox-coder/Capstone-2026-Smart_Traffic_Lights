@@ -112,7 +112,7 @@
 
         // Global Camera positioned to see all 3 sections seamlessly connected
         const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 4000);
-        camera.position.set(80, 450, 550); // Shifted right to balance the larger Sec 3 width
+        camera.position.set(-40, 450, 600); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -122,7 +122,7 @@
         container.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(80, 0, 0); // Focus on the center point of the stitched mega-map
+        controls.target.set(-40, 0, 0); // Focus on the center point of the stitched mega-map
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.maxPolarAngle = Math.PI / 2 - 0.05;
@@ -131,7 +131,7 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
-        // One massive directional light to cover all 3 segments (-200 to +400 X axis)
+        // One massive directional light to cover all 3 segments (-300 to +400 X axis)
         const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
         dirLight.position.set(200, 500, -200);
         dirLight.castShadow = true;
@@ -139,21 +139,26 @@
         dirLight.shadow.mapSize.height = 4096;
         dirLight.shadow.camera.near = 10;
         dirLight.shadow.camera.far = 2000;
-        dirLight.shadow.camera.left = -700;
-        dirLight.shadow.camera.right = 700;
+        dirLight.shadow.camera.left = -800;
+        dirLight.shadow.camera.right = 800;
         dirLight.shadow.camera.top = 500;
         dirLight.shadow.camera.bottom = -500;
         dirLight.shadow.bias = -0.0005;
         scene.add(dirLight);
 
         // =========================================================
-        // SECTION 1: LEFT SIDE (Bellevue 2.5D Layout)
+        // SECTION 1: LEFT SIDE (Bellevue 2.5D Layout - SCALED UP)
         // =========================================================
         function buildSection1Left() {
             const group = new THREE.Group();
+            
+            // Global scale factor for Section 1 to match Section 2 proportions
+            // A main road width of 5 * 1.6 = exactly 8
+            const S = 1.6;
 
             // Ground Plane (Spliced to perfectly touch the middle section)
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(90, 200), new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9 })); // Color updated to match Sec 2
+            // Original width 90 * 1.6 = 144
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(90 * S, 200), new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9 })); 
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             group.add(ground);
@@ -162,9 +167,20 @@
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x111214, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -1 });
             const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
+            // Array to store exact road bounding boxes for building collision
+            const sec1RoadBounds = [];
+
             function drawRoad(x1, z1, x2, z2, width) {
                 const dx = x2 - x1, dz = z2 - z1;
                 const length = Math.sqrt(dx*dx + dz*dz);
+                
+                // Calculate and store exact bounding boxes for collision detection
+                const minX = Math.min(x1, x2) - width/2;
+                const maxX = Math.max(x1, x2) + width/2;
+                const minZ = Math.min(z1, z2) - width/2;
+                const maxZ = Math.max(z1, z2) + width/2;
+                sec1RoadBounds.push({ minX, maxX, minZ, maxZ });
+
                 const mesh = new THREE.Mesh(new THREE.PlaneGeometry(length + width, width), roadMat);
                 mesh.position.set((x1+x2)/2, 0.1, (z1+z2)/2); // Standardized horizontal elevation
                 mesh.rotation.x = -Math.PI / 2;
@@ -196,34 +212,46 @@
                 }
             }
 
-            drawRoad(-45, 0, 45, 0, 8);       // Standardized to 8 width to seamlessly connect
-            drawRoad(-12, -45, -12, 45, 4.5); 
-            drawRoad(15, -45, 15, 45, 4.5);   
-            drawRoad(-25, 0, -25, -45, 2.5);  
-            drawRoad(-25, -15, -12, -15, 2.5);
-            drawRoad(-12, 20, 15, 20, 2.5);   
-            drawRoad(15, -15, 20, -15, 2.5);
-            drawRoad(20, -15, 20, -20, 2.5);
-            drawRoad(20, -20, 32, -20, 2.5);
+            // Drawn proportional to S factor
+            drawRoad(-45*S, 0, 45*S, 0, 5*S);       
+            drawRoad(-12*S, -45*S, -12*S, 45*S, 4.5*S); 
+            drawRoad(15*S, -45*S, 15*S, 45*S, 4.5*S);   
+            drawRoad(-25*S - 5, 0, -25*S - 5, -45*S, 2.5*S);  
+            drawRoad(-25*S - 5, -15*S - 5, -12*S, -15*S - 5, 2.5*S);
+            drawRoad(-12*S, 20*S, 15*S, 20*S, 2.5*S);   
+            drawRoad(15*S, -20*S, 32*S, -20*S, 2.5*S); // Straightened the zig-zag road
+
+            // Collision check function for Section 1 buildings
+            function isOverlappingRoadSec1(bx, bz, bw, bd) {
+                const bMinX = bx - bw / 2 - 2; // small buffer
+                const bMaxX = bx + bw / 2 + 2;
+                const bMinZ = bz - bd / 2 - 2;
+                const bMaxZ = bz + bd / 2 + 2;
+
+                for (let bounds of sec1RoadBounds) {
+                    if (bMinX < bounds.maxX && bMaxX > bounds.minX && bMinZ < bounds.maxZ && bMaxZ > bounds.minZ) {
+                        return true; 
+                    }
+                }
+                return false;
+            }
 
             // Bellevue City Blocks
             const bMat = new THREE.MeshStandardMaterial({ color: 0x3a404a, roughness: 0.6 }), wMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
-            for(let x = -40; x <= 40; x += 8) {
-                for(let z = -40; z <= 40; z += 8) {
-                    let nearRoad = false;
-                    if (Math.abs(z) < 6) nearRoad = true;
-                    if (Math.abs(x - (-12)) < 6) nearRoad = true;
-                    if (Math.abs(x - 15) < 6) nearRoad = true;
-                    if (Math.abs(x - (-25)) < 4 && z < 0) nearRoad = true;
-                    if (z > 17 && z < 23 && x > -15 && x < 20) nearRoad = true;
-                    if (z > -18 && z < -12 && x < -10) nearRoad = true;
-                    if (z > -23 && z < -12 && x > 15) nearRoad = true;
+            for(let x = -40*S; x <= 40*S; x += 8*S) {
+                for(let z = -40*S; z <= 40*S; z += 8*S) {
+                    const bWidth = (3 + Math.random() * 4) * S;
+                    const bDepth = (3 + Math.random() * 4) * S;
+                    const bx = x + (Math.random() * 2*S - S);
+                    const bz = z + (Math.random() * 2*S - S);
 
-                    if (!nearRoad && Math.random() > 0.4) {
+                    // Replaced hardcoded bounds with exact road box checks
+                    if (!isOverlappingRoadSec1(bx, bz, bWidth, bDepth) && Math.random() > 0.4) {
                         const isTower = Math.random() > 0.85;
-                        const height = isTower ? 15 + Math.random() * 20 : 4 + Math.random() * 6; 
-                        const bldg = new THREE.Mesh(new THREE.BoxGeometry(3 + Math.random() * 4, height, 3 + Math.random() * 4), isTower ? wMat : bMat);
-                        bldg.position.set(x + (Math.random() * 2 - 1), height / 2, z + (Math.random() * 2 - 1));
+                        const height = (isTower ? 15 + Math.random() * 20 : 4 + Math.random() * 6) * S; 
+
+                        const bldg = new THREE.Mesh(new THREE.BoxGeometry(bWidth, height, bDepth), isTower ? wMat : bMat);
+                        bldg.position.set(bx, height / 2, bz);
                         bldg.castShadow = bldg.receiveShadow = true;
                         group.add(bldg);
                     }
@@ -239,9 +267,11 @@
         function buildSection2Middle() {
             const group = new THREE.Group();
 
-            const groundGeo = new THREE.PlaneGeometry(180, 200);
+            // Ground truncated at left side (x=-49) to snap perfectly with newly moved Section 1
+            const groundGeo = new THREE.PlaneGeometry(94, 200);
             const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a7c59 });
             const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.position.x = -2; // Centers the 94 width from exactly x = -49 to x = 45
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             group.add(ground);
@@ -250,14 +280,14 @@
             const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
             const roadSegments = [
-                { type: 'h', x: 0, z: 0, length: 180, width: 8 },
+                { type: 'h', x: 3, z: 0, length: 104, width: 8 }, // Shortened & centered to merge at x=-49 and x=55
                 { type: 'v', x: -45, z: 0, length: 140, width: 8 },
                 { type: 'v', x: 10, z: 0, length: 140, width: 8 },
-                { type: 'v', x: 55, z: 0, length: 140, width: 8 },
+                // The rightmost vertical road previously at x=55 has been entirely eliminated and replaced by Sec 3
                 { type: 'h', x: 32.5, z: 45, length: 53, width: 6 },
                 { type: 'h', x: 15, z: -35, length: 45, width: 4 },
-                { type: 'v', x: -7.5, z: -45, length: 24, width: 4, lines: true }, // Outer prong
-                { type: 'v', x: 37.5, z: -55, length: 44, width: 4, lines: true }  // Outer prong
+                { type: 'v', x: -7.5, z: -45, length: 24, width: 4, lines: true }, 
+                { type: 'v', x: 37.5, z: -55, length: 44, width: 4, lines: true }  
             ];
 
             let baseOffset = 0.0; // Start at 0 so Top of Road is exactly Y = 0.1
@@ -312,7 +342,8 @@
             const bMat = new THREE.MeshStandardMaterial({ color: 0x3a404a, roughness: 0.6 });
             const wMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
 
-            for(let x = -85; x <= 85; x += 8) {
+            // Adjusted loop start to -45 so buildings don't generate off the newly shortened left edge
+            for(let x = -45; x <= 45; x += 8) {
                 for(let z = -95; z <= 95; z += 8) {
                     // Check if near road using the existing collision box check, pad bounds slightly
                     if (!isOverlappingRoad(x, z, 7, 7) && Math.random() > 0.4) {
@@ -356,40 +387,40 @@
             const matYellowLine = new THREE.LineBasicMaterial({ color: 0xffd700, linewidth: 2 });
             const matWhiteDashed = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 2, gapSize: 2 });
 
-            const groundSizeZ = 200; // Fixed Z length to match other sections
-            const groundSizeX = 110; // Drastically shrunk the horizontal spread
+            const groundSizeZ = 200; 
+            const groundSizeX = 90; // Exactly spans distance from left side road to right side road
+            const roadWidthSide = 8; // Narrowed to perfectly match Section 2 roads
             const roadWidthMain = 8;
-            const roadWidthSide = 12;
             const rampWidth = 5;
             const sideRoadOffsetX = 45; 
             const freewayWidth = 16;
 
             // Split ground plane to allow a trench for the freeway under the main road
-            const groundGeoLeft = new THREE.PlaneGeometry(16, groundSizeZ);
+            const groundGeoLeft = new THREE.PlaneGeometry(14, groundSizeZ);
             const groundLeft = new THREE.Mesh(groundGeoLeft, matGround);
             groundLeft.rotation.x = -Math.PI / 2;
-            groundLeft.position.set(-47, 0, 0); // Flush with left trench wall
+            groundLeft.position.set(-48, 0, 0); // Flush with left trench wall and Sec 2 Ground edge
             groundLeft.receiveShadow = true;
             
-            const groundGeoRight = new THREE.PlaneGeometry(16, groundSizeZ);
+            const groundGeoRight = new THREE.PlaneGeometry(14, groundSizeZ);
             const groundRight = new THREE.Mesh(groundGeoRight, matGround);
             groundRight.rotation.x = -Math.PI / 2;
-            groundRight.position.set(47, 0, 0); // Flush with right trench wall
+            groundRight.position.set(48, 0, 0); // Flush with right trench wall
             groundRight.receiveShadow = true;
 
             // Retaining walls for the trench
             const wallGeo = new THREE.PlaneGeometry(groundSizeZ, 8);
             const wallLeft = new THREE.Mesh(wallGeo, matConcrete);
-            wallLeft.position.set(-39, -4, 0);
+            wallLeft.position.set(-41, -4, 0); // Snug to narrowed left road
             wallLeft.rotation.y = Math.PI/2;
             wallLeft.receiveShadow = true;
             const wallRight = new THREE.Mesh(wallGeo, matConcrete);
-            wallRight.position.set(39, -4, 0); 
+            wallRight.position.set(41, -4, 0); // Snug to narrowed right road
             wallRight.rotation.y = -Math.PI/2;
             wallRight.receiveShadow = true;
 
             // Trench floor (grass base)
-            const trenchFloorGeo = new THREE.PlaneGeometry(78, groundSizeZ);
+            const trenchFloorGeo = new THREE.PlaneGeometry(82, groundSizeZ); // Exactly spanning from wall to wall
             const trenchFloor = new THREE.Mesh(trenchFloorGeo, matGround);
             trenchFloor.rotation.x = -Math.PI / 2;
             trenchFloor.position.set(0, -8.0, 0);
@@ -538,34 +569,34 @@
                 return mesh;
             }
 
-            const rampMergeZ = 80; // Scaled down slightly to fit the new groundSizeZ
+            const rampMergeZ = 80; 
             const fEdge = freewayWidth / 2;
             const rOffset = fEdge + 0.5; // perfectly aligned with freeway edge
             
-            // Reverted Y anchors to 0.105
+            // X-anchors cleanly merge into exactly -41 & 41 to perfectly line up with the edge of the narrowed 8-width roads
             const curveTL = new THREE.CubicBezierCurve3(
                 new THREE.Vector3(-rOffset, -7.94, -rampMergeZ), 
                 new THREE.Vector3(-rOffset, -7.94, -rampMergeZ * 0.4),
                 new THREE.Vector3(-25, 0.105, -6), 
-                new THREE.Vector3(-39, 0.105, -3)
+                new THREE.Vector3(-41, 0.105, -3)
             );
             const curveBL = new THREE.CubicBezierCurve3(
                 new THREE.Vector3(-rOffset, -7.94, rampMergeZ), 
                 new THREE.Vector3(-rOffset, -7.94, rampMergeZ * 0.4),
                 new THREE.Vector3(-25, 0.105, 6), 
-                new THREE.Vector3(-39, 0.105, 3)
+                new THREE.Vector3(-41, 0.105, 3)
             );
             const curveTR = new THREE.CubicBezierCurve3(
                 new THREE.Vector3(rOffset, -7.94, -rampMergeZ), 
                 new THREE.Vector3(rOffset, -7.94, -rampMergeZ * 0.4),
                 new THREE.Vector3(25, 0.105, -6), 
-                new THREE.Vector3(39, 0.105, -3)
+                new THREE.Vector3(41, 0.105, -3)
             );
             const curveBR = new THREE.CubicBezierCurve3(
                 new THREE.Vector3(rOffset, -7.94, rampMergeZ), 
                 new THREE.Vector3(rOffset, -7.94, rampMergeZ * 0.4),
                 new THREE.Vector3(25, 0.105, 6), 
-                new THREE.Vector3(39, 0.105, 3)
+                new THREE.Vector3(41, 0.105, 3)
             );
 
             group.add(
@@ -590,24 +621,24 @@
         // ASSEMBLY: Splice all 3 groups together edge-to-edge
         // =========================================================
 
-        // Left Chunk (Section 1) - X length spans local -45 to 45 (Total 90)
+        // Left Chunk (Section 1) - Local span -72 to 72 (Total 144) due to 1.6 scale
         const leftGroup = buildSection1Left();
-        leftGroup.position.x = -135; // Global range -180 to -90
+        leftGroup.position.x = -121; // Shifted ~41 units closer. Right edge reaches global x = -49.
         scene.add(leftGroup);
 
-        // Middle Chunk (Section 2) - X length spans local -90 to 90 (Total 180)
+        // Middle Chunk (Section 2)
         const middleGroup = buildSection2Middle();
-        middleGroup.position.x = 0; // Global range -90 to 90
+        middleGroup.position.x = 0; // Global range -49 to 59 
         scene.add(middleGroup);
 
-        // Right Chunk (Section 3) - X length spans local -55 to 55 (Total 110)
+        // Right Chunk (Section 3) - Shifted so its left road seamlessly overlaps Section 2's intersection
         const rightGroup = buildSection3Right();
-        rightGroup.position.x = 145; // Global range 90 to 200 (snaps tightly to Sec 2)
+        rightGroup.position.x = 100; // Global range 45 to 155 (snaps perfectly!)
         scene.add(rightGroup);
 
-        // Update camera position to center over the new narrower overall map (-180 to +200)
-        camera.position.set(10, 400, 500);
-        controls.target.set(10, 0, 0);
+        // Update camera position to perfectly center over the new overall map length
+        camera.position.set(-20, 450, 600);
+        controls.target.set(-20, 0, 0);
 
         // --- EVENT LISTENERS & ANIMATION ---
         window.addEventListener('resize', () => {
