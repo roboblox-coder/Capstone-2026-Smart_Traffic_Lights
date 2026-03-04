@@ -1,0 +1,138 @@
+import pygame 
+import csv
+import sys
+import os
+from typing import Dict, Any
+
+# 1. Data Loading & Structure
+
+def load_intersection_data(address_filepath: str, turn_ratio_filepath: str) -> Dict[int, Any]:
+    """
+    Reads the two CSV files and combines them into a single dictionary
+    keyed by the Intersection ID (Int#).
+    """
+    intersections: Dict[int, Any] = {}
+
+    # Load Intersection Addresses
+    with open(address_filepath, mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            int_id = int(row['Int#'])
+            intersections[int_id] = {
+                'id': int_id,
+                'ns_address': row['NS Address'],
+                'ew_address': row['EW Address'],
+                'turn_ratios': {} # Will be populated next
+            }
+
+    # Load Turn Ratios
+    with open(turn_ratio_filepath, mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            int_id = int(row['Int#'])
+            if int_id in intersections:
+                # Store all turning data (NB_L, NB_T, NB_R, etc.) as integers
+                turn_data: Dict[str, int] = {}
+                for key, value in row.items():
+                    if key != 'Int#':
+                        turn_data[key] = int(value) if value.isdigit() else 0
+                
+                intersections[int_id]['turn_ratios'] = turn_data # type: ignore
+
+    return intersections
+
+
+# 2. PyGame Swtups & Game Loop
+
+def main():
+    # Filepaths matching your file structure
+    ADDRESS_FILE = 'Intersection_address.xlsx - Sheet1.csv'
+    TURN_FILE = 'Turn_ratio.xlsx - Sheet1.csv'
+
+    # Ensure files exist before starting
+    if not os.path.exists(ADDRESS_FILE) or not os.path.exists(TURN_FILE):
+        print("Error: CSV files not found. Please ensure they are in the same directory as this script.")
+        return
+
+    # Load the data into our data structure
+    intersection_data = load_intersection_data(ADDRESS_FILE, TURN_FILE)
+    print(f"Successfully loaded {len(intersection_data)} intersections.")
+
+    # Initialize PyGame
+    pygame.init()
+    
+    # Constants
+    WIDTH, HEIGHT = 900, 600
+    FPS = 60
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    GRAY = (200, 200, 200)
+
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Smart Traffic Lights - Data Loader")
+    clock = pygame.time.Clock()
+    
+    # Fonts for rendering text
+    title_font = pygame.font.SysFont("Arial", 24, bold=True)
+    font = pygame.font.SysFont("Arial", 16)
+
+    running: bool = True
+    scroll_y: int = 0 # To allow scrolling through the data
+
+    while running:
+        # 1. Event Handling
+        for event in pygame.event.get():
+            event_type = getattr(event, 'type', None)
+            if event_type == getattr(pygame, 'QUIT', None):
+                running = False
+            # Simple mouse wheel scrolling
+            elif event_type == getattr(pygame, 'MOUSEWHEEL', None):
+                scroll_y = scroll_y + int(getattr(event, 'y', 0)) * 20 # type: ignore
+
+        # 2. Rendering
+        screen.fill(WHITE)
+        
+        # Render Title
+        title_surface = title_font.render("Loaded Intersection Data (Scroll to view)", True, BLACK)
+        screen.blit(title_surface, (20, 20))
+
+        # Render Data points
+        y_offset = 60 + int(scroll_y)
+        for int_id, data in intersection_data.items():
+            # Stop rendering if it's off the top of the screen (optimization)
+            if y_offset < -50:
+                y_offset += 40
+                continue
+            
+            # Stop rendering if it's past the bottom of the screen
+            if y_offset > HEIGHT:
+                break
+
+            # Draw intersection info
+            address_text = f"Int #{int_id}: {data['ns_address']} & {data['ew_address']}"
+            
+            # Grab a sample of the turn data (e.g., Northbound Through traffic)
+            turn_ratios: dict = data.get('turn_ratios', {})
+            nb_t = turn_ratios.get('NB_T', 0)
+            sb_t = turn_ratios.get('SB_T', 0)
+            traffic_text = f"Northbound Through: {nb_t} | Southbound Through: {sb_t}"
+
+            # Render text
+            addr_surface = font.render(address_text, True, BLACK)
+            traffic_surface = font.render(traffic_text, True, GRAY)
+
+            screen.blit(addr_surface, (20, y_offset))
+            screen.blit(traffic_surface, (400, y_offset))
+            
+            y_offset += 40
+
+        # 3. Update Display
+        pygame.display.flip()
+        clock.tick(FPS)
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
+    
