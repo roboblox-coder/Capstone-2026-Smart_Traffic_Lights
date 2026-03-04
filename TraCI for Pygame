@@ -1,3 +1,6 @@
+# Cory Maccini CS482
+# Uses Duke's traci data he got from the SUMO
+
 import pygame 
 import csv
 import sys
@@ -131,6 +134,7 @@ def main():
         clock.tick(FPS)
 
     pygame.quit()
+
     sys.exit()
 
 if __name__ == "__main__":
