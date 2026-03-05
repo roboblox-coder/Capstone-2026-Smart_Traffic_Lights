@@ -1,0 +1,63 @@
+import os
+import sys
+import json
+import asyncio
+import websockets
+import traci
+
+# Ensure SUMO_HOME is in your environment
+if 'SUMO_HOME' in os.environ:
+    tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
+    sys.path.append(tools)
+else:
+    sys.exit("please declare environment variable 'SUMO_HOME'")
+
+# Path to your SUMO configuration file (same as run.py)
+SUMO_CMD = ["sumo", "-c", "sim.sumocfg", "--step-length", "0.1"] 
+
+async def sumo_simulation(websocket): # removed path as it is deprecated in websockets 14.0
+    """Runs the SUMO simulation and sends vehicle data to the connected client."""
+    print("Client connected to Three.js Visualizer!")
+    
+    # Start TraCI
+    traci.start(SUMO_CMD)
+    
+    try:
+        while traci.simulation.getMinExpectedNumber() > 0:
+            traci.simulationStep()
+            
+            # Gather data for all vehicles
+            vehicle_ids = traci.vehicle.getIDList()
+            vehicles_data = {}
+            
+            for vid in vehicle_ids:
+                x, y = traci.vehicle.getPosition(vid)
+                angle = traci.vehicle.getAngle(vid)
+                
+                # We package the data in a dictionary
+                vehicles_data[vid] = {
+                    "x": x,
+                    "y": y,
+                    "angle": angle
+                }
+            
+            # Send the JSON payload to the Three.js frontend
+            payload = json.dumps(vehicles_data)
+            await websocket.send(payload)
+            
+            # Control the tick rate (e.g., 0.1s for 10 FPS)
+            await asyncio.sleep(0.1)
+            
+    except websockets.exceptions.ConnectionClosed:
+        print("Client disconnected.")
+    finally:
+        traci.close()
+
+async def main():
+    # Start the WebSocket server on port 8765
+    print("Starting SUMO WebSocket Server on ws://localhost:8765...")
+    async with websockets.serve(sumo_simulation, "localhost", 8765):
+        await asyncio.Future()  # run forever
+
+if __name__ == "__main__":
+    asyncio.run(main())
