@@ -4,6 +4,11 @@
 # Simulation output data (regenerated per run)
 v2/Simulation_Data_*/
 v2/TraCI_Simulation_Data_*/
+v2/WebSocket_Simulation_Data_*/
+
+# Old OSM build artifacts (timestamped folders)
+v1/2026-*/
+v2/2026-*/
 
 # Python cache
 __pycache__/

@@ -57,7 +57,10 @@ MENU = """
       → Run headless SUMO, export FCD/queue → CSV
 
   4)  TraCI Simulation
-      → Run via TraCI for programmatic control
+       → Run via TraCI for programmatic control
+
+  5)  WebSocket Simulation
+       → TraCI + live WebSocket feed for Three.js frontend
 
   0)  Exit
 
@@ -67,7 +70,7 @@ MENU = """
 def main():
     while True:
         print(MENU)
-        choice = input("  Select an option [0-4]: ").strip()
+        choice = input("  Select an option [0-5]: ").strip()
 
         if choice == "0":
             print("\n  👋 Goodbye!\n")
@@ -106,6 +109,15 @@ def main():
             else:
                 set_route_file(ROUTE_HARVARD)
             run_script("run_traci_sim.py")
+
+        elif choice == "5":
+            print("\n── Running WebSocket Simulation ──")
+            r = input("  Route file? [h]arvard (default) / [s]ynthetic: ").strip().lower()
+            if r.startswith("s"):
+                set_route_file(ROUTE_SYNTHETIC)
+            else:
+                set_route_file(ROUTE_HARVARD)
+            run_script("run_websocket_sim.py")
 
         else:
             print("\n  ⚠️  Invalid choice, try again.")
