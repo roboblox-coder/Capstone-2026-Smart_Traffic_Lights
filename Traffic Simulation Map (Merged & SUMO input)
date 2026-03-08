@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merged Three.js SUMO Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Import maps polyfill -->
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0;
+            overflow: hidden; 
+            background-color: #87CEEB; /* Unified Sky blue background */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); transition: opacity 0.3s; }
+        #controls { position: absolute; top: 20px; left: 20px; z-index: 5; background: rgba(20, 25, 30, 0.85); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; color: #ecf0f1; }
+        .hidden { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <!-- WebGL Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Stats and Controls Overlay -->
+    <div id="controls" class="text-sm w-64">
+        <h2 class="text-lg font-bold text-white mb-2 border-b border-gray-600 pb-2">Simulation Stats</h2>
+        <div class="flex justify-between mt-2"><span class="text-gray-400">Edges:</span> <span id="stat-edges" class="text-white font-mono">0</span></div>
+        <div class="flex justify-between mt-1"><span class="text-gray-400">Junctions:</span> <span id="stat-junctions" class="text-white font-mono">0</span></div>
+        <div class="flex justify-between mt-1 mb-4"><span class="text-gray-400">Vehicles:</span> <span id="stat-cars" class="text-white font-mono">0</span></div>
+        
+        <div class="mt-4">
+            <label class="block text-gray-400 mb-1">Time Speed Multiplier</label>
+            <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1" class="w-full accent-blue-500">
+        </div>
+        <button id="btn-reset" class="mt-6 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-semibold transition shadow-lg">Load New File</button>
+    </div>
+
+    <!-- Drag & Drop UI -->
+    <div id="ui-layer">
+        <div class="bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl p-10 max-w-lg w-full text-center shadow-2xl relative" id="drop-zone">
+            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <h1 class="text-2xl font-bold text-white mb-2">Merged Traffic Simulator</h1>
+            <p class="text-gray-400 mb-6">Drag & drop your <code class="bg-gray-800 px-1 rounded text-gray-200">.net.xml</code> file here to map it onto the environment.</p>
+            
+            <input type="file" id="file-input" accept=".xml" class="hidden">
+            <button onclick="document.getElementById('file-input').click()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg transition duration-200 shadow-lg">
+                Browse Files
+            </button>
+
+            <div id="loading-indicator" class="hidden absolute inset-0 bg-gray-900 rounded-xl flex flex-col items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-3"></div>
+                <p class="text-white font-medium" id="loading-text">Parsing XML and building 3D geometry...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- GLOBAL VARIABLES ---
+        let scene, camera, renderer, controls;
+        let networkGroup = new THREE.Group();
+        let mapEnvironmentGroup = new THREE.Group();
+        let vehicles = [];
+        let lanePaths = [];
+        let simulationSpeed = 1.0;
+        let lastTime = 0;
+        let animationFrameId;
+
+        // UI Elements
+        const uiLayer = document.getElementById('ui-layer');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const controlsPanel = document.getElementById('controls');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        // --- INITIALIZATION ---
+        function init() {
+            // Scene Setup (Matching your Traffic Simulation Map)
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // Sky Blue
+            scene.fog = new THREE.Fog(0x87CEEB, 800, 4000);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.set(0, 800, 800);
+
+            // Renderer with Shadows enabled
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevent camera from going under the map
+
+            // Lighting (Ambient + Sun with Shadows)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            sunLight.position.set(1000, 2000, 1000);
+            sunLight.castShadow = true;
+            
+            // Configure shadow camera constraints to cover a large map area
+            const d = 2000;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            sunLight.shadow.camera.far = 5000;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            scene.add(sunLight);
+
+            // Add groups to scene
+            scene.add(mapEnvironmentGroup);
+            scene.add(networkGroup);
+            
+            // Load custom environmental map objects
+            loadCustomMap();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            setupFileHandlers();
+            
+            document.getElementById('speed-slider').addEventListener('input', (e) => {
+                simulationSpeed = parseFloat(e.target.value);
+            });
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                resetSimulation();
+                uiLayer.classList.remove('hidden');
+                controlsPanel.style.display = 'none';
+            });
+
+            // Start loop
+            requestAnimationFrame(animate);
+        }
+
+        // --- CUSTOM MAP INTEGRATION ---
+        function loadCustomMap() {
+            // === PASTE YOUR SPECIFIC THREE.JS MAP ASSETS HERE ===
+            // --- GLOBAL TRAFFIC LIGHT HELPER ---
+            function createIntersectionLights(group, cx, cz, wX, wZ) {
+                const poleMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.7, metalness: 0.3 });
+                const boxMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+                
+                const cornerOffset = 1.5;
+                const dX = (wX / 2) + cornerOffset;
+                const dZ = (wZ / 2) + cornerOffset;
+
+                // Place poles on the near-right corner for each incoming direction
+                const positions = [
+                    { x: cx + dX, z: cz + dZ, rot: 0 },             // Northbound
+                    { x: cx - dX, z: cz - dZ, rot: Math.PI },       // Southbound
+                    { x: cx - dX, z: cz + dZ, rot: -Math.PI / 2 },  // Eastbound
+                    { x: cx + dX, z: cz - dZ, rot: Math.PI / 2 }    // Westbound
+                ];
+
+                positions.forEach(pos => {
+                    const tlGroup = new THREE.Group();
+                    tlGroup.position.set(pos.x, 0, pos.z);
+                    tlGroup.rotation.y = pos.rot;
+
+                    // Vertical Pole
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 5.5), poleMat);
+                    pole.position.y = 2.75;
+                    pole.castShadow = true;
+                    tlGroup.add(pole);
+
+                    // Overhanging horizontal arm
+                    const armLength = 4.5;
+                    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, armLength), poleMat);
+                    arm.rotation.z = Math.PI / 2;
+                    arm.position.set(-armLength / 2 + 0.1, 5.2, 0); 
+                    arm.castShadow = true;
+                    tlGroup.add(arm);
+
+                    // Light Box attached to the arm
+                    const box = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.6, 0.6), boxMat);
+                    box.position.set(-armLength + 0.6, 5.2, 0); 
+                    box.castShadow = true;
+                    tlGroup.add(box);
+
+                    // Lenses (Red, Yellow, Green)
+                    const colors = [0xff2222, 0xffbb00, 0x22ff22];
+                    for (let i = 0; i < 3; i++) {
+                        const light = new THREE.Mesh(
+                            new THREE.PlaneGeometry(0.35, 0.35), 
+                            new THREE.MeshBasicMaterial({ color: colors[i] }) // BasicMaterial makes them emissive/glow
+                        );
+                        light.position.set(-armLength + 0.6, 5.2 + 0.45 - i * 0.45, 0.31); 
+                        tlGroup.add(light);
+                    }
+
+                    group.add(tlGroup);
+                });
+            }
+
+            // =========================================================
+            // SECTION 1: LEFT SIDE (Bellevue 2.5D Layout - SCALED UP)
+            // =========================================================
+            function buildSection1Left() {
+                const group = new THREE.Group();
+                
+                // Global scale factor for Section 1 to match Section 2 proportions
+                // A main road width of 5 * 1.6 = exactly 8
+                const S = 1.6;
+
+                // Ground Plane (Spliced to perfectly touch the middle section)
+                // Original width 90 * 1.6 = 144
+                const ground = new THREE.Mesh(new THREE.PlaneGeometry(90 * S, 200), new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9 })); 
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                group.add(ground);
+
+                // Roads
+                const roadMat = new THREE.MeshStandardMaterial({ color: 0x111214, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -1 });
+                const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+                // Array to store exact road bounding boxes for building collision
+                const sec1RoadBounds = [];
+
+                function drawRoad(x1, z1, x2, z2, width, isMain = false) {
+                    const dx = x2 - x1, dz = z2 - z1;
+                    const length = Math.sqrt(dx*dx + dz*dz);
+                    
+                    // Calculate and store exact bounding boxes for collision detection
+                    const minX = Math.min(x1, x2) - width/2;
+                    const maxX = Math.max(x1, x2) + width/2;
+                    const minZ = Math.min(z1, z2) - width/2;
+                    const maxZ = Math.max(z1, z2) + width/2;
+                    sec1RoadBounds.push({ minX, maxX, minZ, maxZ });
+
+                    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(length + width, width), roadMat);
+                    mesh.position.set((x1+x2)/2, 0.1, (z1+z2)/2); // Standardized horizontal elevation
+                    mesh.rotation.x = -Math.PI / 2;
+                    const angle = Math.atan2(dz, dx);
+                    mesh.rotation.z = -angle; // Fixed rotation to properly tilt counter-clockwise
+                    mesh.receiveShadow = true;
+                    group.add(mesh);
+
+                    // Add the segmented white lines matching Section 2
+                    const dashLength = 3, gapLength = 4;
+                    const numDashes = Math.floor(length / (dashLength + gapLength));
+                    const startOffset = -length / 2 + dashLength;
+                    const cx = (x1+x2)/2;
+                    const cz = (z1+z2)/2;
+
+                    if (isMain) {
+                        const yellowMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+                        for (let offset of [-0.4, 0.4]) {
+                            const yGeo = new THREE.PlaneGeometry(length, 0.4);
+                            const yMesh = new THREE.Mesh(yGeo, yellowMat);
+                            yMesh.rotation.x = -Math.PI / 2;
+                            yMesh.rotation.z = -angle; // Fixed rotation
+                            yMesh.position.set(cx - Math.sin(angle) * offset, 0.3, cz + Math.cos(angle) * offset);
+                            group.add(yMesh);
+                        }
+                        const dashOffsets = [-6, -4, -2, 2, 4, 6];
+                        for (let i = 0; i < numDashes; i++) {
+                            const currentOffset = startOffset + i * (dashLength + gapLength);
+                            for (let dOff of dashOffsets) {
+                                const dashGeo = new THREE.PlaneGeometry(dashLength, 0.3);
+                                const dash = new THREE.Mesh(dashGeo, lineMaterial);
+                                dash.rotation.x = -Math.PI / 2;
+                                dash.rotation.z = -angle; // Fixed rotation
+                                dash.position.set(
+                                    cx + Math.cos(angle) * currentOffset - Math.sin(angle) * dOff,
+                                    0.3, 
+                                    cz + Math.sin(angle) * currentOffset + Math.cos(angle) * dOff
+                                );
+                                group.add(dash);
+                            }
+                        }
+                    } else {
+                        for (let i = 0; i < numDashes; i++) {
+                            const dashGeo = new THREE.PlaneGeometry(dashLength, 0.3);
+                            const dash = new THREE.Mesh(dashGeo, lineMaterial);
+                            dash.rotation.x = -Math.PI / 2;
+                            dash.rotation.z = -angle; // Fixed rotation
+                            
+                            const currentOffset = startOffset + i * (dashLength + gapLength);
+                            dash.position.set(
+                                cx + Math.cos(angle) * currentOffset,
+                                0.3, // Raised significantly to prevent oblique clipping
+                                cz + Math.sin(angle) * currentOffset
+                            );
+                            group.add(dash);
+                        }
+                    }
+                }
+
+                // Drawn proportional to S factor
+                drawRoad(-45*S, 0, 45*S, 0, 10*S, true);       
+                drawRoad(-12*S - 5 - 0.10, -45*S - 30, -12*S - 5 + 3, 45*S + 125, 4.5*S); // Extended another 5 North (total 10), maintaining exact rotation angle
+                drawRoad(15*S, -45*S - 40, 15*S + 3, 45*S + 125, 4.5*S); // Shifted ONLY the south end 3 units to the right
+                drawRoad(-25*S - 10, 0, -25*S - 10, -45*S - 100, 2.5*S);  // Shifted West by 5, Extended North by 100
+                drawRoad(-25*S - 10, -15*S - 5 - 30, -12*S - 5, -15*S - 5 - 30, 2.5*S); // Shifted South by 10 (Net North shift of 30)
+                drawRoad(-12*S - 5, 20*S + 66, 15*S, 20*S + 66, 2.5*S);   // Shifted South by 6 to sit perfectly flush against the floor edge (Z=100)
+                drawRoad(15*S, -20*S - 30, 32*S, -20*S - 30, 2.5*S); // Shifted South by 10 (Net North shift of 30)
+
+                // Collision check function for Section 1 buildings
+                function isOverlappingRoadSec1(bx, bz, bw, bd) {
+                    const bMinX = bx - bw / 2 - 2; // small buffer
+                    const bMaxX = bx + bw / 2 + 2;
+                    const bMinZ = bz - bd / 2 - 2;
+                    const bMaxZ = bz + bd / 2 + 2;
+
+                    for (let bounds of sec1RoadBounds) {
+                        if (bMinX < bounds.maxX && bMaxX > bounds.minX && bMinZ < bounds.maxZ && bMaxZ > bounds.minZ) {
+                            return true; 
+                        }
+                    }
+                    return false;
+                }
+
+                // Bellevue City Blocks
+                const bMat = new THREE.MeshStandardMaterial({ color: 0x3a404a, roughness: 0.6 }), wMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
+                for(let x = -40*S; x <= 40*S; x += 8*S) {
+                    for(let z = -40*S; z <= 40*S; z += 8*S) {
+                        const bWidth = (3 + Math.random() * 4) * S;
+                        const bDepth = (3 + Math.random() * 4) * S;
+                        const bx = x + (Math.random() * 2*S - S);
+                        const bz = z + (Math.random() * 2*S - S);
+
+                        // Replaced hardcoded bounds with exact road box checks
+                        if (!isOverlappingRoadSec1(bx, bz, bWidth, bDepth) && Math.random() > 0.4) {
+                            const isTower = Math.random() > 0.85;
+                            const height = (isTower ? 15 + Math.random() * 20 : 4 + Math.random() * 6) * S; 
+
+                            const bldg = new THREE.Mesh(new THREE.BoxGeometry(bWidth, height, bDepth), isTower ? wMat : bMat);
+                            bldg.position.set(bx, height / 2, bz);
+                            bldg.castShadow = bldg.receiveShadow = true;
+                            group.add(bldg);
+                        }
+                    }
+                }
+
+                // Traffic Lights for Section 1 intersections
+                createIntersectionLights(group, -12 * S - 5, 0, 4.5 * S, 16); // Shifted West by 5 to match intersection
+                createIntersectionLights(group, 15 * S, 0, 4.5 * S, 16);  
+
+                return group;
+            }
+
+            // =========================================================
+            // SECTION 2: MIDDLE (Urban Intersection Layout with Cars)
+            // =========================================================
+            function buildSection2Middle() {
+                const group = new THREE.Group();
+
+                // Ground truncated at left side (x=-49) to snap perfectly with newly moved Section 1
+                const groundGeo = new THREE.PlaneGeometry(94, 200);
+                const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a7c59 });
+                const ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.position.x = -2; // Centers the 94 width from exactly x = -49 to x = 45
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                group.add(ground);
+
+                const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x2c2c2c });
+                const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+                const roadSegments = [
+                    { type: 'h', x: 3, z: 0, length: 104, width: 16, isMain: true }, // Shortened & centered to merge at x=-49 and x=55
+                    { type: 'v', x: -45, z: 27.5, length: 275, width: 8 }, // Extended north and south by 20 units each (total length +40)
+                    { type: 'v', x: 5, z: 20, length: 280, width: 8 }, // Extended south by 10 (len+10, z+5)
+                    // The rightmost vertical road previously at x=55 has been entirely eliminated and replaced by Sec 3
+                    { type: 'h', x: 32.5, z: 102.5, length: Math.sqrt(53*53 + 5*5), width: 6, angle: Math.atan2(5, 53) }, // Slanted right end south by 5
+                    { type: 'h', x: 15, z: -50, length: 45, width: 4 },  // Moved south by 5
+                    { type: 'v', x: -4.5, z: -90, length: 84, width: 4, lines: true }, // Further extended north by another 5 units (len+5, z-2.5)
+                    { type: 'v', x: 37.5, z: -100, length: 104, width: 4, lines: true }  // Extended north by another 10 (len+10, z-5)
+                ];
+
+                let baseOffset = 0.0; // Start at 0 so Top of Road is exactly Y = 0.1
+                roadSegments.forEach(seg => {
+                    const geo = new THREE.BoxGeometry(seg.type === 'h' ? seg.length : seg.width, 0.2, seg.type === 'h' ? seg.width : seg.length);
+                    const roadMesh = new THREE.Mesh(geo, roadMaterial);
+                    roadMesh.position.set(seg.x, baseOffset, seg.z);
+                    if (seg.angle) roadMesh.rotation.y = -seg.angle;
+                    roadMesh.receiveShadow = roadMesh.castShadow = true;
+                    group.add(roadMesh);
+
+                    if (seg.isMain) {
+                        const yellowMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+                        for (let offset of [-0.4, 0.4]) {
+                            const yGeo = new THREE.PlaneGeometry(seg.length, 0.4);
+                            const yMesh = new THREE.Mesh(yGeo, yellowMat);
+                            yMesh.position.set(seg.x, baseOffset + 0.25, seg.z + offset);
+                            yMesh.rotation.x = -Math.PI / 2;
+                            group.add(yMesh);
+                        }
+                        const dashLength = 3, gapLength = 4;
+                        const numDashes = Math.floor(seg.length / (dashLength + gapLength));
+                        const startOffset = -seg.length / 2 + dashLength;
+                        const dashOffsets = [-6, -4, -2, 2, 4, 6];
+                        for (let i = 0; i < numDashes; i++) {
+                            const currentOffset = startOffset + i * (dashLength + gapLength);
+                            for (let dOff of dashOffsets) {
+                                const dashGeo = new THREE.PlaneGeometry(dashLength, 0.3);
+                                const dash = new THREE.Mesh(dashGeo, lineMaterial);
+                                dash.rotation.x = -Math.PI / 2;
+                                dash.position.set(seg.x + currentOffset, baseOffset + 0.25, seg.z + dOff);
+                                group.add(dash);
+                            }
+                        }
+                    } else if (seg.width >= 6 || seg.lines) {
+                        const dashLength = 3, gapLength = 4;
+                        const numDashes = Math.floor(seg.length / (dashLength + gapLength));
+                        const startOffset = -seg.length / 2 + dashLength;
+
+                        for (let i = 0; i < numDashes; i++) {
+                            const dashGeo = new THREE.PlaneGeometry(seg.type === 'h' ? dashLength : 0.3, seg.type === 'h' ? 0.3 : dashLength);
+                            const dash = new THREE.Mesh(dashGeo, lineMaterial);
+                            dash.rotation.x = -Math.PI / 2;
+                            if (seg.angle) dash.rotation.z = seg.angle;
+                            const currentOffset = startOffset + i * (dashLength + gapLength);
+                            
+                            if (seg.type === 'h') {
+                                if (seg.angle) {
+                                    dash.position.set(
+                                        seg.x + Math.cos(seg.angle) * currentOffset, 
+                                        baseOffset + 0.25, 
+                                        seg.z + Math.sin(seg.angle) * currentOffset
+                                    );
+                                } else {
+                                    dash.position.set(seg.x + currentOffset, baseOffset + 0.25, seg.z); // Raised
+                                }
+                            } else {
+                                dash.position.set(seg.x, baseOffset + 0.25, seg.z + currentOffset); // Raised
+                            }
+                            group.add(dash);
+                        }
+                    }
+                    baseOffset += 0.01;
+                });
+
+                // City Blocks (Modified to prevent overlapping with roads)
+                function isOverlappingRoad(bx, bz, bw, bd) {
+                    // Add a small buffer around the building footprint
+                    const bMinX = bx - bw / 2 - 2;
+                    const bMaxX = bx + bw / 2 + 2;
+                    const bMinZ = bz - bd / 2 - 2;
+                    const bMaxZ = bz + bd / 2 + 2;
+
+                    for (let seg of roadSegments) {
+                        const rMinX = seg.x - (seg.type === 'h' ? seg.length / 2 : seg.width / 2);
+                        const rMaxX = seg.x + (seg.type === 'h' ? seg.length / 2 : seg.width / 2);
+                        let rMinZ = seg.z - (seg.type === 'h' ? seg.width / 2 : seg.length / 2);
+                        let rMaxZ = seg.z + (seg.type === 'h' ? seg.width / 2 : seg.length / 2);
+
+                        if (seg.angle) {
+                            const zOffset = Math.abs((seg.length / 2) * Math.sin(seg.angle));
+                            rMinZ -= zOffset;
+                            rMaxZ += zOffset;
+                        }
+
+                        if (bMinX < rMaxX && bMaxX > rMinX && bMinZ < rMaxZ && bMaxZ > rMinZ) {
+                            return true; // Overlaps
+                        }
+                    }
+                    return false;
+                }
+
+                // City Blocks (Matched to Section 1 logic, scale, and density)
+                const bMat = new THREE.MeshStandardMaterial({ color: 0x3a404a, roughness: 0.6 });
+                const wMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
+
+                // Adjusted loop start to -45 so buildings don't generate off the newly shortened left edge
+                for(let x = -45; x <= 45; x += 8) {
+                    for(let z = -95; z <= 95; z += 8) {
+                        // Check if near road using the existing collision box check, pad bounds slightly
+                        if (!isOverlappingRoad(x, z, 7, 7) && Math.random() > 0.4) {
+                            const isTower = Math.random() > 0.85;
+                            const height = isTower ? 15 + Math.random() * 20 : 4 + Math.random() * 6; 
+                            const width = 3 + Math.random() * 4;
+                            const depth = 3 + Math.random() * 4;
+                            const bldg = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), isTower ? wMat : bMat);
+                            bldg.position.set(x + (Math.random() * 2 - 1), height / 2, z + (Math.random() * 2 - 1));
+                            bldg.castShadow = bldg.receiveShadow = true;
+                            group.add(bldg);
+                        }
+                    }
+                }
+
+                // Traffic Lights for Section 2 intersections
+                createIntersectionLights(group, -45, 0, 8, 16); // Left 4-way
+                createIntersectionLights(group, 5, 0, 8, 16);   // Right 4-way (shifted west by 5)
+                createIntersectionLights(group, 5, 100, 8, 6);  // Bottom 4-way (shifted north to match the horizontal road)
+                // Excluded (10, -35) - the head of the fork as requested
+
+                return group;
+            }
+
+            // =========================================================
+            // SECTION 3: RIGHT SIDE (The Highway Underpass Modification)
+            // =========================================================
+            function buildSection3Right() {
+                const group = new THREE.Group();
+
+                const matGround = new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9, metalness: 0.1 }); // Color updated to match Sec 2
+                const matAsphalt = new THREE.MeshStandardMaterial({ 
+                    color: 0x2b2b2b, 
+                    roughness: 0.8, 
+                    side: THREE.DoubleSide
+                    // Removed polygonOffset to completely revert the freeway and ramps to their perfect state
+                });
+                const matAsphaltUpper = new THREE.MeshStandardMaterial({ 
+                    color: 0x2b2b2b, 
+                    roughness: 0.8, 
+                    side: THREE.DoubleSide,
+                    polygonOffset: true,
+                    polygonOffsetFactor: -1.0,
+                    polygonOffsetUnits: -4.0 
+                });
+                const matConcrete = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.7 });
+                const matYellowLine = new THREE.LineBasicMaterial({ color: 0xffd700, linewidth: 2 });
+                const matWhiteDashed = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 2, gapSize: 2 });
+
+                const groundSizeZ = 200; 
+                const bridgeLength = 195; // Extended by another 15 units (Spans from -45 to 150)
+                const bridgeCenterX = 52.5; // Shifted center to accommodate the extension
+                const roadWidthSide = 8; 
+                const roadWidthMain = 16;
+                const rampWidth = 5;
+                const leftSideRoadX = -45; 
+                const rightSideRoadX = 55; // Moved 5 units East (from 50 to 55)
+                const freewayWidth = 16;
+                
+                const rightRoadLength = groundSizeZ + 170; // Extended another 10 North
+                const rightRoadZOffset = 65; // Center offset to balance the asymmetric extension
+
+                const leftRoadLength = groundSizeZ + 120; // Extended another 10 North
+                const leftRoadZOffset = 40; // Center offset to balance the asymmetric extension
+
+                // Split ground plane to allow a trench for the freeway under the main road
+                const groundGeoLeft = new THREE.PlaneGeometry(14, leftRoadLength);
+                const groundLeft = new THREE.Mesh(groundGeoLeft, matGround);
+                groundLeft.rotation.x = -Math.PI / 2;
+                groundLeft.position.set(-48, 0, leftRoadZOffset); // Flush with left trench wall and Sec 2 Ground edge
+                groundLeft.receiveShadow = true;
+
+                // Expanded right ground to cover the extended bridge
+                const groundGeoRight = new THREE.PlaneGeometry(115, rightRoadLength);
+                const groundRight = new THREE.Mesh(groundGeoRight, matGround);
+                groundRight.rotation.x = -Math.PI / 2;
+                groundRight.position.set(98.5, 0, rightRoadZOffset); // Flush with right trench wall (41 to 156)
+                groundRight.receiveShadow = true;
+
+                // Retaining walls for the trench
+                const wallGeo = new THREE.PlaneGeometry(groundSizeZ + 90, 8); // Extended to cover new right highway length
+                const wallLeft = new THREE.Mesh(wallGeo, matConcrete);
+                wallLeft.position.set(-41, -4, 25); // Snug to narrowed left road, centered
+                wallLeft.rotation.y = Math.PI/2;
+                wallLeft.receiveShadow = true;
+                const wallRight = new THREE.Mesh(wallGeo, matConcrete);
+                wallRight.position.set(41, -4, 25); // Snug to narrowed right road, centered
+                wallRight.rotation.y = -Math.PI/2;
+                wallRight.receiveShadow = true;
+
+                // Trench floor (grass base)
+                const trenchFloorGeo = new THREE.PlaneGeometry(82, groundSizeZ + 90); // Exactly spanning from wall to wall
+                const trenchFloor = new THREE.Mesh(trenchFloorGeo, matGround);
+                trenchFloor.rotation.x = -Math.PI / 2;
+                trenchFloor.position.set(0, -8.0, 25); // Centered to match extended walls
+                trenchFloor.receiveShadow = true;
+
+                group.add(groundLeft, groundRight, wallLeft, wallRight, trenchFloor);
+
+                // Freeway lowered into Trench (Split and Shifted)
+                const splitFreewayWidth = 8;
+                
+                const freewayGeoLeft = new THREE.PlaneGeometry(splitFreewayWidth, groundSizeZ + 70);
+                const freewayLeft = new THREE.Mesh(freewayGeoLeft, matAsphalt);
+                freewayLeft.rotation.x = -Math.PI / 2;
+                freewayLeft.position.set(-11, -7.95, 20); // Extended 5 South (Total South Extension: 55)
+                freewayLeft.receiveShadow = true;
+                
+                const freewayGeoRight = new THREE.PlaneGeometry(splitFreewayWidth, groundSizeZ + 90);
+                const freewayRight = new THREE.Mesh(freewayGeoRight, matAsphalt);
+                freewayRight.rotation.x = -Math.PI / 2;
+                freewayRight.position.set(9, -7.95, 25); // Extended 20 South (Total South Extension: 70)
+                freewayRight.receiveShadow = true;
+                
+                group.add(freewayLeft, freewayRight);
+
+                // Freeway Lines
+                function createLine(points, material, dashed = false) {
+                    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const line = new THREE.Line(geometry, material);
+                    if (dashed) line.computeLineDistances();
+                    return line;
+                }
+
+                const freewayLines = new THREE.Group();
+                freewayLines.position.y = -7.9; // Lowered
+                // Removed yellow lines, kept and centered the dashed lines for the new split roads
+                freewayLines.add(createLine([new THREE.Vector3(-11, 0, (-groundSizeZ/2) - 15), new THREE.Vector3(-11, 0, (groundSizeZ/2) + 55)], matWhiteDashed, true));
+                freewayLines.add(createLine([new THREE.Vector3(9, 0, (-groundSizeZ/2) - 20), new THREE.Vector3(9, 0, (groundSizeZ/2) + 70)], matWhiteDashed, true));
+                group.add(freewayLines);
+
+                // Main Connecting Road over the trench
+                const overpassGroup = new THREE.Group();
+                const bridgeGeo = new THREE.BoxGeometry(bridgeLength, 1.5, roadWidthMain);
+                const bridge = new THREE.Mesh(bridgeGeo, matConcrete);
+                bridge.position.set(bridgeCenterX, -0.65, 0); // Centered over the new span
+                bridge.castShadow = true; bridge.receiveShadow = true;
+                overpassGroup.add(bridge);
+
+                // Add pillars to support the longer bridge over the widened trench
+                const pillarGeo = new THREE.CylinderGeometry(1.0, 1.0, 6.6, 16);
+                [-20, 20].forEach(px => {
+                    const p1 = new THREE.Mesh(pillarGeo, matConcrete); p1.position.set(px, -4.7, 6.5);
+                    const p2 = new THREE.Mesh(pillarGeo, matConcrete); p2.position.set(px, -4.7, -6.5);
+                    p1.castShadow = p1.receiveShadow = p2.castShadow = p2.receiveShadow = true;
+                    overpassGroup.add(p1, p2);
+                });
+
+                const bridgeSurface = new THREE.Mesh(new THREE.PlaneGeometry(bridgeLength, roadWidthMain), matAsphaltUpper);
+                bridgeSurface.rotation.x = -Math.PI / 2;
+                bridgeSurface.position.set(bridgeCenterX, 0.12, 0); // Raised to clear the concrete bridge block entirely
+                overpassGroup.add(bridgeSurface);
+
+                // Side Roads
+                const leftSideRoadGeo = new THREE.BoxGeometry(roadWidthSide, 1.5, leftRoadLength);
+                const leftSideRoad = new THREE.Mesh(leftSideRoadGeo, matConcrete);
+                leftSideRoad.position.set(leftSideRoadX, -0.65, leftRoadZOffset);
+                leftSideRoad.castShadow = true; leftSideRoad.receiveShadow = true;
+                overpassGroup.add(leftSideRoad);
+
+                const leftSideSurfaceGeo = new THREE.PlaneGeometry(roadWidthSide, leftRoadLength);
+                const leftSurface = new THREE.Mesh(leftSideSurfaceGeo, matAsphaltUpper);
+                leftSurface.rotation.x = -Math.PI / 2;
+                leftSurface.position.set(leftSideRoadX, 0.12, leftRoadZOffset); // Raised
+                overpassGroup.add(leftSurface);
+
+                const rightSideRoadGeo = new THREE.BoxGeometry(roadWidthSide, 1.5, rightRoadLength);
+                const rightSideRoad = new THREE.Mesh(rightSideRoadGeo, matConcrete);
+                rightSideRoad.position.set(rightSideRoadX, -0.65, rightRoadZOffset);
+                rightSideRoad.castShadow = true; rightSideRoad.receiveShadow = true;
+                overpassGroup.add(rightSideRoad);
+
+                const rightSideSurfaceGeo = new THREE.PlaneGeometry(roadWidthSide, rightRoadLength);
+                const rightSurface = new THREE.Mesh(rightSideSurfaceGeo, matAsphaltUpper);
+                rightSurface.rotation.x = -Math.PI / 2;
+                rightSurface.position.set(rightSideRoadX, 0.12, rightRoadZOffset); // Raised
+                overpassGroup.add(rightSurface);
+
+                group.add(overpassGroup);
+
+                // Segmented White Lines for main and side roads
+                const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                
+                // Draw 8-lane markings for main horizontal road
+                const yellowMatSec3 = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+                for (let offset of [-0.4, 0.4]) {
+                    const yGeo = new THREE.PlaneGeometry(bridgeLength, 0.4);
+                    const yMesh = new THREE.Mesh(yGeo, yellowMatSec3);
+                    yMesh.rotation.x = -Math.PI / 2;
+                    yMesh.position.set(bridgeCenterX, 0.3, offset);
+                    group.add(yMesh);
+                }
+                const dashOffsetsSec3 = [-6, -4, -2, 2, 4, 6];
+                const dlSec3 = 3, glSec3 = 4;
+                const numDSec3 = Math.floor(bridgeLength / (dlSec3 + glSec3));
+                const startOSec3 = -bridgeLength / 2 + dlSec3;
+                for (let i = 0; i < numDSec3; i++) {
+                    const currentOffset = startOSec3 + i * (dlSec3 + glSec3);
+                    for (let dOff of dashOffsetsSec3) {
+                        const dashGeo = new THREE.PlaneGeometry(dlSec3, 0.3);
+                        const dash = new THREE.Mesh(dashGeo, lineMaterial);
+                        dash.rotation.x = -Math.PI / 2;
+                        dash.position.set(bridgeCenterX + currentOffset, 0.3, dOff);
+                        group.add(dash);
+                    }
+                }
+
+                function drawDashedLineSec3(type, cx, cz, length, yLevel) {
+                    const dashLength = 3, gapLength = 4;
+                    const numDashes = Math.floor(length / (dashLength + gapLength));
+                    const startOffset = -length / 2 + dashLength;
+                    for (let i = 0; i < numDashes; i++) {
+                        const dashGeo = new THREE.PlaneGeometry(type === 'h' ? dashLength : 0.3, type === 'h' ? 0.3 : dashLength);
+                        const dash = new THREE.Mesh(dashGeo, lineMaterial);
+                        dash.rotation.x = -Math.PI / 2;
+                        const currentOffset = startOffset + i * (dashLength + gapLength);
+                        
+                        if (type === 'h') dash.position.set(cx + currentOffset, yLevel, cz);
+                        else dash.position.set(cx, yLevel, cz + currentOffset);
+                        
+                        group.add(dash);
+                    }
+                }
+
+                drawDashedLineSec3('v', leftSideRoadX, leftRoadZOffset, leftRoadLength, 0.3); // Raised further
+                drawDashedLineSec3('v', rightSideRoadX, rightRoadZOffset, rightRoadLength, 0.3); // Extended and offset
+
+                // Ramps (Adapted to slope up from trench to ground level)
+                function createRampMesh(curve, width, material) {
+                    const segments = 100;
+                    const points = curve.getSpacedPoints(segments);
+                    const vertices = [];
+                    const indices = [];
+                    const up = new THREE.Vector3(0, 1, 0);
+
+                    for (let i = 0; i <= segments; i++) {
+                        const p = points[i];
+                        const tangent = curve.getTangentAt(i / segments).normalize();
+                        tangent.y = 0; 
+                        if (tangent.lengthSq() > 0.001) tangent.normalize();
+                        else tangent.set(0, 0, 1);
+
+                        const right = new THREE.Vector3().crossVectors(tangent, up).normalize();
+                        
+                        // Taper width at the freeway merge (start of curve)
+                        let currentWidth = width;
+                        const t = i / segments;
+                        const taperEnd = 0.2; // Taper ends at 20% of the ramp length
+                        if (t < taperEnd) {
+                            const progress = t / taperEnd;
+                            // Smoothstep for natural-looking lane taper
+                            currentWidth = width * (progress * progress * (3 - 2 * progress));
+                        }
+
+                        const pLeft = new THREE.Vector3().copy(p).addScaledVector(right, currentWidth / 2);
+                        const pRight = new THREE.Vector3().copy(p).addScaledVector(right, -currentWidth / 2);
+                        vertices.push(pLeft.x, pLeft.y, pLeft.z, pRight.x, pRight.y, pRight.z);
+                    }
+
+                    for (let i = 0; i < segments; i++) {
+                        const v1 = i * 2, v2 = i * 2 + 1, v3 = (i + 1) * 2, v4 = (i + 1) * 2 + 1;
+                        indices.push(v1, v2, v3, v2, v4, v3);
+                    }
+
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                    geometry.setIndex(indices);
+                    geometry.computeVertexNormals();
+
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = mesh.receiveShadow = true;
+                    return mesh;
+                }
+
+                const rampMergeZ = 80; 
+                // X-anchors dynamically calculated to match the outer edges of the shifted freeway halves
+                const rOffsetLeft = 15.5;  // (-11 left center) - 4 (half width) - 0.5 (ramp offset)
+                const rOffsetRight = 13.5; // (9 right center) + 4 (half width) + 0.5 (ramp offset)
+                
+                // X-anchors cleanly merge into exactly -41 & 41 to perfectly line up with the edge of the narrowed 8-width roads
+                // Z-anchors shifted outward to +/- 7 to prevent overlapping with the widened 16-unit main road
+                
+                // Helper to create a wavy ramp that bends in a smooth, single S-shape (2 points)
+                function createSBendCurve(pStart, pEnd, outwardDir) {
+                    const points = [];
+                    const zSign = Math.sign(pEnd.z - pStart.z); 
+                    
+                    // Point 0: Exact Start
+                    points.push(pStart.clone());
+                    
+                    // Point 1: Anchor 1 (Keeps the start straight for 15 units for a smooth merge)
+                    points.push(new THREE.Vector3(pStart.x, pStart.y, pStart.z + zSign * 15));
+
+                    // The 2 wavy bends (S-shape)
+                    const amplitude = 6.0; // The strength of the bends
+                    for (let i = 1; i <= 2; i++) {
+                        const t = i / 3; 
+                        const smoothT = t * t * (3 - 2 * t); // Smoothstep for base X progression
+                        
+                        const x = THREE.MathUtils.lerp(pStart.x, pEnd.x, smoothT);
+                        const y = THREE.MathUtils.lerp(pStart.y, pEnd.y, t);
+                        const z = THREE.MathUtils.lerp(pStart.z, pEnd.z, t);
+
+                        let xOffset = 0;
+                        // Single S-curve using 2 points instead of 3
+                        if (i === 1) xOffset = amplitude * outwardDir * 0.75;  // First bend
+                        if (i === 2) xOffset = -amplitude * outwardDir * 0.75; // Second bend
+
+                        points.push(new THREE.Vector3(x + xOffset, y, z));
+                    }
+
+                    // Point 4: Anchor 2 (Rotated 45 degrees for a diagonal top connection)
+                    // Offsetting X and Z equally forces the Catmull-Rom curve to arrive at exactly a 45-degree angle.
+                    const xOffsetAnchor = -Math.sign(pEnd.x) * 5;
+                    points.push(new THREE.Vector3(pEnd.x + xOffsetAnchor, pEnd.y, pEnd.z - zSign * 5));
+
+                    // Point 5: Exact End
+                    points.push(pEnd.clone());
+
+                    return new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.8);
+                }
+
+                const curveTL = createSBendCurve(
+                    new THREE.Vector3(-rOffsetLeft, -7.94, -rampMergeZ - 20), // Extended 10 units North
+                    new THREE.Vector3(-41, 0.105, -7),
+                    1 // Inverted from -1
+                );
+                const curveBL = createSBendCurve(
+                    new THREE.Vector3(-rOffsetLeft, -7.94, rampMergeZ + 30), // Extended 10 units South
+                    new THREE.Vector3(-41, 0.105, 7),
+                    1 // Inverted from -1
+                );
+                const curveTR = createSBendCurve(
+                    new THREE.Vector3(rOffsetRight, -7.94, -rampMergeZ - 15), // Extended 10 units North
+                    new THREE.Vector3(41, 0.105, -7),
+                    -1 // Inverted from 1
+                );
+                const curveBR = createSBendCurve(
+                    new THREE.Vector3(rOffsetRight, -7.94, rampMergeZ + 15), // Extended 10 units South
+                    new THREE.Vector3(41, 0.105, 7),
+                    -1 // Inverted from 1
+                );
+
+                group.add(
+                    createRampMesh(curveTL, rampWidth, matAsphalt), createRampMesh(curveBL, rampWidth, matAsphalt),
+                    createRampMesh(curveTR, rampWidth, matAsphalt), createRampMesh(curveBR, rampWidth, matAsphalt)
+                );
+
+                function createRampLine(curve) {
+                    const allPoints = curve.getSpacedPoints(50);
+                    // Omit dashed lines on the tapered merge section (first 10 points)
+                    const points = allPoints.slice(10);
+                    const lifted = points.map(p => new THREE.Vector3(p.x, p.y + 0.05, p.z));
+                    return createLine(lifted, matWhiteDashed, true);
+                }
+
+                group.add(createRampLine(curveTL), createRampLine(curveBL), createRampLine(curveTR), createRampLine(curveBR));
+
+                // Traffic Lights for Section 3 intersections
+                createIntersectionLights(group, leftSideRoadX, 0, 8, 16);
+                createIntersectionLights(group, rightSideRoadX, 0, 8, 16);
+
+                return group;
+            }
+
+            // =========================================================
+            // ASSEMBLY: Splice all 3 groups together edge-to-edge
+            // =========================================================
+
+            // Left Chunk (Section 1) - Local span -72 to 72 (Total 144) due to 1.6 scale
+            const leftGroup = buildSection1Left();
+            leftGroup.position.x = -121; // Shifted ~41 units closer. Right edge reaches global x = -49.
+            mapEnvironmentGroup.add(leftGroup);
+
+            // Middle Chunk (Section 2)
+            const middleGroup = buildSection2Middle();
+            middleGroup.position.x = 0; // Global range -49 to 59 
+            mapEnvironmentGroup.add(middleGroup);
+
+            // Right Chunk (Section 3) - Shifted so its left road seamlessly overlaps Section 2's intersection
+            const rightGroup = buildSection3Right();
+            rightGroup.position.x = 100; // Global range 45 to 155 (snaps perfectly!)
+            mapEnvironmentGroup.add(rightGroup);
+
+            // Apply global scale factor to entire custom map
+            mapEnvironmentGroup.scale.set(4, 4, 2);
+
+            // Apply global rotation to fix crookedness (Pivots perfectly around Section 2's center)
+            // Change the '0' below to a small number of degrees (e.g., 2, 1.5, or -1.5) to align it
+            mapEnvironmentGroup.rotation.y = THREE.MathUtils.degToRad(0.25);
+
+            // Apply global position offset (Shift North and West)
+            // Parameter 1 (X): Negative moves West, Positive moves East
+            // Parameter 2 (Y): Vertical elevation (leave at 0)
+            // Parameter 3 (Z): Negative moves North, Positive moves South
+            mapEnvironmentGroup.position.set(-100, 0, -156);
+        }
+
+        // --- End of CUSTOM MAP INTEGRATION ---
+
+        // --- FILE HANDLING & PARSING ---
+        function setupFileHandlers() {
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500'); });
+            dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500'); });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-blue-500');
+                if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
+            });
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) processFile(e.target.files[0]);
+            });
+        }
+
+        function processFile(file) {
+            if (!file.name.endsWith('.xml')) { alert("Please upload a valid SUMO .net.xml file."); return; }
+            loadingIndicator.classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setTimeout(() => {
+                    try {
+                        parseSumoXML(e.target.result);
+                        uiLayer.classList.add('hidden');
+                        controlsPanel.style.display = 'block';
+                    } catch (err) {
+                        alert("Error parsing network file: " + err.message);
+                    } finally {
+                        loadingIndicator.classList.add('hidden');
+                    }
+                }, 50);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseSumoXML(xmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+            // Calculate Offsets to center the map at (0,0,0)
+            const locationNode = xmlDoc.querySelector("location");
+            let convBoundary = [0, 0, 0, 0];
+            if (locationNode && locationNode.getAttribute("convBoundary")) {
+                convBoundary = locationNode.getAttribute("convBoundary").split(',').map(Number);
+            }
+            
+            const centerX = (convBoundary[0] + convBoundary[2]) / 2;
+            const centerY = (convBoundary[1] + convBoundary[3]) / 2;
+
+            // Parse Lanes
+            const lanes = xmlDoc.querySelectorAll("lane");
+            const lanePositions = [];
+            lanePaths = []; 
+            let laneCount = 0;
+
+            lanes.forEach(lane => {
+                const shapeStr = lane.getAttribute("shape");
+                if (!shapeStr) return;
+                laneCount++;
+
+                const points = shapeStr.split(' ').map(p => {
+                    const coords = p.split(',');
+                    const x = parseFloat(coords[0]) - centerX;
+                    // Keep lanes slightly above the new ground plane to prevent z-fighting
+                    const y = coords.length > 2 ? parseFloat(coords[2]) + 0.1 : 0.1; 
+                    const z = -(parseFloat(coords[1]) - centerY);
+                    return new THREE.Vector3(x, y, z);
+                });
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    lanePositions.push(points[i].x, points[i].y, points[i].z);
+                    lanePositions.push(points[i+1].x, points[i+1].y, points[i+1].z);
+                }
+
+                if (points.length > 1) {
+                    let length = 0;
+                    for(let i=0; i<points.length-1; i++) length += points[i].distanceTo(points[i+1]);
+                    lanePaths.push({ points, length });
+                }
+            });
+
+            // Draw roads as dark grey asphalt lines
+            const laneGeometry = new THREE.BufferGeometry();
+            laneGeometry.setAttribute('position', new THREE.Float32BufferAttribute(lanePositions, 3));
+            const laneMaterial = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 2 });
+            const laneLines = new THREE.LineSegments(laneGeometry, laneMaterial);
+            networkGroup.add(laneLines);
+
+            // Parse Junctions
+            const junctions = xmlDoc.querySelectorAll("junction");
+            const junctionPositions = [];
+            let junctionCount = 0;
+
+            junctions.forEach(j => {
+                const shapeStr = j.getAttribute("shape");
+                if (!shapeStr) return;
+                junctionCount++;
+                
+                const points = shapeStr.split(' ').map(p => {
+                    const coords = p.split(',');
+                    return new THREE.Vector3(
+                        parseFloat(coords[0]) - centerX,
+                        0.15, // slightly above lanes to highlight junctions
+                        -(parseFloat(coords[1]) - centerY)
+                    );
+                });
+
+                for (let i = 0; i < points.length; i++) {
+                    const next = (i + 1) % points.length;
+                    junctionPositions.push(points[i].x, points[i].y, points[i].z);
+                    junctionPositions.push(points[next].x, points[next].y, points[next].z);
+                }
+            });
+
+            const junctionGeometry = new THREE.BufferGeometry();
+            junctionGeometry.setAttribute('position', new THREE.Float32BufferAttribute(junctionPositions, 3));
+            const junctionMaterial = new THREE.LineBasicMaterial({ color: 0x555555 }); // Dark borders for intersections
+            const junctionLines = new THREE.LineSegments(junctionGeometry, junctionMaterial);
+            networkGroup.add(junctionLines);
+
+            // UI Updates
+            document.getElementById('stat-edges').innerText = laneCount;
+            document.getElementById('stat-junctions').innerText = junctionCount;
+
+            // Camera Fitting
+            const maxView = Math.max(convBoundary[2] - convBoundary[0], convBoundary[3] - convBoundary[1]);
+            camera.position.set(0, maxView * 0.8, maxView * 0.3);
+            controls.target.set(0, 0, 0);
+            controls.update();
+
+            // Spawn Vehicles
+            spawnVehicles(Math.min(500, lanePaths.length));
+        }
+
+        // --- VEHICLE SIMULATION ---
+        function spawnVehicles(count) {
+            document.getElementById('stat-cars').innerText = count;
+            
+            // Standard car geometry
+            const carGeometry = new THREE.BoxGeometry(2, 1.5, 4);
+            // Translate to match your uploaded map's "carMesh.position.set(tX, 0.7, tZ)" elevation preference
+            carGeometry.translate(0, 0.75, 0); 
+
+            const colors = [0xffffff, 0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xffa500, 0x00ffff, 0x333333];
+
+            for (let i = 0; i < count; i++) {
+                const mat = new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] });
+                const mesh = new THREE.Mesh(carGeometry, mat);
+                
+                // Enable shadows for the cars
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                const pathIndex = Math.floor(Math.random() * lanePaths.length);
+                const pathData = lanePaths[pathIndex];
+                
+                const vehicle = {
+                    mesh: mesh,
+                    pathIndex: pathIndex,
+                    points: pathData.points,
+                    currentSegment: 0,
+                    progress: Math.random(),
+                    speed: 10 + Math.random() * 15 
+                };
+
+                updateVehiclePosition(vehicle, 0);
+                networkGroup.add(mesh);
+                vehicles.push(vehicle);
+            }
+        }
+
+        function updateVehiclePosition(v, delta) {
+            let distanceToMove = v.speed * simulationSpeed * delta;
+            
+            while (distanceToMove > 0) {
+                const p1 = v.points[v.currentSegment];
+                const p2 = v.points[v.currentSegment + 1];
+                
+                if (!p1 || !p2) {
+                    v.pathIndex = Math.floor(Math.random() * lanePaths.length);
+                    v.points = lanePaths[v.pathIndex].points;
+                    v.currentSegment = 0;
+                    v.progress = 0;
+                    break;
+                }
+
+                const segmentLength = p1.distanceTo(p2);
+                const remainingInSegment = segmentLength * (1 - v.progress);
+
+                if (distanceToMove > remainingInSegment) {
+                    distanceToMove -= remainingInSegment;
+                    v.currentSegment++;
+                    v.progress = 0;
+                    
+                    if (v.currentSegment >= v.points.length - 1) {
+                         v.pathIndex = Math.floor(Math.random() * lanePaths.length);
+                         v.points = lanePaths[v.pathIndex].points;
+                         v.currentSegment = 0;
+                         v.progress = 0;
+                         break;
+                    }
+                } else {
+                    v.progress += distanceToMove / segmentLength;
+                    distanceToMove = 0;
+                    
+                    v.mesh.position.lerpVectors(p1, p2, v.progress);
+                    v.mesh.lookAt(p2);
+                }
+            }
+        }
+
+        // --- RENDER LOOP ---
+        function animate(time) {
+            animationFrameId = requestAnimationFrame(animate);
+            const delta = (time - lastTime) / 1000;
+            lastTime = time;
+            const safeDelta = Math.min(delta, 0.1); 
+
+            controls.update();
+
+            for (let i = 0; i < vehicles.length; i++) {
+                updateVehiclePosition(vehicles[i], safeDelta);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function resetSimulation() {
+            while(networkGroup.children.length > 0){ 
+                const obj = networkGroup.children[0];
+                networkGroup.remove(obj); 
+                if(obj.geometry) obj.geometry.dispose();
+                if(obj.material) obj.material.dispose();
+            }
+            vehicles = [];
+            lanePaths = [];
+            fileInput.value = '';
+        }
+
+        // Start everything
+        init();
+
+    </script>
+</body>
+</html>
