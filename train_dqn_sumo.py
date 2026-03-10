@@ -118,7 +118,7 @@ def train_dqn_sumo(env, model, episodes=50, steps_per_episode=3600,
 if __name__ == "__main__":
     # --- CONFIGURATION ---
     SUMO_CFG = "osm.sumocfg"          # Path to your SUMO config file
-    TLS_ID = "3153556582"             # Traffic light ID (change after verifying!)
+    TLS_ID = "cluster_3648303878_5019372006_7625804229_7625804230"             # Traffic light ID (change after verifying!)
     USE_GUI = True                     # Set to True to watch the simulation
     EPISODES = 20                      # Number of episodes
     TIME_LIMIT = 1800                   # Seconds per episode (e.g., 30 minutes)
