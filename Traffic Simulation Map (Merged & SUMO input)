@@ -228,9 +228,9 @@
                 const S = 1.6;
 
                 // Ground Plane (Spliced to perfectly touch the middle section)
-                // Original width 90 * 1.6 = 144
-                const ground = new THREE.Mesh(new THREE.PlaneGeometry(90 * S, 200), new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9 })); 
-                ground.rotation.x = -Math.PI / 2;
+                // Width extended to 120*S, Z extended to 480 to perfectly cover all roads
+                const ground = new THREE.Mesh(new THREE.BoxGeometry(120 * S, 50, 480), new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9 })); 
+                ground.position.set(-15 * S, -25, 30); // Shifted X to keep right edge flush at 45*S, Z shifted to 30 to cover the south roads
                 ground.receiveShadow = true;
                 group.add(ground);
 
@@ -371,11 +371,10 @@
                 const group = new THREE.Group();
 
                 // Ground truncated at left side (x=-49) to snap perfectly with newly moved Section 1
-                const groundGeo = new THREE.PlaneGeometry(94, 200);
+                const groundGeo = new THREE.BoxGeometry(94, 50, 480); // Z extended to 480
                 const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a7c59 });
                 const ground = new THREE.Mesh(groundGeo, groundMat);
-                ground.position.x = -2; // Centers the 94 width from exactly x = -49 to x = 45
-                ground.rotation.x = -Math.PI / 2;
+                ground.position.set(-2, -25, 30); // Centers the 94 width from exactly x = -49 to x = 45, Z matched to 480 span
                 ground.receiveShadow = true;
                 group.add(ground);
 
@@ -555,52 +554,38 @@
                 const leftRoadZOffset = 40; // Center offset to balance the asymmetric extension
 
                 // Split ground plane to allow a trench for the freeway under the main road
-                const groundGeoLeft = new THREE.PlaneGeometry(14, leftRoadLength);
+                const groundGeoLeft = new THREE.BoxGeometry(14, 50, 480); // Z uniformly extended to 480
                 const groundLeft = new THREE.Mesh(groundGeoLeft, matGround);
-                groundLeft.rotation.x = -Math.PI / 2;
-                groundLeft.position.set(-48, 0, leftRoadZOffset); // Flush with left trench wall and Sec 2 Ground edge
+                groundLeft.position.set(-48, -25, 30); // Z center shifted to 30 to cover the south roads
                 groundLeft.receiveShadow = true;
 
                 // Expanded right ground to cover the extended bridge
-                const groundGeoRight = new THREE.PlaneGeometry(115, rightRoadLength);
+                const groundGeoRight = new THREE.BoxGeometry(140, 50, 480); // Width expanded to 140, Z extended to 480
                 const groundRight = new THREE.Mesh(groundGeoRight, matGround);
-                groundRight.rotation.x = -Math.PI / 2;
-                groundRight.position.set(98.5, 0, rightRoadZOffset); // Flush with right trench wall (41 to 156)
+                groundRight.position.set(111, -25, 30); // X shifted to keep left edge at 41, Z center matched
                 groundRight.receiveShadow = true;
 
-                // Retaining walls for the trench
-                const wallGeo = new THREE.PlaneGeometry(groundSizeZ + 90, 8); // Extended to cover new right highway length
-                const wallLeft = new THREE.Mesh(wallGeo, matConcrete);
-                wallLeft.position.set(-41, -4, 25); // Snug to narrowed left road, centered
-                wallLeft.rotation.y = Math.PI/2;
-                wallLeft.receiveShadow = true;
-                const wallRight = new THREE.Mesh(wallGeo, matConcrete);
-                wallRight.position.set(41, -4, 25); // Snug to narrowed right road, centered
-                wallRight.rotation.y = -Math.PI/2;
-                wallRight.receiveShadow = true;
-
-                // Trench floor (grass base)
-                const trenchFloorGeo = new THREE.PlaneGeometry(82, groundSizeZ + 90); // Exactly spanning from wall to wall
+                // Trench floor (grass base) brought up to ground level
+                const trenchFloorGeo = new THREE.BoxGeometry(82, 50, 480); // Z uniformly extended to 480
                 const trenchFloor = new THREE.Mesh(trenchFloorGeo, matGround);
-                trenchFloor.rotation.x = -Math.PI / 2;
-                trenchFloor.position.set(0, -8.0, 25); // Centered to match extended walls
+                trenchFloor.position.set(0, -25, 30); // Z center matched
                 trenchFloor.receiveShadow = true;
 
-                group.add(groundLeft, groundRight, wallLeft, wallRight, trenchFloor);
+                group.add(groundLeft, groundRight, trenchFloor); // Retaining walls removed
 
-                // Freeway lowered into Trench (Split and Shifted)
+                // Freeway (Raised to ground level)
                 const splitFreewayWidth = 8;
                 
                 const freewayGeoLeft = new THREE.PlaneGeometry(splitFreewayWidth, groundSizeZ + 70);
                 const freewayLeft = new THREE.Mesh(freewayGeoLeft, matAsphalt);
                 freewayLeft.rotation.x = -Math.PI / 2;
-                freewayLeft.position.set(-11, -7.95, 20); // Extended 5 South (Total South Extension: 55)
+                freewayLeft.position.set(-11, 0.12, 20); // Raised to Y=0.12
                 freewayLeft.receiveShadow = true;
                 
                 const freewayGeoRight = new THREE.PlaneGeometry(splitFreewayWidth, groundSizeZ + 90);
                 const freewayRight = new THREE.Mesh(freewayGeoRight, matAsphalt);
                 freewayRight.rotation.x = -Math.PI / 2;
-                freewayRight.position.set(9, -7.95, 25); // Extended 20 South (Total South Extension: 70)
+                freewayRight.position.set(9, 0.12, 25); // Raised to Y=0.12
                 freewayRight.receiveShadow = true;
                 
                 group.add(freewayLeft, freewayRight);
@@ -614,57 +599,49 @@
                 }
 
                 const freewayLines = new THREE.Group();
-                freewayLines.position.y = -7.9; // Lowered
+                freewayLines.position.y = 0.15; // Raised to stay above the flat freeway
                 // Removed yellow lines, kept and centered the dashed lines for the new split roads
                 freewayLines.add(createLine([new THREE.Vector3(-11, 0, (-groundSizeZ/2) - 15), new THREE.Vector3(-11, 0, (groundSizeZ/2) + 55)], matWhiteDashed, true));
                 freewayLines.add(createLine([new THREE.Vector3(9, 0, (-groundSizeZ/2) - 20), new THREE.Vector3(9, 0, (groundSizeZ/2) + 70)], matWhiteDashed, true));
                 group.add(freewayLines);
 
-                // Main Connecting Road over the trench
+                // Main Connecting Road
                 const overpassGroup = new THREE.Group();
-                const bridgeGeo = new THREE.BoxGeometry(bridgeLength, 1.5, roadWidthMain);
+                const bridgeGeo = new THREE.BoxGeometry(bridgeLength, 0.2, roadWidthMain); // Flattened thickness to 0.2
                 const bridge = new THREE.Mesh(bridgeGeo, matConcrete);
-                bridge.position.set(bridgeCenterX, -0.65, 0); // Centered over the new span
+                bridge.position.set(bridgeCenterX, 0, 0); // Raised to Y=0
                 bridge.castShadow = true; bridge.receiveShadow = true;
                 overpassGroup.add(bridge);
 
-                // Add pillars to support the longer bridge over the widened trench
-                const pillarGeo = new THREE.CylinderGeometry(1.0, 1.0, 6.6, 16);
-                [-20, 20].forEach(px => {
-                    const p1 = new THREE.Mesh(pillarGeo, matConcrete); p1.position.set(px, -4.7, 6.5);
-                    const p2 = new THREE.Mesh(pillarGeo, matConcrete); p2.position.set(px, -4.7, -6.5);
-                    p1.castShadow = p1.receiveShadow = p2.castShadow = p2.receiveShadow = true;
-                    overpassGroup.add(p1, p2);
-                });
-
+                // Bridge surface
                 const bridgeSurface = new THREE.Mesh(new THREE.PlaneGeometry(bridgeLength, roadWidthMain), matAsphaltUpper);
                 bridgeSurface.rotation.x = -Math.PI / 2;
-                bridgeSurface.position.set(bridgeCenterX, 0.12, 0); // Raised to clear the concrete bridge block entirely
+                bridgeSurface.position.set(bridgeCenterX, 0.12, 0); // Raised to ground level road height
                 overpassGroup.add(bridgeSurface);
 
                 // Side Roads
-                const leftSideRoadGeo = new THREE.BoxGeometry(roadWidthSide, 1.5, leftRoadLength);
+                const leftSideRoadGeo = new THREE.BoxGeometry(roadWidthSide, 0.2, leftRoadLength); // Flattened thickness
                 const leftSideRoad = new THREE.Mesh(leftSideRoadGeo, matConcrete);
-                leftSideRoad.position.set(leftSideRoadX, -0.65, leftRoadZOffset);
+                leftSideRoad.position.set(leftSideRoadX, 0, leftRoadZOffset); // Raised to Y=0
                 leftSideRoad.castShadow = true; leftSideRoad.receiveShadow = true;
                 overpassGroup.add(leftSideRoad);
 
                 const leftSideSurfaceGeo = new THREE.PlaneGeometry(roadWidthSide, leftRoadLength);
                 const leftSurface = new THREE.Mesh(leftSideSurfaceGeo, matAsphaltUpper);
                 leftSurface.rotation.x = -Math.PI / 2;
-                leftSurface.position.set(leftSideRoadX, 0.12, leftRoadZOffset); // Raised
+                leftSurface.position.set(leftSideRoadX, 0.12, leftRoadZOffset); // Raised to ground level
                 overpassGroup.add(leftSurface);
 
-                const rightSideRoadGeo = new THREE.BoxGeometry(roadWidthSide, 1.5, rightRoadLength);
+                const rightSideRoadGeo = new THREE.BoxGeometry(roadWidthSide, 0.2, rightRoadLength); // Flattened thickness
                 const rightSideRoad = new THREE.Mesh(rightSideRoadGeo, matConcrete);
-                rightSideRoad.position.set(rightSideRoadX, -0.65, rightRoadZOffset);
+                rightSideRoad.position.set(rightSideRoadX, 0, rightRoadZOffset); // Raised to Y=0
                 rightSideRoad.castShadow = true; rightSideRoad.receiveShadow = true;
                 overpassGroup.add(rightSideRoad);
 
                 const rightSideSurfaceGeo = new THREE.PlaneGeometry(roadWidthSide, rightRoadLength);
                 const rightSurface = new THREE.Mesh(rightSideSurfaceGeo, matAsphaltUpper);
                 rightSurface.rotation.x = -Math.PI / 2;
-                rightSurface.position.set(rightSideRoadX, 0.12, rightRoadZOffset); // Raised
+                rightSurface.position.set(rightSideRoadX, 0.12, rightRoadZOffset); // Raised to ground level
                 overpassGroup.add(rightSurface);
 
                 group.add(overpassGroup);
@@ -811,24 +788,25 @@
                     return new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.8);
                 }
 
+                // Updated all Y-coordinates to 0.12 to make the ramps perfectly flat
                 const curveTL = createSBendCurve(
-                    new THREE.Vector3(-rOffsetLeft, -7.94, -rampMergeZ - 20), // Extended 10 units North
-                    new THREE.Vector3(-41, 0.105, -7),
+                    new THREE.Vector3(-rOffsetLeft, 0.12, -rampMergeZ - 20), 
+                    new THREE.Vector3(-41, 0.12, -7),
                     1 // Inverted from -1
                 );
                 const curveBL = createSBendCurve(
-                    new THREE.Vector3(-rOffsetLeft, -7.94, rampMergeZ + 30), // Extended 10 units South
-                    new THREE.Vector3(-41, 0.105, 7),
+                    new THREE.Vector3(-rOffsetLeft, 0.12, rampMergeZ + 30), 
+                    new THREE.Vector3(-41, 0.12, 7),
                     1 // Inverted from -1
                 );
                 const curveTR = createSBendCurve(
-                    new THREE.Vector3(rOffsetRight, -7.94, -rampMergeZ - 15), // Extended 10 units North
-                    new THREE.Vector3(41, 0.105, -7),
+                    new THREE.Vector3(rOffsetRight, 0.12, -rampMergeZ - 15), 
+                    new THREE.Vector3(41, 0.12, -7),
                     -1 // Inverted from 1
                 );
                 const curveBR = createSBendCurve(
-                    new THREE.Vector3(rOffsetRight, -7.94, rampMergeZ + 15), // Extended 10 units South
-                    new THREE.Vector3(41, 0.105, 7),
+                    new THREE.Vector3(rOffsetRight, 0.12, rampMergeZ + 15), 
+                    new THREE.Vector3(41, 0.12, 7),
                     -1 // Inverted from 1
                 );
 
