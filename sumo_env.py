@@ -1,6 +1,6 @@
 """
 SUMO environment for traffic light control using TraCI.
-Assumes SUMO is installed and SUMO_HOME is set.
+No pre-parsing; uses a short simulation to initialize sizes.
 """
 
 import os
@@ -24,7 +24,7 @@ class SumoTrafficEnv:
         """
         Args:
             sumo_cfg_file: path to the .sumocfg configuration file.
-            tls_id: the ID of the traffic light to control (e.g., "3153556582").
+            tls_id: the ID of the traffic light to control.
             time_limit: simulation time in seconds (stop after this).
             use_gui: if True, launch sumo-gui, else sumo (no GUI).
         """
@@ -34,29 +34,38 @@ class SumoTrafficEnv:
         self.use_gui = use_gui
         self.step_time = 0
 
-        # Will be filled after start
-        self.controlled_lanes = None
-        self.num_phases = None
+        # Initialize by running a short simulation to get lane and phase info
+        self._init_from_traci()
 
-    def start_simulation(self):
-        """Launch SUMO with TraCI."""
-        sumo_binary = "sumo-gui" if self.use_gui else "sumo"
-        sumo_cmd = [sumo_binary, "-c", self.sumo_cfg, "--start", "--quit-on-end"]
+    def _init_from_traci(self):
+        """Start a temporary simulation to fetch lane list and phase count."""
+        sumo_binary = "sumo"  # use headless for initialization (faster)
+        sumo_cmd = [sumo_binary, "-c", self.sumo_cfg, "--start", "--quit-on-end", "--no-step-log"]
         traci.start(sumo_cmd)
 
         # Get controlled lanes for this traffic light
-        self.controlled_lanes = traci.trafficlight.getControlledLanes(self.tls_id)
-        # Remove duplicates (multiple lanes per approach may be listed)
-        self.controlled_lanes = list(dict.fromkeys(self.controlled_lanes))
+        lanes = traci.trafficlight.getControlledLanes(self.tls_id)
+        self._controlled_lanes = list(dict.fromkeys(lanes))  # remove duplicates
 
-        # Get number of phases (to define action space)
+        # Get number of phases
         logic = traci.trafficlight.getAllProgramLogics(self.tls_id)[0]
-        self.num_phases = len(logic.getPhases())
+        self._num_phases = len(logic.getPhases())
+
+        traci.close()
+
+    def start_simulation(self):
+        """Launch SUMO with TraCI (full simulation)."""
+        sumo_binary = "sumo-gui" if self.use_gui else "sumo"
+        sumo_cmd = [sumo_binary, "-c", self.sumo_cfg, "--start", "--quit-on-end"]
+        traci.start(sumo_cmd)
         self.step_time = 0
 
     def stop_simulation(self):
-        """Close TraCI connection."""
-        traci.close()
+        """Close TraCI connection safely."""
+        try:
+            traci.close()
+        except:
+            pass
 
     def get_state(self):
         """
@@ -65,14 +74,10 @@ class SumoTrafficEnv:
         Features: queue length and waiting time for each controlled lane.
         """
         state = []
-        for lane in self.controlled_lanes:
-            # Number of stopped vehicles on this lane
+        for lane in self._controlled_lanes:
             queue = traci.lane.getLastStepHaltingNumber(lane)
-            # Total waiting time (seconds) on this lane
             waiting = traci.lane.getWaitingTime(lane)
             state.extend([queue, waiting])
-
-        # Pad if something went wrong (shouldn't happen)
         return np.array(state, dtype=np.float32)
 
     def get_reward(self):
@@ -81,7 +86,7 @@ class SumoTrafficEnv:
         Here we use negative total waiting time (we want to minimise waiting).
         """
         total_wait = 0.0
-        for lane in self.controlled_lanes:
+        for lane in self._controlled_lanes:
             total_wait += traci.lane.getWaitingTime(lane)
         return -total_wait
 
@@ -90,20 +95,13 @@ class SumoTrafficEnv:
         Apply action (set traffic light phase) and advance simulation one second.
         Returns: (next_state, reward, done, info)
         """
-        # Set the traffic light phase
         traci.trafficlight.setPhase(self.tls_id, action)
-
-        # Advance simulation by one second
         traci.simulationStep()
         self.step_time += 1
 
-        # Get new state and reward
         next_state = self.get_state()
         reward = self.get_reward()
-
-        # Check if simulation ended
         done = self.step_time >= self.time_limit
-
         return next_state, reward, done, {}
 
     def reset(self):
@@ -115,9 +113,9 @@ class SumoTrafficEnv:
     @property
     def state_size(self):
         """Number of features in the state vector."""
-        return len(self.controlled_lanes) * 2
+        return len(self._controlled_lanes) * 2
 
     @property
     def action_size(self):
         """Number of possible actions (phases)."""
-        return self.num_phases
+        return self._num_phases
