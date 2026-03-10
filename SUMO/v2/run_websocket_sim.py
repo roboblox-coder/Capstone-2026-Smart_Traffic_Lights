@@ -73,6 +73,7 @@ sumo_cmd = [
     "--queue-output", queue_xml,
     "--no-step-log", "true",
     "--time-to-teleport", "-1",
+    "--tls.actuated.jam-threshold", "30",
 ]
 
 print("🚗 Starting TraCI + WebSocket Simulation …")

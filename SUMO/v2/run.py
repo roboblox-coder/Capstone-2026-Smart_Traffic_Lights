@@ -37,7 +37,7 @@ def run_script(script_name):
 
 def launch_sumo_gui():
     """Open SUMO-GUI with sim.sumocfg."""
-    subprocess.run(["sumo-gui", "-c", SUMOCFG], cwd=SCRIPT_DIR)
+    subprocess.run(["sumo-gui", "-c", SUMOCFG, "--tls.actuated.jam-threshold", "30"], cwd=SCRIPT_DIR)
 
 
 # ── Menu ─────────────────────────────────────────────────────────────

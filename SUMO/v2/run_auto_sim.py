@@ -39,7 +39,8 @@ sumo_cmd = [
     "sumo", 
     "-c", "sim.sumocfg",
     "--fcd-output", fcd_xml,
-    "--queue-output", queue_xml
+    "--queue-output", queue_xml,
+    "--tls.actuated.jam-threshold", "30",
 ]
 
 try:

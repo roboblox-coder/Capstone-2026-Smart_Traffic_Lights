@@ -47,7 +47,8 @@ sumoCmd = [
     "--fcd-output", fcd_xml,
     "--queue-output", queue_xml,
     "--no-step-log", "true", # Reduces console spam
-    "--time-to-teleport", "-1" # Optional: prevents vehicles from teleporting if stuck, you might want this for RL
+    "--time-to-teleport", "-1", # Optional: prevents vehicles from teleporting if stuck, you might want this for RL
+    "--tls.actuated.jam-threshold", "30",
 ]
 
 try:

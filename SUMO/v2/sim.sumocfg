@@ -3,6 +3,7 @@
     <input>
         <net-file value="NE_8th_St_Corridor.net.xml" />
         <route-files value="harvard_simulation.rou.xml" />
+        <additional-files value="detectors.add.xml" />
     </input>
     <time>
         <begin value="0" />
