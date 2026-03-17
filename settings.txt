@@ -1,4 +1,0 @@
-root: C:\Users\liang\OneDrive\Documents\College\Capstone 
-path: C:\Program Files\nodejs 
-arch: 64 
-proxy: none
