@@ -194,20 +194,7 @@
             color: #f85149;
         }
 
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            transition: opacity .3s;
-        }
+
 
         #controls {
             position: absolute;
@@ -275,36 +262,7 @@
             New Network</button>
     </div>
 
-    <!-- Drag & Drop UI -->
-    <div id="ui-layer">
-        <div class="bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl p-10 max-w-lg w-full text-center shadow-2xl relative"
-            id="drop-zone">
-            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                </path>
-            </svg>
-            <h1 class="text-2xl font-bold text-white mb-2">SUMO Live City Viewer</h1>
-            <p class="text-gray-400 mb-6">Drag & drop your <code
-                    class="bg-gray-800 px-1 rounded text-gray-200">.net.xml</code> file to overlay the road network, or
-                just close this to view the city.</p>
 
-            <input type="file" id="file-input" accept=".xml" class="hidden">
-            <div class="flex gap-3 justify-center">
-                <button onclick="document.getElementById('file-input').click()"
-                    class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg transition duration-200 shadow-lg">Browse
-                    Files</button>
-                <button id="btn-skip"
-                    class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200 shadow-lg">Skip</button>
-            </div>
-
-            <div id="loading-indicator"
-                class="hidden absolute inset-0 bg-gray-900 rounded-xl flex flex-col items-center justify-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-3"></div>
-                <p class="text-white font-medium" id="loading-text">Parsing XML and building 3D geometry...</p>
-            </div>
-        </div>
-    </div>
 
     <script type="module">
         import * as THREE from 'three';
@@ -327,11 +285,7 @@
         const dummy = new THREE.Object3D();
 
         // UI Elements
-        const uiLayer = document.getElementById('ui-layer');
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
         const controlsPanel = document.getElementById('controls');
-        const loadingIndicator = document.getElementById('loading-indicator');
         const badge = document.getElementById('status-badge');
         const hudStep = document.getElementById('hud-step');
         const hudVeh = document.getElementById('hud-veh');
@@ -391,17 +345,8 @@
             loadCustomMap();
 
             window.addEventListener('resize', onWindowResize);
-            setupFileHandlers();
 
-            document.getElementById('btn-reset').addEventListener('click', () => {
-                resetSimulation();
-                uiLayer.classList.remove('hidden');
-                controlsPanel.style.display = 'none';
-            });
-
-            document.getElementById('btn-skip').addEventListener('click', () => {
-                uiLayer.classList.add('hidden');
-            });
+            controlsPanel.style.display = 'block';
 
             // Start render loop and WebSocket
             requestAnimationFrame(animate);
@@ -1118,40 +1063,7 @@
 
         // --- End of CUSTOM MAP INTEGRATION ---
 
-        // --- FILE HANDLING & PARSING ---
-        function setupFileHandlers() {
-            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500'); });
-            dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500'); });
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('border-blue-500');
-                if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
-            });
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) processFile(e.target.files[0]);
-            });
-        }
 
-        function processFile(file) {
-            if (!file.name.endsWith('.xml')) { alert("Please upload a valid SUMO .net.xml file."); return; }
-            loadingIndicator.classList.remove('hidden');
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setTimeout(() => {
-                    try {
-                        parseSumoXML(e.target.result);
-                        uiLayer.classList.add('hidden');
-                        controlsPanel.style.display = 'block';
-                    } catch (err) {
-                        alert("Error parsing network file: " + err.message);
-                    } finally {
-                        loadingIndicator.classList.add('hidden');
-                    }
-                }, 50);
-            };
-            reader.readAsText(file);
-        }
 
         function parseSumoXML(xmlText) {
             const parser = new DOMParser();
