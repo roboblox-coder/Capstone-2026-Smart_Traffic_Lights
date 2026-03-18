@@ -351,6 +351,9 @@
             // Start render loop and WebSocket
             requestAnimationFrame(animate);
             connectWebSocket();
+
+            // Wire up the reset button
+            document.getElementById('btn-reset').addEventListener('click', resetSimulation);
         }
 
         // --- CUSTOM MAP INTEGRATION ---
@@ -425,8 +428,8 @@
 
                 // Ground Plane (Spliced to perfectly touch the middle section)
                 // Width extended to 120*S, Z extended to 480 to perfectly cover all roads
-                const ground = new THREE.Mesh(new THREE.BoxGeometry(120 * S, 50, 480), new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9 }));
-                ground.position.set(-15 * S, -25, 30); // Shifted X to keep right edge flush at 45*S, Z shifted to 30 to cover the south roads
+                const ground = new THREE.Mesh(new THREE.BoxGeometry(120 * S, 50, 275), new THREE.MeshStandardMaterial({ color: 0x4a7c59, roughness: 0.9 }));
+                ground.position.set(-15 * S, -25, 27.5); // Unified length adjustment
                 ground.receiveShadow = true;
                 group.add(ground);
 
@@ -509,9 +512,9 @@
 
                 // Drawn proportional to S factor
                 drawRoad(-45 * S, 0, 45 * S, 0, 10 * S, true);
-                drawRoad(-12 * S - 5 - 0.10, -45 * S - 30, -12 * S - 5 + 3, 45 * S + 125, 4.5 * S); // Extended another 5 North (total 10), maintaining exact rotation angle
-                drawRoad(15 * S, -45 * S - 40, 15 * S + 3, 45 * S + 125, 4.5 * S); // Shifted ONLY the south end 3 units to the right
-                drawRoad(-25 * S - 10, 0, -25 * S - 10, -45 * S - 100, 2.5 * S);  // Shifted West by 5, Extended North by 100
+                drawRoad(-12 * S - 5 - 0.10, -110, -12 * S - 5 + 2.565, 165, 4.5 * S); // Unified north/south extents
+                drawRoad(15 * S + 0.097, -110, 15 * S + 2.592, 165, 4.5 * S); // Unified north/south extents
+                drawRoad(-25 * S - 10, 0, -25 * S - 10, -110, 2.5 * S);  // Unified north extent
                 drawRoad(-25 * S - 10, -15 * S - 5 - 30, -12 * S - 5, -15 * S - 5 - 30, 2.5 * S); // Shifted South by 10 (Net North shift of 30)
                 drawRoad(-12 * S - 5, 20 * S + 66, 15 * S, 20 * S + 66, 2.5 * S);   // Shifted South by 6 to sit perfectly flush against the floor edge (Z=100)
                 drawRoad(15 * S, -20 * S - 30, 32 * S, -20 * S - 30, 2.5 * S); // Shifted South by 10 (Net North shift of 30)
@@ -534,7 +537,7 @@
                 // Bellevue City Blocks
                 const bMat = new THREE.MeshStandardMaterial({ color: 0x3a404a, roughness: 0.6 }), wMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
                 for (let x = -40 * S; x <= 40 * S; x += 8 * S) {
-                    for (let z = -40 * S; z <= 40 * S; z += 8 * S) {
+                    for (let z = -60 * S; z <= 90 * S; z += 8 * S) {
                         const bWidth = (3 + Math.random() * 4) * S;
                         const bDepth = (3 + Math.random() * 4) * S;
                         const bx = x + (Math.random() * 2 * S - S);
@@ -567,10 +570,10 @@
                 const group = new THREE.Group();
 
                 // Ground truncated at left side (x=-49) to snap perfectly with newly moved Section 1
-                const groundGeo = new THREE.BoxGeometry(94, 50, 480); // Z extended to 480
+                const groundGeo = new THREE.BoxGeometry(94, 50, 275); // Z extended to unified length
                 const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a7c59 });
                 const ground = new THREE.Mesh(groundGeo, groundMat);
-                ground.position.set(-2, -25, 30); // Centers the 94 width from exactly x = -49 to x = 45, Z matched to 480 span
+                ground.position.set(-2, -25, 27.5); // Z matched to unified span
                 ground.receiveShadow = true;
                 group.add(ground);
 
@@ -579,13 +582,13 @@
 
                 const roadSegments = [
                     { type: 'h', x: 3, z: 0, length: 104, width: 16, isMain: true }, // Shortened & centered to merge at x=-49 and x=55
-                    { type: 'v', x: -45, z: 27.5, length: 275, width: 8 }, // Extended north and south by 20 units each (total length +40)
-                    { type: 'v', x: 5, z: 20, length: 280, width: 8 }, // Extended south by 10 (len+10, z+5)
+                    { type: 'v', x: -45, z: 27.5, length: 275, width: 8 }, // Unified north/south extents
+                    { type: 'v', x: 5, z: 27.5, length: 275, width: 8 }, // Unified north/south extents
                     // The rightmost vertical road previously at x=55 has been entirely eliminated and replaced by Sec 3
                     { type: 'h', x: 32.5, z: 102.5, length: Math.sqrt(53 * 53 + 5 * 5), width: 6, angle: Math.atan2(5, 53) }, // Slanted right end south by 5
                     { type: 'h', x: 15, z: -50, length: 45, width: 4 },  // Moved south by 5
-                    { type: 'v', x: -4.5, z: -90, length: 84, width: 4, lines: true }, // Further extended north by another 5 units (len+5, z-2.5)
-                    { type: 'v', x: 37.5, z: -100, length: 104, width: 4, lines: true }  // Extended north by another 10 (len+10, z-5)
+                    { type: 'v', x: -4.5, z: -79, length: 62, width: 4, lines: true }, // Unified north extent
+                    { type: 'v', x: 37.5, z: -79, length: 62, width: 4, lines: true }  // Unified north extent
                 ];
 
                 let baseOffset = 0.0; // Start at 0 so Top of Road is exactly Y = 0.1
@@ -684,7 +687,7 @@
 
                 // Adjusted loop start to -45 so buildings don't generate off the newly shortened left edge
                 for (let x = -45; x <= 45; x += 8) {
-                    for (let z = -95; z <= 95; z += 8) {
+                    for (let z = -100; z <= 150; z += 8) {
                         // Check if near road using the existing collision box check, pad bounds slightly
                         if (!isOverlappingRoad(x, z, 7, 7) && Math.random() > 0.4) {
                             const isTower = Math.random() > 0.85;
@@ -733,7 +736,6 @@
                 const matYellowLine = new THREE.LineBasicMaterial({ color: 0xffd700, linewidth: 2 });
                 const matWhiteDashed = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 2, gapSize: 2 });
 
-                const groundSizeZ = 200;
                 const bridgeLength = 195; // Extended by another 15 units (Spans from -45 to 150)
                 const bridgeCenterX = 52.5; // Shifted center to accommodate the extension
                 const roadWidthSide = 8;
@@ -743,28 +745,28 @@
                 const rightSideRoadX = 55; // Moved 5 units East (from 50 to 55)
                 const freewayWidth = 16;
 
-                const rightRoadLength = groundSizeZ + 170; // Extended another 10 North
-                const rightRoadZOffset = 65; // Center offset to balance the asymmetric extension
+                const rightRoadLength = 275; // Unified length
+                const rightRoadZOffset = 27.5; // Unified center
 
-                const leftRoadLength = groundSizeZ + 120; // Extended another 10 North
-                const leftRoadZOffset = 40; // Center offset to balance the asymmetric extension
+                const leftRoadLength = 275; // Unified length
+                const leftRoadZOffset = 27.5; // Unified center
 
                 // Split ground plane to allow a trench for the freeway under the main road
-                const groundGeoLeft = new THREE.BoxGeometry(14, 50, 480); // Z uniformly extended to 480
+                const groundGeoLeft = new THREE.BoxGeometry(14, 50, 275); // Z uniformly matched
                 const groundLeft = new THREE.Mesh(groundGeoLeft, matGround);
-                groundLeft.position.set(-48, -25, 30); // Z center shifted to 30 to cover the south roads
+                groundLeft.position.set(-48, -25, 27.5); // Z center unified
                 groundLeft.receiveShadow = true;
 
                 // Expanded right ground to cover the extended bridge
-                const groundGeoRight = new THREE.BoxGeometry(140, 50, 480); // Width expanded to 140, Z extended to 480
+                const groundGeoRight = new THREE.BoxGeometry(140, 50, 275); // Width expanded to 140, Z matched
                 const groundRight = new THREE.Mesh(groundGeoRight, matGround);
-                groundRight.position.set(111, -25, 30); // X shifted to keep left edge at 41, Z center matched
+                groundRight.position.set(111, -25, 27.5); // X shifted to keep left edge at 41, Z center unified
                 groundRight.receiveShadow = true;
 
                 // Trench floor (grass base) brought up to ground level
-                const trenchFloorGeo = new THREE.BoxGeometry(82, 50, 480); // Z uniformly extended to 480
+                const trenchFloorGeo = new THREE.BoxGeometry(82, 50, 275); // Z uniformly matched
                 const trenchFloor = new THREE.Mesh(trenchFloorGeo, matGround);
-                trenchFloor.position.set(0, -25, 30); // Z center matched
+                trenchFloor.position.set(0, -25, 27.5); // Z center unified
                 trenchFloor.receiveShadow = true;
 
                 group.add(groundLeft, groundRight, trenchFloor); // Retaining walls removed
@@ -772,16 +774,16 @@
                 // Freeway (Raised to ground level)
                 const splitFreewayWidth = 8;
 
-                const freewayGeoLeft = new THREE.PlaneGeometry(splitFreewayWidth, groundSizeZ + 70);
+                const freewayGeoLeft = new THREE.PlaneGeometry(splitFreewayWidth, 275);
                 const freewayLeft = new THREE.Mesh(freewayGeoLeft, matAsphalt);
                 freewayLeft.rotation.x = -Math.PI / 2;
-                freewayLeft.position.set(-11, 0.12, 20); // Raised to Y=0.12
+                freewayLeft.position.set(-11, 0.12, 27.5); // Raised to Y=0.12, Z unified
                 freewayLeft.receiveShadow = true;
 
-                const freewayGeoRight = new THREE.PlaneGeometry(splitFreewayWidth, groundSizeZ + 90);
+                const freewayGeoRight = new THREE.PlaneGeometry(splitFreewayWidth, 275);
                 const freewayRight = new THREE.Mesh(freewayGeoRight, matAsphalt);
                 freewayRight.rotation.x = -Math.PI / 2;
-                freewayRight.position.set(9, 0.12, 25); // Raised to Y=0.12
+                freewayRight.position.set(9, 0.12, 27.5); // Raised to Y=0.12, Z unified
                 freewayRight.receiveShadow = true;
 
                 group.add(freewayLeft, freewayRight);
@@ -797,8 +799,8 @@
                 const freewayLines = new THREE.Group();
                 freewayLines.position.y = 0.15; // Raised to stay above the flat freeway
                 // Removed yellow lines, kept and centered the dashed lines for the new split roads
-                freewayLines.add(createLine([new THREE.Vector3(-11, 0, (-groundSizeZ / 2) - 15), new THREE.Vector3(-11, 0, (groundSizeZ / 2) + 55)], matWhiteDashed, true));
-                freewayLines.add(createLine([new THREE.Vector3(9, 0, (-groundSizeZ / 2) - 20), new THREE.Vector3(9, 0, (groundSizeZ / 2) + 70)], matWhiteDashed, true));
+                freewayLines.add(createLine([new THREE.Vector3(-11, 0, -110), new THREE.Vector3(-11, 0, 165)], matWhiteDashed, true));
+                freewayLines.add(createLine([new THREE.Vector3(9, 0, -110), new THREE.Vector3(9, 0, 165)], matWhiteDashed, true));
                 group.add(freewayLines);
 
                 // Main Connecting Road
@@ -1283,7 +1285,6 @@
                 if (obj.material) obj.material.dispose();
             }
             lanePaths = [];
-            fileInput.value = '';
         }
 
         // Start everything
