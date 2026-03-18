@@ -143,6 +143,7 @@ SUMO/
     ├── websocket_server.py   # Reusable WS server module
     ├── sim.sumocfg           # SUMO config file
     ├── NE_8th_St_Corridor.net.xml  # Road network
+    ├── e2output.xml
     ├── harvard_simulation.rou.xml  # Routes from Harvard data
     ├── synthetic.rou.xml     # Synthetic routes
     ├── Real_intersection_data/     # Harvard Excel source files
