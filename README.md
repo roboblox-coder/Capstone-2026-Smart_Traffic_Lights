@@ -178,7 +178,7 @@ Browser shows "Disconnected" – Wait a few seconds; the WebSocket server may st
 Large simulation output files – The script creates folders like WebSocket_Simulation_Data_1. These are temporary and can be deleted; they are already ignored by Git.
 
 
-# Website:
+# Simulation Website:
 https://synaptix-website-773415276572.us-west1.run.app/ 
 
 
