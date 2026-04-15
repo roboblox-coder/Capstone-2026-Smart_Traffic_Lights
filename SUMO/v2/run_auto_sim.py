@@ -51,10 +51,10 @@ except subprocess.CalledProcessError:
     sys.exit(1)
 
 # --- 4. CONVERT XML TO CSV ---
-print("🔄 Converting XML to CSV...")
-
-# Helper function to run the conversion
 def convert_to_csv(xml_file):
+    if not os.path.isfile(xml2csv_script):
+        print(f"   ⚠️ xml2csv.py not found at {xml2csv_script}, skipping conversion.")
+        return
     if os.path.exists(xml_file):
         print(f"   Processing {xml_file}...")
         subprocess.run([sys.executable, xml2csv_script, xml_file])
