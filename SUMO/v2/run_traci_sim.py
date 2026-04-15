@@ -5,16 +5,18 @@ import subprocess
 # --- 1. SET UP SUMO HOME AND TRACI ---
 # Auto-detect SUMO Tools path
 if 'SUMO_HOME' in os.environ:
-    tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
-    sys.path.append(tools)
+    tools_path = os.path.join(os.environ['SUMO_HOME'], 'tools')
+    sys.path.append(tools_path)
 else:
-    # Auto-detect from installed sumolib package
     try:
         import sumolib as _sl
         sumo_pkg = os.path.dirname(os.path.dirname(_sl.__file__))
-        sys.path.append(os.path.join(sumo_pkg, 'tools'))
+        tools_path = os.path.join(sumo_pkg, 'tools')
+        sys.path.append(tools_path)
     except ImportError:
-        sys.exit("❌ Error: Set SUMO_HOME env var or install sumolib (pip install sumolib)")
+        sys.exit("❌ Error: Set SUMO_HOME env var or install sumolib")
+
+xml2csv_script = os.path.join(tools_path, "xml", "xml2csv.py")
 
 import traci
 from sumolib import checkBinary
