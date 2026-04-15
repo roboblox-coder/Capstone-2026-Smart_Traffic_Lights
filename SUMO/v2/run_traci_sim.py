@@ -99,7 +99,7 @@ finally:
 
 # --- 5. CONVERT XML TO CSV (Optional, using existing script) ---
 print("🔄 Converting XML to CSV...")
-xml2csv_script = os.path.join(sys.path[-1], "xml", "xml2csv.py") # Usually in tools/xml/
+#xml2csv_script = os.path.join(sys.path[-1], "xml", "xml2csv.py") # Usually in tools/xml/
 
 def convert_to_csv(xml_file):
     if os.path.exists(xml_file) and os.path.exists(xml2csv_script):
