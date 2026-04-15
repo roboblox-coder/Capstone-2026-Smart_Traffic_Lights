@@ -38,20 +38,11 @@ cmd = [sumo_binary, "-c", SUMO_CONFIG]
 print(f"Running command: {cmd}")
 try:
     traci.start(cmd)
-except Exception as e:
-    print(f"❌ TraCI start failed: {e}")
-    ws.stop()
-    sys.exit(1)
 
-step = 0
-no_vehicle_counter = 0
-
-try:
-    while traci.simulation.getMinExpectedNumber() > 0 and step < MAX_STEPS:
-        traci.simulationStep()
-
-        if model is not None:
-            lanes = traci.trafficlight.getControlledLanes(TLS_ID)
+    # Validate TLS ID exists
+    if TLS_ID not in traci.trafficlight.getIDList():
+        print(f"⚠️ TLS {TLS_ID} not found in network. AI control disabled.")
+        model = None
             unique_lanes = list(dict.fromkeys(lanes))
             state = []
             for lane in unique_lanes:
