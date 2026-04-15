@@ -91,7 +91,8 @@ def train():
     plt.plot(rewards)
     plt.title("Training Rewards")
     plt.savefig("ai/training_curve.png")
-    plt.show()
+    if os.environ.get('DISPLAY'):
+        plt.show()
 
     torch.save(model.state_dict(), MODEL_SAVE_PATH)
     env.stop_simulation()
