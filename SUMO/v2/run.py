@@ -18,15 +18,15 @@ ROUTE_SYNTHETIC = "synthetic.rou.xml"
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
-def set_route_file(route_filename):
-    """Rewrite sim.sumocfg to use the given route file."""
-    tree = ET.parse(SUMOCFG)
-    root = tree.getroot()
-    route_elem = root.find(".//input/route-files")
-    if route_elem is not None:
-        route_elem.set("value", route_filename)
-    tree.write(SUMOCFG, xml_declaration=True, encoding="UTF-8")
-    print(f"   ✅ sim.sumocfg → route-files set to '{route_filename}'")
+#def set_route_file(route_filename):
+#    """Rewrite sim.sumocfg to use the given route file."""
+#    tree = ET.parse(SUMOCFG)
+#    root = tree.getroot()
+#    route_elem = root.find(".//input/route-files")
+#    if route_elem is not None:
+#        route_elem.set("value", route_filename)
+#    tree.write(SUMOCFG, xml_declaration=True, encoding="UTF-8")
+#    print(f"   ✅ sim.sumocfg → route-files set to '{route_filename}'")
 
 
 def run_script(script_name):
@@ -35,10 +35,14 @@ def run_script(script_name):
     subprocess.run([sys.executable, script], cwd=SCRIPT_DIR)
 
 
-def launch_sumo_gui():
-    """Open SUMO-GUI with sim.sumocfg."""
-    subprocess.run(["sumo-gui", "-c", SUMOCFG, "--tls.actuated.jam-threshold", "30"], cwd=SCRIPT_DIR)
-
+def launch_sumo_gui(route_file=None):
+    """Open SUMO-GUI with sim.sumocfg, optionally overriding the route file."""
+    cmd = ["sumo-gui", "-c", SUMOCFG, "--tls.actuated.jam-threshold", "30"]
+    if route_file:
+        cmd += ["--route-files", route_file]
+    subprocess.run(cmd, cwd=SCRIPT_DIR)
+    if route_file:
+        print(f"   ✅ Launched SUMO-GUI with route file override: '{route_file}'")
 
 # ── Menu ─────────────────────────────────────────────────────────────
 
@@ -77,19 +81,15 @@ def main():
             break
 
         elif choice == "1":
-            # Step 1: regenerate routes from Harvard data
             print("\n── Step 1/2: Generating routes from Harvard data ──")
             run_script("real_life_simulation.py")
 
-            # Step 2: ensure config points to the freshly-built routes & open GUI
             print("\n── Step 2/2: Launching SUMO-GUI ──")
-            set_route_file(ROUTE_HARVARD)
-            launch_sumo_gui()
+            launch_sumo_gui(ROUTE_HARVARD)   # <-- pass the route file directly
 
         elif choice == "2":
             print("\n── Launching SUMO-GUI with synthetic routes ──")
-            set_route_file(ROUTE_SYNTHETIC)
-            launch_sumo_gui()
+            launch_sumo_gui(ROUTE_SYNTHETIC)   # <-- pass the route file directly
 
         elif choice == "3":
             print("\n── Running headless simulation + CSV export ──")
