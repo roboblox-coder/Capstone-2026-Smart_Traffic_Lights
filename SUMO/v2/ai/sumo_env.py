@@ -28,8 +28,9 @@ class SumoTrafficEnv:
         traci.close()
 
     def start_simulation(self):
-        sumo_binary = "sumo-gui" if self.use_gui else "sumo"
-        traci.start([sumo_binary, "-c", self.sumo_cfg, "--start", "--quit-on-end"])
+        from sumolib import checkBinary
+        sumo_binary = checkBinary('sumo-gui' if self.use_gui else 'sumo')
+        traci.start([sumo_binary, "-c", self.sumo_cfg, "--quit-on-end", "--no-step-log"])
         self.step_time = 0
 
     def stop_simulation(self):
@@ -53,6 +54,7 @@ class SumoTrafficEnv:
         return -total_wait
 
     def step(self, action):
+        action = int(action) % self._num_phases
         traci.trafficlight.setPhase(self.tls_id, action)
         traci.simulationStep()
         self.step_time += 1
