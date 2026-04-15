@@ -132,7 +132,7 @@ try:
 
                 elif action == "pause":
                     print("   ⏸️  Pause requested — press Enter to resume …")
-                    input()
+                    # input()  # disabled for headless operation
 
                 else:
                     print(f"   ⚠️  Unknown command: {action}")
