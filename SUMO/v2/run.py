@@ -18,15 +18,15 @@ ROUTE_SYNTHETIC = "synthetic.rou.xml"
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
-#def set_route_file(route_filename):
-#    """Rewrite sim.sumocfg to use the given route file."""
-#    tree = ET.parse(SUMOCFG)
-#    root = tree.getroot()
-#    route_elem = root.find(".//input/route-files")
-#    if route_elem is not None:
-#        route_elem.set("value", route_filename)
-#    tree.write(SUMOCFG, xml_declaration=True, encoding="UTF-8")
-#    print(f"   ✅ sim.sumocfg → route-files set to '{route_filename}'")
+def set_route_file(route_filename):
+    """Rewrite sim.sumocfg to use the given route file."""
+    tree = ET.parse(SUMOCFG)
+    root = tree.getroot()
+    route_elem = root.find(".//input/route-files")
+    if route_elem is not None:
+        route_elem.set("value", route_filename)
+    tree.write(SUMOCFG, xml_declaration=True, encoding="UTF-8")
+    print(f"   ✅ sim.sumocfg → route-files set to '{route_filename}'")
 
 
 def run_script(script_name):
