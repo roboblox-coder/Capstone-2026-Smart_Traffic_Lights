@@ -3,7 +3,7 @@ This contains the information needed to run the simulation.
 
 Needs Google API Key
 
-https://ai.studio/apps/77a9e350-3579-40a6-acb4-054b09fbce28
+https://synaptix-website-773415276572.us-west1.run.app/ 
 
 Run Locally
 Prerequisites:
