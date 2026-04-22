@@ -33,7 +33,8 @@ else:
     model = None
 
 print("Starting SUMO...")
-sumo_binary = "sumo-gui" if USE_GUI else "sumo"
+from sumolib import checkBinary
+sumo_binary = checkBinary('sumo-gui' if USE_GUI else 'sumo')
 cmd = [sumo_binary, "-c", SUMO_CONFIG]
 print(f"Running command: {cmd}")
 try:
@@ -43,6 +44,15 @@ try:
     if TLS_ID not in traci.trafficlight.getIDList():
         print(f"⚠️ TLS {TLS_ID} not found in network. AI control disabled.")
         model = None
+
+    step = 0
+    no_vehicle_counter = 0
+
+    while traci.simulation.getMinExpectedNumber() > 0 and step < MAX_STEPS:
+        traci.simulationStep()
+
+        if model is not None:
+            lanes = traci.trafficlight.getControlledLanes(TLS_ID)
             unique_lanes = list(dict.fromkeys(lanes))
             state = []
             for lane in unique_lanes:

@@ -164,8 +164,20 @@ finally:
 
 # ── XML → CSV conversion ────────────────────────────────────────────
 print("🔄 Converting XML → CSV …")
-xml2csv_script = os.path.join(sys.path[-1], "xml", "xml2csv.py")
+# After setting up SUMO_HOME (around line 30), add:
+if 'SUMO_HOME' in os.environ:
+    tools_path = os.path.join(os.environ['SUMO_HOME'], 'tools')
+    sys.path.append(tools_path)
+else:
+    try:
+        import sumolib as _sl
+        sumo_pkg = os.path.dirname(os.path.dirname(_sl.__file__))
+        tools_path = os.path.join(sumo_pkg, 'tools')
+        sys.path.append(tools_path)
+    except ImportError:
+        sys.exit("❌ Error: Set SUMO_HOME env var or install sumolib")
 
+xml2csv_script = os.path.join(tools_path, "xml", "xml2csv.py")
 def convert_to_csv(xml_file):
     if os.path.exists(xml_file) and os.path.exists(xml2csv_script):
         print(f"   Processing {xml_file} …")

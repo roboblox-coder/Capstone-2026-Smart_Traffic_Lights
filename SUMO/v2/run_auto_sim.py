@@ -35,8 +35,9 @@ queue_xml = os.path.join(folder_name, "queue.xml")
 # --- 3. RUN SUMO ---
 print("🚗 Starting SUMO Simulation...")
 # We use command line flags to override the config file outputs!
+from sumolib import checkBinary
 sumo_cmd = [
-    "sumo", 
+    checkBinary('sumo'),
     "-c", "sim.sumocfg",
     "--fcd-output", fcd_xml,
     "--queue-output", queue_xml,
