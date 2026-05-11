@@ -223,7 +223,13 @@
     <!-- Top Bar -->
     <div id="top-bar">
         <h1>🚦 <span>SUMO</span> Live City Viewer</h1>
-        <span id="status-badge">● Disconnected</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <span id="ai-badge" title="AI controller status"
+                style="font-size:.78rem;padding:4px 12px;border-radius:20px;background:rgba(139,148,158,.15);color:#8b949e;">
+                AI: idle
+            </span>
+            <span id="status-badge">● Disconnected</span>
+        </div>
     </div>
 
     <div id="main-wrap">
@@ -287,6 +293,7 @@
         // UI Elements
         const controlsPanel = document.getElementById('controls');
         const badge = document.getElementById('status-badge');
+        const aiBadge = document.getElementById('ai-badge');
         const hudStep = document.getElementById('hud-step');
         const hudVeh = document.getElementById('hud-veh');
         const hudTl = document.getElementById('hud-tl');
@@ -1253,6 +1260,7 @@
             hudVeh.textContent = msg.vehicles.length;
             hudTl.textContent = msg.trafficLights.length;
             document.getElementById('stat-cars').innerText = msg.vehicles.length;
+            updateAiBadge(msg.ai);
 
             // Update instanced vehicle mesh using fixed convBoundary center
             const count = Math.min(msg.vehicles.length, VEH_MAX);
@@ -1308,6 +1316,27 @@
                 const stateEl = document.getElementById(`tl-state-${tl.id}`);
                 if (stateEl) stateEl.textContent = `Phase ${tl.phase}  ${tl.state}`;
             }
+        }
+
+        function updateAiBadge(ai) {
+            if (!ai || !aiBadge) return;
+            const status = ai.status || 'idle';
+            const bg = status === 'active'
+                ? 'rgba(63,185,80,.18)'
+                : status.startsWith('fallback') ? 'rgba(248,81,73,.18)'
+                    : status === 'manual_override' ? 'rgba(212,153,46,.22)'
+                        : 'rgba(139,148,158,.15)';
+            const fg = status === 'active'
+                ? '#3fb950'
+                : status.startsWith('fallback') ? '#f85149'
+                    : status === 'manual_override' ? '#d4992e'
+                        : '#8b949e';
+            aiBadge.style.background = bg;
+            aiBadge.style.color = fg;
+            const yellow = ai.inYellow ? ' Y' : '';
+            const slot = ai.currentGreenSlot !== undefined ? ` slot=${ai.currentGreenSlot}` : '';
+            const dec = ai.decisions !== undefined ? ` Δ=${ai.decisions}` : '';
+            aiBadge.textContent = `AI: ${status}${slot}${yellow}${dec}`;
         }
 
         function sendSetPhase(tlsId, phase) {
