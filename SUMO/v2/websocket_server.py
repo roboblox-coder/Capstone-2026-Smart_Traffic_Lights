@@ -52,14 +52,14 @@ class SimulationWebSocketServer:
         # Wait for the event loop AND the listener to be live before returning.
         if not self._ready.wait(timeout=5.0):
             raise RuntimeError("WebSocket server failed to start within 5s")
-        print(f"🌐 WebSocket server listening on ws://{self.host}:{self.port}")
+        print(f"[ws] WebSocket server listening on ws://{self.host}:{self.port}")
 
     def stop(self) -> None:
         if self._loop and self._loop.is_running():
             self._loop.call_soon_threadsafe(self._loop.stop)
         if self._thread:
             self._thread.join(timeout=3)
-        print("🌐 WebSocket server stopped.")
+        print("[ws] WebSocket server stopped.")
 
     def broadcast(self, data: dict) -> None:
         if self._loop is None or not self._loop.is_running():
@@ -67,7 +67,7 @@ class SimulationWebSocketServer:
         try:
             message = json.dumps(data)
         except (TypeError, ValueError) as e:
-            print(f"   ⚠️  broadcast: non-JSON-serialisable payload ({e})")
+            print(f"   [warn] broadcast: non-JSON-serialisable payload ({e})")
             return
         asyncio.run_coroutine_threadsafe(self._broadcast_async(message), self._loop)
 
@@ -104,7 +104,7 @@ class SimulationWebSocketServer:
     async def _handle_client(self, websocket) -> None:
         self._clients.add(websocket)
         remote = websocket.remote_address
-        print(f"   🔗 Client connected: {remote}  (total={len(self._clients)})")
+        print(f"   [ws] Client connected: {remote}  (total={len(self._clients)})")
         try:
             async for raw_message in websocket:
                 try:
@@ -119,7 +119,7 @@ class SimulationWebSocketServer:
             pass
         finally:
             self._clients.discard(websocket)
-            print(f"   🔌 Client disconnected: {remote}  (total={len(self._clients)})")
+            print(f"   [ws] Client disconnected: {remote}  (total={len(self._clients)})")
 
     async def _broadcast_async(self, message: str) -> None:
         # Snapshot to avoid "set changed size during iteration" if a client

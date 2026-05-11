@@ -154,9 +154,13 @@ def main() -> None:
             agent = None
             ai_status = "fallback:action_size_mismatch"
         else:
-            # Hand the intersection over to the agent.
-            traci.trafficlight.setPhase(TLS_ID, green_phase_indices[0])
-            traci.trafficlight.setPhaseDuration(TLS_ID, 1e6)
+            # Hand the intersection over to the agent. Use raw state strings
+            # (setRedYellowGreenState) because once we apply a yellow override
+            # SUMO switches to a one-phase override program where setPhase
+            # indices stop matching the static logic.
+            traci.trafficlight.setRedYellowGreenState(
+                TLS_ID, phase_states[green_phase_indices[0]]
+            )
 
     if agent is None and ai_status == "active":
         ai_status = "fallback:no_model"
@@ -215,8 +219,9 @@ def main() -> None:
                 yellow_steps_left -= 1
                 if yellow_steps_left <= 0:
                     target_phase_idx = green_phase_indices[pending_target_slot]
-                    traci.trafficlight.setPhase(TLS_ID, target_phase_idx)
-                    traci.trafficlight.setPhaseDuration(TLS_ID, 1e6)
+                    traci.trafficlight.setRedYellowGreenState(
+                        TLS_ID, phase_states[target_phase_idx]
+                    )
                     current_green_slot = pending_target_slot
                     time_in_phase = 0
                     in_yellow = False
@@ -272,10 +277,10 @@ def main() -> None:
                             ai_status = "manual_override"
                     elif action_name == "resumeAI":
                         if agent is not None:
-                            traci.trafficlight.setPhase(
-                                TLS_ID, green_phase_indices[current_green_slot]
+                            traci.trafficlight.setRedYellowGreenState(
+                                TLS_ID,
+                                phase_states[green_phase_indices[current_green_slot]],
                             )
-                            traci.trafficlight.setPhaseDuration(TLS_ID, 1e6)
                             time_in_phase = 0
                             ai_status = "active"
                     elif action_name == "setSpeed":

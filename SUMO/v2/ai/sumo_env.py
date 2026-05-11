@@ -159,10 +159,14 @@ class SumoTrafficEnv:
         self._current_green_slot = 0
         self._prev_total_wait = 0.0
 
-        # Lock the TLS into the agent-controlled regime.
+        # Lock the TLS into the agent-controlled regime. Drive via raw
+        # state strings rather than setPhase because mixing setPhase with
+        # setRedYellowGreenState (used for yellows below) lands us on a
+        # one-phase override program where setPhase indices stop matching.
         conn = self._conn()
-        conn.trafficlight.setPhase(self.tls_id, self._green_phase_indices[0])
-        conn.trafficlight.setPhaseDuration(self.tls_id, 1e6)
+        conn.trafficlight.setRedYellowGreenState(
+            self.tls_id, self._phase_states[self._green_phase_indices[0]]
+        )
 
     def stop_simulation(self) -> None:
         if self._label is None:
@@ -229,8 +233,9 @@ class SumoTrafficEnv:
                 self._step_time += 1
                 if self._terminal():
                     break
-            conn.trafficlight.setPhase(self.tls_id, target_phase)
-            conn.trafficlight.setPhaseDuration(self.tls_id, 1e6)
+            conn.trafficlight.setRedYellowGreenState(
+                self.tls_id, self._phase_states[target_phase]
+            )
             self._current_green_slot = action
             self._time_in_phase = 0
             switched = True
