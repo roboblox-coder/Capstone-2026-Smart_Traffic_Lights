@@ -1,0 +1,19 @@
+# eval: episodes=1 time_limit=300s base_seed=42 tls=3153556582
+# regime: min_green=5 yellow_time=5 decision_interval=5
+
+--- episode 1  seed=42 ---
+  fixed              reward=  -301.0  arrived= 333  backlog= 561  wait/veh=  64.97  mean_wait= 192.98  decisions= 31
+  actuated           reward= -2465.0  arrived= 380  backlog= 523  wait/veh= 285.37  mean_wait= 858.97  decisions= 60
+  native_actuated    reward=     0.0  arrived= 361  backlog= 539  wait/veh=  58.79  mean_wait= 176.36  decisions=  0
+  dqn                reward= -2432.3  arrived= 358  backlog= 539  wait/veh= 348.66  mean_wait=1042.49  decisions= 57
+
+=== summary (mean +/- std across episodes) ===
+policy                     arrived         backlog        wait/veh       mean_wait       decisions
+--------------------------------------------------------------------------------------------------
+fixed                    333.0 +/-0.0       561.0 +/-0.0       64.97 +/-0.00      192.98 +/-0.00        31.0 +/-0.0
+actuated                 380.0 +/-0.0       523.0 +/-0.0      285.37 +/-0.00      858.97 +/-0.00        60.0 +/-0.0
+native_actuated          361.0 +/-0.0       539.0 +/-0.0       58.79 +/-0.00      176.36 +/-0.00         0.0 +/-0.0
+dqn                      358.0 +/-0.0       539.0 +/-0.0      348.66 +/-0.00     1042.49 +/-0.00        57.0 +/-0.0
+
+DQN vs actuated  wait/veh: 348.66 vs 285.37  (-22.2% improvement)
+Verdict: DQN does NOT clear the >=5% bar. Retrain before Phase 2.

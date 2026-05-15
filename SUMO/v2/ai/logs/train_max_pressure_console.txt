@@ -1,0 +1,219 @@
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '584' performs emergency braking on lane '-513238722#1_1' with decel=9.00, wished=4.50, severity=1.00, time=447.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '31' performs emergency braking on lane ':cluster_10209828640_53148675_1_0' with decel=9.00, wished=4.50, severity=1.00, time=154.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '327' performs emergency braking on lane ':cluster_10209828640_53148675_1_0' with decel=9.00, wished=4.50, severity=1.00, time=238.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '2628' performs emergency braking on lane ':cluster_1804700800_53129739_23_0' with decel=9.00, wished=4.50, severity=1.00, time=1138.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '679' performs emergency braking on lane ':cluster_10209828640_53148675_1_0' with decel=9.00, wished=4.50, severity=1.00, time=447.00.
+Warning: Vehicle '1280' performs emergency braking on lane '-513238722#1_1' with decel=9.00, wished=4.50, severity=1.00, time=615.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '75' performs emergency braking on lane ':cluster_10209828640_53148675_1_0' with decel=9.00, wished=4.50, severity=1.00, time=271.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '181' performs emergency braking on lane ':cluster_10209828640_53148675_1_0' with decel=9.00, wished=4.50, severity=1.00, time=588.00.
+Warning: Vehicle '695' performs emergency braking on lane ':cluster_1804700801_53030309_7625804249_7625804251_10_0' with decel=9.00, wished=4.50, severity=1.00, time=593.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Probing SUMO network (sim.sumocfg, TLS=3153556582) …
+  controlled lanes: 8
+  green phases:     [0, 2, 4, 6]
+  state_size=29  action_size=4
+ep   1/100  reward=   -366.9  wait_mean= 616.8  switches=101  loss= 0.9658  eps=0.99  (25.7s)
+ep   2/100  reward=   -263.5  wait_mean= 480.9  switches=100  loss= 0.2776  eps=0.98  (26.0s)
+ep   3/100  reward=   -335.1  wait_mean= 564.6  switches=102  loss= 0.1633  eps=0.97  (34.8s)
+ep   4/100  reward=   -276.7  wait_mean= 482.4  switches=100  loss= 0.1529  eps=0.96  (32.7s)
+ep   5/100  reward=   -430.9  wait_mean= 735.8  switches=105  loss= 0.2865  eps=0.95  (25.6s)
+ep   6/100  reward=   -376.9  wait_mean= 606.3  switches= 99  loss= 0.2145  eps=0.94  (26.8s)
+ep   7/100  reward=   -263.3  wait_mean= 534.5  switches=103  loss= 0.2172  eps=0.94  (26.0s)
+ep   8/100  reward=   -331.4  wait_mean= 706.9  switches= 98  loss= 0.2629  eps=0.93  (26.0s)
+ep   9/100  reward=   -403.3  wait_mean= 563.1  switches= 99  loss= 0.2770  eps=0.92  (26.8s)
+ep  10/100  reward=   -404.8  wait_mean= 663.5  switches=103  loss= 0.2816  eps=0.91  (28.0s)
+ep  11/100  reward=   -329.6  wait_mean= 451.2  switches=105  loss= 0.2810  eps=0.90  (27.3s)
+ep  12/100  reward=   -313.2  wait_mean= 534.9  switches=102  loss= 0.3761  eps=0.89  (28.9s)
+ep  13/100  reward=   -308.2  wait_mean= 493.6  switches=104  loss= 0.3501  eps=0.88  (27.6s)
+ep  14/100  reward=   -247.1  wait_mean= 399.7  switches=101  loss= 0.3354  eps=0.87  (28.9s)
+ep  15/100  reward=   -376.7  wait_mean= 601.1  switches=104  loss= 0.3506  eps=0.86  (27.6s)
+ep  16/100  reward=   -299.8  wait_mean= 559.9  switches= 98  loss= 0.4064  eps=0.85  (29.3s)
+ep  17/100  reward=   -277.2  wait_mean= 458.9  switches=100  loss= 0.4023  eps=0.84  (30.4s)
+ep  18/100  reward=   -262.3  wait_mean= 418.7  switches=103  loss= 0.4080  eps=0.84  (27.0s)
+ep  19/100  reward=   -363.1  wait_mean= 654.8  switches=102  loss= 0.4480  eps=0.83  (26.8s)
+ep  20/100  reward=   -300.1  wait_mean= 409.3  switches=106  loss= 0.4543  eps=0.82  (26.6s)
+ep  21/100  reward=   -331.0  wait_mean= 528.5  switches=106  loss= 0.4482  eps=0.81  (26.2s)
+ep  22/100  reward=   -297.3  wait_mean= 441.7  switches=103  loss= 0.4397  eps=0.80  (25.8s)
+ep  23/100  reward=   -295.0  wait_mean= 461.1  switches=101  loss= 0.4911  eps=0.79  (26.0s)
+ep  24/100  reward=   -299.5  wait_mean= 505.0  switches=102  loss= 0.4744  eps=0.78  (26.5s)
+ep  25/100  reward=   -267.7  wait_mean= 391.0  switches=103  loss= 0.4752  eps=0.77  (26.1s)
+ep  26/100  reward=   -266.0  wait_mean= 503.1  switches=104  loss= 0.4736  eps=0.76  (25.5s)
+ep  27/100  reward=   -294.4  wait_mean= 328.5  switches= 99  loss= 0.5191  eps=0.75  (26.1s)
+ep  28/100  reward=   -257.4  wait_mean= 391.9  switches=100  loss= 0.4959  eps=0.74  (26.0s)
+ep  29/100  reward=   -289.4  wait_mean= 357.2  switches= 99  loss= 0.5006  eps=0.73  (24.4s)
+ep  30/100  reward=   -252.5  wait_mean= 670.9  switches= 95  loss= 0.4972  eps=0.73  (24.9s)
+ep  31/100  reward=   -279.0  wait_mean= 556.5  switches= 97  loss= 0.5092  eps=0.72  (26.1s)
+ep  32/100  reward=   -266.3  wait_mean= 813.7  switches=101  loss= 0.4999  eps=0.71  (25.8s)
+ep  33/100  reward=   -235.0  wait_mean= 397.6  switches=106  loss= 0.5419  eps=0.70  (25.9s)
+ep  34/100  reward=   -241.8  wait_mean= 440.9  switches= 97  loss= 0.5212  eps=0.69  (25.7s)
+ep  35/100  reward=   -293.3  wait_mean= 538.7  switches= 98  loss= 0.5249  eps=0.68  (25.7s)
+ep  36/100  reward=   -240.7  wait_mean= 383.9  switches= 98  loss= 0.5230  eps=0.67  (24.7s)
+ep  37/100  reward=   -267.5  wait_mean= 424.2  switches=101  loss= 0.5263  eps=0.66  (26.2s)
+ep  38/100  reward=   -245.4  wait_mean= 299.9  switches=103  loss= 0.5332  eps=0.65  (26.2s)
+ep  39/100  reward=   -260.9  wait_mean= 375.9  switches= 99  loss= 0.5364  eps=0.64  (25.4s)
+ep  40/100  reward=   -250.0  wait_mean= 555.6  switches= 94  loss= 0.5430  eps=0.63  (26.3s)
+ep  41/100  reward=   -202.9  wait_mean= 490.0  switches= 99  loss= 0.5304  eps=0.62  (25.8s)
+ep  42/100  reward=   -246.2  wait_mean=1366.8  switches= 88  loss= 0.5288  eps=0.61  (25.5s)
+ep  43/100  reward=   -234.6  wait_mean= 526.8  switches= 97  loss= 0.5357  eps=0.60  (26.1s)
+ep  44/100  reward=   -241.9  wait_mean= 696.1  switches= 98  loss= 0.5791  eps=0.59  (26.0s)
+ep  45/100  reward=   -262.4  wait_mean= 752.6  switches= 97  loss= 0.5373  eps=0.58  (26.9s)
+ep  46/100  reward=   -205.6  wait_mean= 834.3  switches= 97  loss= 0.5460  eps=0.57  (25.9s)
+ep  47/100  reward=   -255.1  wait_mean= 593.1  switches= 99  loss= 0.5591  eps=0.57  (26.6s)
+ep  48/100  reward=   -243.6  wait_mean= 487.0  switches= 94  loss= 0.5185  eps=0.56  (26.5s)
+ep  49/100  reward=   -251.1  wait_mean= 405.0  switches= 94  loss= 0.5251  eps=0.55  (26.2s)
+ep  50/100  reward=   -213.3  wait_mean= 389.0  switches= 89  loss= 0.5295  eps=0.54  (25.7s)
+ep  51/100  reward=   -248.1  wait_mean= 755.3  switches= 89  loss= 0.5664  eps=0.53  (26.2s)
+ep  52/100  reward=   -248.9  wait_mean= 989.5  switches= 95  loss= 0.5483  eps=0.52  (26.7s)
+ep  53/100  reward=   -250.1  wait_mean=1020.7  switches= 91  loss= 0.5278  eps=0.51  (31.0s)
+ep  54/100  reward=   -212.4  wait_mean= 771.1  switches= 94  loss= 0.5654  eps=0.50  (25.0s)
+ep  55/100  reward=   -205.6  wait_mean= 271.5  switches= 96  loss= 0.5481  eps=0.49  (26.1s)
+ep  56/100  reward=   -201.4  wait_mean= 508.0  switches= 89  loss= 0.5375  eps=0.48  (24.6s)
+ep  57/100  reward=   -243.6  wait_mean=1888.7  switches= 84  loss= 0.5285  eps=0.47  (25.5s)
+ep  58/100  reward=   -211.0  wait_mean=1063.4  switches= 96  loss= 0.5839  eps=0.46  (25.4s)
+ep  59/100  reward=   -249.1  wait_mean=1110.9  switches= 97  loss= 0.5537  eps=0.45  (23.4s)
+ep  60/100  reward=   -207.0  wait_mean= 755.7  switches= 90  loss= 0.5715  eps=0.44  (24.4s)
+ep  61/100  reward=   -197.5  wait_mean= 857.8  switches= 88  loss= 0.5492  eps=0.43  (23.1s)
+ep  62/100  reward=   -239.6  wait_mean= 458.9  switches= 92  loss= 0.5601  eps=0.42  (23.8s)
+ep  63/100  reward=   -202.1  wait_mean= 230.0  switches= 96  loss= 0.5608  eps=0.41  (23.9s)
+ep  64/100  reward=   -241.1  wait_mean=1224.6  switches= 91  loss= 0.5966  eps=0.40  (23.8s)
+ep  65/100  reward=   -191.2  wait_mean= 293.2  switches= 90  loss= 0.5762  eps=0.39  (27.3s)
+ep  66/100  reward=   -186.2  wait_mean= 351.8  switches= 88  loss= 0.5586  eps=0.38  (25.5s)
+ep  67/100  reward=   -222.1  wait_mean= 786.9  switches= 92  loss= 0.5646  eps=0.37  (24.0s)
+ep  68/100  reward=   -171.0  wait_mean= 474.9  switches= 84  loss= 0.5607  eps=0.36  (24.2s)
+ep  69/100  reward=   -152.1  wait_mean= 260.5  switches= 89  loss= 0.5765  eps=0.35  (23.5s)
+ep  70/100  reward=   -180.4  wait_mean= 272.7  switches= 87  loss= 0.5810  eps=0.34  (24.9s)
+ep  71/100  reward=   -227.0  wait_mean=2370.3  switches= 78  loss= 0.5913  eps=0.33  (24.1s)
+ep  72/100  reward=   -178.8  wait_mean= 271.9  switches= 84  loss= 0.5736  eps=0.32  (24.6s)
+ep  73/100  reward=   -166.0  wait_mean= 222.7  switches= 91  loss= 0.5958  eps=0.31  (23.6s)
+ep  74/100  reward=   -217.8  wait_mean= 350.9  switches= 97  loss= 0.5988  eps=0.30  (30.0s)
+ep  75/100  reward=   -173.0  wait_mean= 338.3  switches= 91  loss= 0.6143  eps=0.29  (27.3s)
+ep  76/100  reward=   -175.0  wait_mean= 167.3  switches= 86  loss= 0.5648  eps=0.28  (27.5s)
+ep  77/100  reward=   -205.2  wait_mean= 557.4  switches= 86  loss= 0.5889  eps=0.27  (22.3s)
+ep  78/100  reward=   -201.8  wait_mean= 282.7  switches= 93  loss= 0.6191  eps=0.26  (25.4s)
+ep  79/100  reward=   -157.5  wait_mean= 226.2  switches= 95  loss= 0.6171  eps=0.25  (21.7s)
+ep  80/100  reward=   -166.8  wait_mean= 242.9  switches= 87  loss= 0.5870  eps=0.24  (21.3s)
+ep  81/100  reward=   -153.4  wait_mean= 241.3  switches= 88  loss= 0.6240  eps=0.23  (23.8s)
+ep  82/100  reward=   -127.8  wait_mean= 274.0  switches= 86  loss= 0.6106  eps=0.22  (22.6s)
+ep  83/100  reward=   -152.8  wait_mean= 242.1  switches= 92  loss= 0.6261  eps=0.21  (22.1s)
+ep  84/100  reward=   -177.7  wait_mean= 885.4  switches= 83  loss= 0.5934  eps=0.20  (30.7s)
+ep  85/100  reward=   -186.1  wait_mean= 513.1  switches= 60  loss= 0.6296  eps=0.19  (27.1s)Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: Vehicle '2151' performs emergency braking on lane ':cluster_5019371995_53129841_17_0' with decel=9.00, wished=4.50, severity=1.00, time=709.00.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+
+ep  86/100  reward=   -246.2  wait_mean=1889.3  switches= 61  loss= 0.6123  eps=0.17  (28.1s)
+ep  87/100  reward=   -183.2  wait_mean=1516.7  switches= 57  loss= 0.6464  eps=0.16  (38.1s)
+ep  88/100  reward=   -173.1  wait_mean= 389.6  switches= 74  loss= 0.6141  eps=0.15  (30.5s)
+ep  89/100  reward=   -146.2  wait_mean= 240.6  switches= 77  loss= 0.6277  eps=0.14  (27.6s)
+ep  90/100  reward=   -183.9  wait_mean= 280.8  switches= 85  loss= 0.6267  eps=0.13  (25.1s)
+ep  91/100  reward=   -117.5  wait_mean= 250.9  switches= 88  loss= 0.6359  eps=0.12  (25.0s)
+ep  92/100  reward=   -176.6  wait_mean= 126.7  switches= 90  loss= 0.6466  eps=0.11  (29.4s)
+ep  93/100  reward=   -148.2  wait_mean= 879.2  switches= 70  loss= 0.6366  eps=0.10  (34.3s)
+ep  94/100  reward=   -150.4  wait_mean=1640.4  switches= 48  loss= 0.6297  eps=0.09  (34.7s)
+ep  95/100  reward=   -191.1  wait_mean= 728.4  switches= 71  loss= 0.6463  eps=0.08  (30.1s)
+ep  96/100  reward=   -216.2  wait_mean=1160.6  switches= 65  loss= 0.6247  eps=0.06  (30.0s)
+ep  97/100  reward=   -217.1  wait_mean= 958.6  switches= 65  loss= 0.6210  eps=0.05  (29.4s)
+ep  98/100  reward=   -118.0  wait_mean= 275.1  switches= 76  loss= 0.6094  eps=0.05  (30.9s)
+ep  99/100  reward=   -137.2  wait_mean= 173.4  switches= 73  loss= 0.6345  eps=0.05  (28.0s)
+ep 100/100  reward=   -136.6  wait_mean= 250.4  switches= 69  loss= 0.6190  eps=0.05  (28.7s)
+
+Done. Best mean reward / decision = -0.7194
+Checkpoints in: ai\runs\max_pressure\checkpoints
+Log:            ai\runs\max_pressure\logs\train_log.csv
