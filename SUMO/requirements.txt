@@ -3,3 +3,6 @@ openpyxl
 sumolib
 traci
 websockets
+torch
+numpy
+matplotlib

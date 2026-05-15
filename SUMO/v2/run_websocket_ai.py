@@ -44,9 +44,15 @@ from websocket_server import SimulationWebSocketServer  # noqa: E402
 # ── Configuration ────────────────────────────────────────────────────
 SUMO_CONFIG = "sim.sumocfg"
 TLS_ID = "3153556582"
-MODEL_PATH = "ai/checkpoints/best.pth"
-MIN_GREEN = 10
-YELLOW_TIME = 4
+# max_pressure is the model that beat SUMO native actuated on both wait
+# and throughput (see ai/logs/eval_ablation.txt). The regime constants
+# below MUST match what it was trained on (sumo_env defaults: min_green=5,
+# yellow=5, decision_interval=5) or the live behaviour won't reproduce
+# the eval result.
+MODEL_PATH = "ai/runs/max_pressure/checkpoints/best.pth"
+MIN_GREEN = 5
+YELLOW_TIME = 5
+DECISION_INTERVAL = 5  # sim-seconds the agent holds a decision before re-deciding
 MAX_STEPS = 3600
 USE_GUI = False
 WS_HOST = "localhost"
@@ -173,6 +179,10 @@ def main() -> None:
     pending_target_slot = current_green_slot
     cumulative_wait = 0.0
     no_vehicle_counter = 0
+    # The trained env queries the policy once per DECISION_INTERVAL green
+    # seconds (not every tick). Mirror that cadence here; init so the first
+    # decision fires as soon as the loop starts.
+    green_steps_since_decision = DECISION_INTERVAL
 
     def total_waiting():
         return float(sum(traci.lane.getWaitingTime(l) for l in controlled_lanes))
@@ -193,23 +203,27 @@ def main() -> None:
 
     try:
         while traci.simulation.getMinExpectedNumber() > 0 and step < MAX_STEPS:
-            # ── Agent decision (only on green frames, respecting min-green) ──
-            if agent is not None and not in_yellow:
-                if time_in_phase >= MIN_GREEN:
-                    state = build_state()
-                    action = agent.act(state, epsilon=0.0)
-                    target_phase_idx = green_phase_indices[action]
-                    current_phase_idx = green_phase_indices[current_green_slot]
-                    if target_phase_idx != current_phase_idx:
-                        yellow_state = _yellow_between(
-                            phase_states[current_phase_idx],
-                            phase_states[target_phase_idx],
-                        )
-                        traci.trafficlight.setRedYellowGreenState(TLS_ID, yellow_state)
-                        in_yellow = True
-                        yellow_steps_left = YELLOW_TIME
-                        pending_target_slot = action
-                        decisions += 1
+            # ── Agent decision (every DECISION_INTERVAL green seconds) ──
+            # Mirrors sumo_env.step(): the policy is queried on a fixed
+            # cadence; min-green only gates the *switch*, not the query.
+            if (agent is not None and not in_yellow
+                    and green_steps_since_decision >= DECISION_INTERVAL):
+                state = build_state()
+                action = agent.act(state, epsilon=0.0)
+                target_phase_idx = green_phase_indices[action]
+                current_phase_idx = green_phase_indices[current_green_slot]
+                if (target_phase_idx != current_phase_idx
+                        and time_in_phase >= MIN_GREEN):
+                    yellow_state = _yellow_between(
+                        phase_states[current_phase_idx],
+                        phase_states[target_phase_idx],
+                    )
+                    traci.trafficlight.setRedYellowGreenState(TLS_ID, yellow_state)
+                    in_yellow = True
+                    yellow_steps_left = YELLOW_TIME
+                    pending_target_slot = action
+                decisions += 1
+                green_steps_since_decision = 0
 
             traci.simulationStep()
             step += 1
@@ -227,6 +241,7 @@ def main() -> None:
                     in_yellow = False
             else:
                 time_in_phase += 1
+                green_steps_since_decision += 1
 
             # ── Gather frame for the frontend ────────────────────────
             vehicles = []
