@@ -44,10 +44,20 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--episodes", type=int, default=30)
     p.add_argument("--time-limit", type=int, default=1200,
                    help="SUMO seconds per episode")
-    p.add_argument("--min-green", type=int, default=10)
-    p.add_argument("--yellow-time", type=int, default=4)
-    p.add_argument("--reward-mode", choices=["waiting", "differential"],
+    p.add_argument("--min-green", type=int, default=5)
+    p.add_argument("--yellow-time", type=int, default=5)
+    p.add_argument("--decision-interval", type=int, default=5,
+                   help="Sim-seconds per env.step(). 5s = boundary cadence.")
+    p.add_argument("--reward-mode",
+                   choices=["waiting", "differential", "anti_starve",
+                            "max_pressure", "combined"],
                    default="differential")
+    p.add_argument("--starve-penalty", type=float, default=0.01,
+                   help="Weight on max-lane-wait in anti_starve reward.")
+    p.add_argument("--reward-alpha", type=float, default=1.0,
+                   help="Weight on throughput term in combined reward.")
+    p.add_argument("--reward-beta", type=float, default=0.05,
+                   help="Weight on wait term in combined reward.")
     p.add_argument("--gui", action="store_true")
     p.add_argument("--out-dir", default="ai")
     p.add_argument("--seed", type=int, default=42)
@@ -80,6 +90,11 @@ def main() -> None:
         min_green=args.min_green,
         yellow_time=args.yellow_time,
         reward_mode=args.reward_mode,
+        decision_interval=args.decision_interval,
+        starve_penalty=args.starve_penalty,
+        reward_alpha=args.reward_alpha,
+        reward_beta=args.reward_beta,
+        seed=args.seed,
     )
     print(f"  controlled lanes: {len(env.controlled_lanes)}")
     print(f"  green phases:     {env.green_phase_indices}")
@@ -104,6 +119,10 @@ def main() -> None:
 
     for ep in range(1, args.episodes + 1):
         ep_start = time.time()
+        # Vary the SUMO seed per episode so the agent sees different demand
+        # samples — important for generalisation and to avoid memorising one
+        # arrival pattern.
+        env.seed = args.seed + ep - 1
         state = env.reset()
         ep_reward = 0.0
         ep_switches = 0

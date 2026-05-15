@@ -1,0 +1,74 @@
+# eval: episodes=5 time_limit=1200s base_seed=42 tls=3153556582
+# regime: min_green=5 yellow_time=5 decision_interval=5
+
+--- episode 1  seed=42 ---
+  fixed              reward=  -517.0  arrived=1240  backlog=1396  wait/veh= 159.47  mean_wait= 350.02  decisions=121
+  actuated           reward=  -504.7  arrived=1702  backlog=1327  wait/veh=  72.51  mean_wait= 183.02  decisions=163
+  native_actuated    reward=     0.0  arrived=1686  backlog=1317  wait/veh= 182.77  mean_wait= 457.39  decisions=  0
+  dqn_max_pressure   reward= -4523.0  arrived=1816  backlog=1337  wait/veh= 245.71  mean_wait= 645.60  decisions=190
+  dqn_combined       reward=-20805.4  arrived=1617  backlog=1378  wait/veh=2033.19  mean_wait=5074.51  decisions=206
+  dqn_differential   reward= -2119.4  arrived=1689  backlog=1350  wait/veh= 403.02  mean_wait=1020.64  decisions=166
+  dqn_anti_starve    reward= -2256.4  arrived=1715  backlog=1328  wait/veh= 380.67  mean_wait= 965.31  decisions=166
+
+--- episode 2  seed=43 ---
+  fixed              reward=  -471.0  arrived=1353  backlog=1350  wait/veh= 145.29  mean_wait= 326.98  decisions=121
+  actuated           reward=  -424.5  arrived=1904  backlog=1198  wait/veh=  81.41  mean_wait= 210.45  decisions=165
+  native_actuated    reward=     0.0  arrived=1749  backlog=1223  wait/veh= 181.82  mean_wait= 450.31  decisions=  0
+  dqn_max_pressure   reward= -6098.0  arrived=1842  backlog=1318  wait/veh= 289.05  mean_wait= 761.17  decisions=190
+  dqn_combined       reward=-23336.8  arrived=1681  backlog=1342  wait/veh=2282.60  mean_wait=5750.26  decisions=202
+  dqn_differential   reward= -2070.8  arrived=1701  backlog=1343  wait/veh= 355.38  mean_wait= 901.47  decisions=162
+  dqn_anti_starve    reward= -2460.2  arrived=1797  backlog=1309  wait/veh= 366.16  mean_wait= 946.96  decisions=169
+
+--- episode 3  seed=44 ---
+  fixed              reward=  -599.0  arrived=1344  backlog=1363  wait/veh= 161.70  mean_wait= 364.48  decisions=121
+  actuated           reward=  -488.7  arrived=1757  backlog=1255  wait/veh=  73.38  mean_wait= 184.02  decisions=164
+  native_actuated    reward=     0.0  arrived=1696  backlog=1260  wait/veh= 168.03  mean_wait= 413.92  decisions=  0
+  dqn_max_pressure   reward=   -79.3  arrived=1901  backlog=1288  wait/veh=  79.36  mean_wait= 210.91  decisions=187
+  dqn_combined       reward=-23343.2  arrived=1697  backlog=1347  wait/veh=2373.20  mean_wait=6020.02  decisions=208
+  dqn_differential   reward= -2290.4  arrived=1744  backlog=1341  wait/veh= 320.39  mean_wait= 823.68  decisions=166
+  dqn_anti_starve    reward= -2709.4  arrived=1757  backlog=1314  wait/veh= 389.19  mean_wait= 995.99  decisions=166
+
+--- episode 4  seed=45 ---
+  fixed              reward=  -787.0  arrived=1291  backlog=1398  wait/veh= 167.98  mean_wait= 376.10  decisions=121
+  actuated           reward=  -484.6  arrived=1766  backlog=1237  wait/veh=  88.74  mean_wait= 222.08  decisions=164
+  native_actuated    reward=     0.0  arrived=1705  backlog=1305  wait/veh= 207.47  mean_wait= 520.40  decisions=  0
+  dqn_max_pressure   reward= -3691.3  arrived=1814  backlog=1304  wait/veh= 177.83  mean_wait= 462.06  decisions=187
+  dqn_combined       reward=-22010.2  arrived=1474  backlog=1425  wait/veh=2235.49  mean_wait=5400.57  decisions=198
+  dqn_differential   reward= -2195.2  arrived=1782  backlog=1329  wait/veh= 373.89  mean_wait= 969.30  decisions=168
+  dqn_anti_starve    reward= -2650.1  arrived=1777  backlog=1312  wait/veh= 386.82  mean_wait= 995.74  decisions=169
+
+--- episode 5  seed=46 ---
+  fixed              reward=  -948.0  arrived=1413  backlog=1309  wait/veh= 164.66  mean_wait= 373.20  decisions=121
+  actuated           reward=  -448.4  arrived=1746  backlog=1272  wait/veh=  73.45  mean_wait= 184.58  decisions=167
+  native_actuated    reward=     0.0  arrived=1723  backlog=1290  wait/veh= 220.55  mean_wait= 553.75  decisions=  0
+  dqn_max_pressure   reward=  -183.1  arrived=1817  backlog=1292  wait/veh=  77.94  mean_wait= 201.93  decisions=179
+  dqn_combined       reward=-17796.7  arrived=1638  backlog=1369  wait/veh=1812.92  mean_wait=4542.89  decisions=203
+  dqn_differential   reward= -2067.2  arrived=1789  backlog=1312  wait/veh= 341.90  mean_wait= 883.53  decisions=168
+  dqn_anti_starve    reward= -2365.2  arrived=1795  backlog=1284  wait/veh= 354.89  mean_wait= 910.59  decisions=168
+
+=== summary (mean +/- std across episodes) ===
+policy                     arrived         backlog        wait/veh       mean_wait       decisions
+--------------------------------------------------------------------------------------------------
+fixed                   1328.2 +/-58.7      1363.2 +/-32.9      159.82 +/-7.81      358.16 +/-18.03       121.0 +/-0.0
+actuated                1775.0 +/-68.1      1257.8 +/-42.4       77.90 +/-6.31      196.83 +/-16.30       164.6 +/-1.4
+native_actuated         1711.8 +/-22.2      1279.0 +/-33.9      192.13 +/-19.06      479.15 +/-50.65         0.0 +/-0.0
+dqn_max_pressure        1838.0 +/-33.1      1307.8 +/-18.0      173.98 +/-85.53      456.33 +/-225.27       186.6 +/-4.0
+dqn_combined            1621.4 +/-79.1      1372.2 +/-29.6     2147.48 +/-200.97     5357.65 +/-517.44       203.4 +/-3.4
+dqn_differential        1741.0 +/-40.7      1335.0 +/-13.3      358.92 +/-28.12      919.72 +/-68.57       166.0 +/-2.2
+dqn_anti_starve         1768.2 +/-30.3      1309.4 +/-14.3      375.55 +/-13.07      962.92 +/-32.16       167.6 +/-1.4
+
+=== vs native_actuated (the self-actuated model to beat) ===
+  dqn_max_pressure
+    wait/veh :   173.98 vs   192.13  (+9.4%, beats native on 3/5 seeds)
+    arrived  :   1838.0 vs   1711.8  (+7.4%, beats native on 5/5 seeds)
+  dqn_combined
+    wait/veh :  2147.48 vs   192.13  (-1017.7%, beats native on 0/5 seeds)
+    arrived  :   1621.4 vs   1711.8  (-5.3%, beats native on 1/5 seeds)
+  dqn_differential
+    wait/veh :   358.92 vs   192.13  (-86.8%, beats native on 0/5 seeds)
+    arrived  :   1741.0 vs   1711.8  (+1.7%, beats native on 4/5 seeds)
+  dqn_anti_starve
+    wait/veh :   375.55 vs   192.13  (-95.5%, beats native on 0/5 seeds)
+    arrived  :   1768.2 vs   1711.8  (+3.3%, beats native on 5/5 seeds)
+
+Verdict: dqn_max_pressure beat native_actuated on BOTH wait and throughput. Best candidate(s) ready for Phase 2.

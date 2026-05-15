@@ -75,11 +75,17 @@ class SumoTrafficEnv:
         tls_id: str,
         time_limit: int = 3600,
         use_gui: bool = False,
-        min_green: int = 10,
-        yellow_time: int = 4,
+        min_green: int = 5,
+        yellow_time: int = 5,
         reward_mode: str = "waiting",
         switch_penalty: float = 0.1,
         extra_sumo_args: Optional[list] = None,
+        control_tls: bool = True,
+        seed: int = 42,
+        decision_interval: int = 1,
+        starve_penalty: float = 0.01,
+        reward_alpha: float = 1.0,
+        reward_beta: float = 0.05,
     ):
         self.sumo_cfg = sumo_cfg_file
         self.tls_id = tls_id
@@ -90,6 +96,12 @@ class SumoTrafficEnv:
         self.reward_mode = reward_mode
         self.switch_penalty = float(switch_penalty)
         self.extra_sumo_args = list(extra_sumo_args or [])
+        self.control_tls = bool(control_tls)
+        self.seed = int(seed)
+        self.decision_interval = max(1, int(decision_interval))
+        self.starve_penalty = float(starve_penalty)
+        self.reward_alpha = float(reward_alpha)
+        self.reward_beta = float(reward_beta)
 
         self._label: Optional[str] = None
         self._step_time: int = 0
@@ -97,7 +109,18 @@ class SumoTrafficEnv:
         self._current_green_slot: int = 0
         self._prev_total_wait: float = 0.0
 
+        # Metric accumulators — reset on every start_simulation()
+        self._arrived_total: int = 0
+        self._departed_total: int = 0
+        self._cumulative_wait: float = 0.0
+        # Vehicles that arrived since the last _reward() call (for the
+        # throughput term in the ``combined`` reward).
+        self._arrived_since_reward: int = 0
+
         self._controlled_lanes: list = []
+        # Incoming/outgoing lane sets for the ``max_pressure`` reward.
+        self._incoming_lanes: list = []
+        self._outgoing_lanes: list = []
         self._green_phase_indices: list = []
         self._phase_states: list = []
         self._num_green: int = 0
@@ -129,6 +152,21 @@ class SumoTrafficEnv:
             lanes = conn.trafficlight.getControlledLanes(self.tls_id)
             self._controlled_lanes = list(dict.fromkeys(lanes))
 
+            # Per-link (from_lane, to_lane, via) — used by max_pressure.
+            # getControlledLinks has one entry per signal index (empty
+            # tuples for unused indices); de-dup into incoming/outgoing.
+            links = conn.trafficlight.getControlledLinks(self.tls_id)
+            inc, out = [], []
+            for entry in links:
+                for ct in entry:
+                    if ct:
+                        if ct[0]:
+                            inc.append(ct[0])
+                        if ct[1]:
+                            out.append(ct[1])
+            self._incoming_lanes = list(dict.fromkeys(inc))
+            self._outgoing_lanes = list(dict.fromkeys(out))
+
             logic = conn.trafficlight.getAllProgramLogics(self.tls_id)[0]
             self._phase_states = [p.state for p in logic.getPhases()]
             self._green_phase_indices = [
@@ -150,6 +188,7 @@ class SumoTrafficEnv:
             "-c", self.sumo_cfg,
             "--no-step-log", "true",
             "--time-to-teleport", "-1",
+            "--seed", str(self.seed),
             "--start",
             "--quit-on-end",
         ] + self.extra_sumo_args
@@ -158,15 +197,20 @@ class SumoTrafficEnv:
         self._time_in_phase = 0
         self._current_green_slot = 0
         self._prev_total_wait = 0.0
+        self._arrived_total = 0
+        self._departed_total = 0
+        self._cumulative_wait = 0.0
+        self._arrived_since_reward = 0
 
-        # Lock the TLS into the agent-controlled regime. Drive via raw
-        # state strings rather than setPhase because mixing setPhase with
-        # setRedYellowGreenState (used for yellows below) lands us on a
-        # one-phase override program where setPhase indices stop matching.
-        conn = self._conn()
-        conn.trafficlight.setRedYellowGreenState(
-            self.tls_id, self._phase_states[self._green_phase_indices[0]]
-        )
+        if self.control_tls:
+            # Lock the TLS into the agent-controlled regime. Drive via raw
+            # state strings rather than setPhase because mixing setPhase with
+            # setRedYellowGreenState (used for yellows below) lands us on a
+            # one-phase override program where setPhase indices stop matching.
+            conn = self._conn()
+            conn.trafficlight.setRedYellowGreenState(
+                self.tls_id, self._phase_states[self._green_phase_indices[0]]
+            )
 
     def stop_simulation(self) -> None:
         if self._label is None:
@@ -210,6 +254,34 @@ class SumoTrafficEnv:
 
     # ── dynamics ──────────────────────────────────────────────
 
+    def _sim_tick(self) -> None:
+        """Advance SUMO by one second and update metric accumulators.
+
+        Every place that calls ``simulationStep`` should go through this so
+        arrivals during yellow phases are counted and the wait-time series
+        is sampled at 1Hz consistently across policies.
+        """
+        conn = self._conn()
+        conn.simulationStep()
+        self._step_time += 1
+        try:
+            n_arrived = int(conn.simulation.getArrivedNumber())
+            self._arrived_total += n_arrived
+            self._arrived_since_reward += n_arrived
+            self._departed_total += int(conn.simulation.getDepartedNumber())
+        except Exception:
+            pass
+        self._cumulative_wait += self._total_waiting_time()
+
+    def passive_step(self):
+        """Advance one sim-second without changing the TLS.
+
+        Used by the ``native_actuated`` eval baseline: SUMO's program from
+        the .net.xml stays in charge. Returns ``(state, done)``.
+        """
+        self._sim_tick()
+        return self.get_state(), self._terminal()
+
     def step(self, action: int):
         """Advance the simulation by one decision cycle.
 
@@ -229,8 +301,7 @@ class SumoTrafficEnv:
             )
             conn.trafficlight.setRedYellowGreenState(self.tls_id, yellow_state)
             for _ in range(self.yellow_time):
-                conn.simulationStep()
-                self._step_time += 1
+                self._sim_tick()
                 if self._terminal():
                     break
             conn.trafficlight.setRedYellowGreenState(
@@ -240,10 +311,14 @@ class SumoTrafficEnv:
             self._time_in_phase = 0
             switched = True
 
-        # Hold the (possibly new) green for one second.
-        conn.simulationStep()
-        self._step_time += 1
-        self._time_in_phase += 1
+        # Hold the (possibly new) green for ``decision_interval`` seconds.
+        # SUMO-native actuated controllers decide on phase boundaries, not
+        # every tick; emulating that cadence is the main lever in Option A.
+        for _ in range(self.decision_interval):
+            self._sim_tick()
+            self._time_in_phase += 1
+            if self._terminal():
+                break
 
         next_state = self.get_state()
         reward = self._reward(switched)
@@ -262,9 +337,50 @@ class SumoTrafficEnv:
             r = (self._prev_total_wait - total_wait)
             if switched:
                 r -= self.switch_penalty
-        else:
+        elif self.reward_mode == "anti_starve":
+            # Differential + penalty for the worst-starved lane. The plain
+            # differential reward lets the agent camp on the busiest slot
+            # because no-switch -> no wait increase on the flowing lanes;
+            # the max-lane-wait term punishes leaving any single lane
+            # starved indefinitely.
+            conn = self._conn()
+            max_lane_wait = max(
+                (conn.lane.getWaitingTime(l) for l in self._controlled_lanes),
+                default=0.0,
+            )
+            r = (self._prev_total_wait - total_wait) - self.starve_penalty * max_lane_wait
+            if switched:
+                r -= self.switch_penalty
+        elif self.reward_mode == "max_pressure":
+            # Max-pressure control (PressLight/MPLight): pressure =
+            # (queue on incoming lanes) - (queue on outgoing lanes).
+            # Minimising |pressure| provably stabilises queues and
+            # maximises throughput, and the downstream term stops the
+            # agent dumping vehicles into an already-full link.
+            conn = self._conn()
+            q_in = sum(conn.lane.getLastStepHaltingNumber(l)
+                       for l in self._incoming_lanes)
+            q_out = sum(conn.lane.getLastStepHaltingNumber(l)
+                        for l in self._outgoing_lanes)
+            n = max(1, len(self._incoming_lanes))
+            r = -abs(q_in - q_out) / n
+            if switched:
+                r -= self.switch_penalty
+        elif self.reward_mode == "combined":
+            # Directly encodes the two stated goals: reward throughput
+            # (vehicles that completed their trip this decision interval)
+            # and penalise growth in total waiting time. Wait term is
+            # normalised by lane count to keep DQN targets O(1).
+            n = max(1, len(self._controlled_lanes))
+            arrived_term = float(self._arrived_since_reward)
+            wait_term = (self._prev_total_wait - total_wait) / n
+            r = self.reward_alpha * arrived_term + self.reward_beta * wait_term
+            if switched:
+                r -= self.switch_penalty
+        else:  # "waiting"
             r = -total_wait
         self._prev_total_wait = total_wait
+        self._arrived_since_reward = 0
         return float(r)
 
     def _terminal(self) -> bool:
@@ -292,3 +408,40 @@ class SumoTrafficEnv:
     @property
     def controlled_lanes(self):
         return list(self._controlled_lanes)
+
+    # ── metrics ───────────────────────────────────────────────
+
+    @property
+    def arrived_total(self) -> int:
+        return int(self._arrived_total)
+
+    @property
+    def departed_total(self) -> int:
+        return int(self._departed_total)
+
+    @property
+    def cumulative_wait(self) -> float:
+        return float(self._cumulative_wait)
+
+    @property
+    def vehicles_in_network(self) -> int:
+        try:
+            return int(self._conn().vehicle.getIDCount())
+        except Exception:
+            return 0
+
+    def metrics_summary(self) -> dict:
+        """Snapshot of episode-level metrics. Call before stop_simulation()."""
+        in_net = self.vehicles_in_network
+        arrived = self._arrived_total
+        denom = max(1, arrived + in_net)
+        return {
+            "arrived": arrived,
+            "departed": self._departed_total,
+            "backlog": int(self._departed_total - arrived),
+            "in_network": in_net,
+            "cumulative_wait": float(self._cumulative_wait),
+            "mean_wait": float(self._cumulative_wait / max(1, self._step_time)),
+            "wait_per_vehicle": float(self._cumulative_wait / denom),
+            "sim_seconds": int(self._step_time),
+        }

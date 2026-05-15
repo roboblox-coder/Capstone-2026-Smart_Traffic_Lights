@@ -1,0 +1,69 @@
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Warning: At actuated tlLogic 'joinedS_7013287371_cluster_1804700801_53030309_7625804249_7625804251', linkIndex 5,6,12,13 has no controlling detector.
+Probing SUMO network (sim.sumocfg, TLS=3153556582) …
+  controlled lanes: 8
+  green phases:     [0, 2, 4, 6]
+  state_size=29  action_size=4
+ep   1/30  reward=  -1183.1  wait_mean= 605.7  switches=101  loss=139.2220  eps=0.97  (18.2s)
+ep   2/30  reward=  -1109.8  wait_mean= 469.1  switches=103  loss=122.3570  eps=0.94  (23.1s)
+ep   3/30  reward=  -2035.4  wait_mean= 503.5  switches= 99  loss=109.6951  eps=0.91  (24.3s)
+ep   4/30  reward=  -1111.1  wait_mean= 488.5  switches=101  loss=104.0941  eps=0.88  (20.5s)
+ep   5/30  reward=  -1106.0  wait_mean= 514.3  switches=104  loss=122.0119  eps=0.85  (20.3s)
+ep   6/30  reward=   -920.4  wait_mean= 529.2  switches= 99  loss=95.6895  eps=0.82  (19.8s)
+ep   7/30  reward=   -687.8  wait_mean= 492.3  switches=107  loss=84.8764  eps=0.79  (20.6s)
+ep   8/30  reward=  -1208.5  wait_mean= 518.2  switches=107  loss=85.5732  eps=0.76  (20.8s)
+ep   9/30  reward=  -1818.4  wait_mean= 472.6  switches=106  loss=68.3097  eps=0.73  (20.5s)
+ep  10/30  reward=   -474.7  wait_mean= 271.3  switches=103  loss=64.4827  eps=0.70  (20.6s)
+ep  11/30  reward=  -2292.7  wait_mean= 614.1  switches=103  loss=61.3284  eps=0.67  (20.1s)
+ep  12/30  reward=   -560.8  wait_mean= 376.2  switches=107  loss=61.9107  eps=0.64  (20.5s)
+ep  13/30  reward=   -963.2  wait_mean= 359.0  switches=111  loss=46.1565  eps=0.61  (19.4s)
+ep  14/30  reward=  -2674.4  wait_mean= 555.9  switches=110  loss=45.5141  eps=0.58  (20.7s)
+ep  15/30  reward=   -713.9  wait_mean= 301.3  switches=111  loss=45.0819  eps=0.55  (20.3s)
+ep  16/30  reward=  -2561.8  wait_mean= 517.5  switches=106  loss=42.7385  eps=0.52  (20.5s)
+ep  17/30  reward=   -821.2  wait_mean= 348.9  switches=105  loss=36.0938  eps=0.49  (20.6s)
+ep  18/30  reward=  -1144.6  wait_mean= 333.2  switches=109  loss=34.5960  eps=0.47  (20.6s)
+ep  19/30  reward=   -524.1  wait_mean= 356.4  switches=110  loss=33.0835  eps=0.44  (20.8s)
+ep  20/30  reward=   -220.2  wait_mean= 194.0  switches=115  loss=33.5971  eps=0.41  (20.2s)
+ep  21/30  reward=   -617.2  wait_mean= 428.5  switches=114  loss=29.0278  eps=0.38  (20.1s)
+ep  22/30  reward=   -603.1  wait_mean= 249.0  switches=113  loss=28.8317  eps=0.35  (20.4s)
+ep  23/30  reward=   -954.2  wait_mean= 213.1  switches=113  loss=28.1989  eps=0.32  (19.6s)
+ep  24/30  reward=  -1313.5  wait_mean= 345.1  switches=112  loss=27.9539  eps=0.30  (20.1s)
+ep  25/30  reward=   -400.6  wait_mean= 300.0  switches=114  loss=28.2913  eps=0.27  (19.2s)
+ep  26/30  reward=   -408.2  wait_mean= 221.7  switches=114  loss=28.9814  eps=0.24  (19.9s)
+ep  27/30  reward=   -550.1  wait_mean= 431.4  switches=111  loss=29.2716  eps=0.21  (19.8s)
+ep  28/30  reward=   -977.0  wait_mean= 320.5  switches=111  loss=28.9333  eps=0.18  (20.0s)
+ep  29/30  reward=   -969.2  wait_mean= 394.5  switches=102  loss=28.9256  eps=0.15  (19.6s)
+ep  30/30  reward=  -1408.2  wait_mean= 995.4  switches= 79  loss=28.9728  eps=0.12  (19.9s)
+
+Done. Best mean reward / decision = -1.7478
+Checkpoints in: ai\runs\anti_starve\checkpoints
+Log:            ai\runs\anti_starve\logs\train_log.csv
