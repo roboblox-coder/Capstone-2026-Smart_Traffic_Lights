@@ -1,23 +1,30 @@
-"""WebSocket runner with a trained DQN agent in the loop.
+"""WebSocket runner: the coordinated DQN drives EVERY corridor light.
 
-Starts SUMO via TraCI, runs a trained Double-DQN agent on one intersection,
-and broadcasts vehicle / traffic-light state to every connected frontend.
+Starts SUMO via TraCI, loads one trained Double-DQN per traffic light from
+``ai/runs/coordinated/checkpoints/<tls_id>/best.pth``, and broadcasts vehicle
+/ traffic-light state plus a per-intersection AI status block to every
+connected frontend.
 
-If the agent checkpoint is missing or fails to load, the simulation still
-runs (SUMO's built-in actuated controllers stay in charge) and the frontend
-shows ``aiMode = "fallback"``.
+Each light is independent: a missing / mismatched checkpoint falls that one
+light back to SUMO's actuated program without disturbing the others. Agents
+observe the same neighbour-aware state they were trained on (own lanes +
+phase + a 6-float upstream/downstream summary built from ai/adjacency.json).
 
-Run from ``SUMO/v2``:
+Run from ``SUMO/v2``::
+
     python run_websocket_ai.py
 """
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import time
 import traceback
 from pathlib import Path
+
+import numpy as np
 
 # ── SUMO setup ──────────────────────────────────────────────────────
 if "SUMO_HOME" in os.environ:
@@ -34,7 +41,6 @@ else:
 import traci  # noqa: E402
 from sumolib import checkBinary  # noqa: E402
 
-# AI imports — ``ai`` is on sys.path because the package has an __init__.py
 sys.path.insert(0, str(Path(__file__).resolve().parent / "ai"))
 from dqn_agent import DQNAgent  # noqa: E402
 
@@ -43,20 +49,17 @@ from websocket_server import SimulationWebSocketServer  # noqa: E402
 
 # ── Configuration ────────────────────────────────────────────────────
 SUMO_CONFIG = "sim.sumocfg"
-TLS_ID = "3153556582"
-# max_pressure is the model that beat SUMO native actuated on both wait
-# and throughput (see ai/logs/eval_ablation.txt). The regime constants
-# below MUST match what it was trained on (sumo_env defaults: min_green=5,
-# yellow=5, decision_interval=5) or the live behaviour won't reproduce
-# the eval result.
-MODEL_PATH = "ai/runs/max_pressure/checkpoints/best.pth"
+ADJACENCY_PATH = "ai/adjacency.json"
+CKPT_DIR = "ai/runs/coordinated/checkpoints"
+# Regime MUST match training (multi_env defaults).
 MIN_GREEN = 5
 YELLOW_TIME = 5
-DECISION_INTERVAL = 5  # sim-seconds the agent holds a decision before re-deciding
+DECISION_INTERVAL = 5
 MAX_STEPS = 3600
 USE_GUI = False
 WS_HOST = "localhost"
 WS_PORT = 8765
+_NEI_NORM = 40.0  # queue normaliser; identical to multi_env._NEI_NORM
 # =====================================================================
 
 
@@ -75,16 +78,37 @@ def _yellow_between(from_state: str, to_state: str) -> str:
     return "".join(out)
 
 
+def _probe_tls(tls_id: str) -> dict:
+    """Live structural probe (mirrors sumo_env._probe_network)."""
+    lanes = list(dict.fromkeys(traci.trafficlight.getControlledLanes(tls_id)))
+    links = traci.trafficlight.getControlledLinks(tls_id)
+    inc, out = [], []
+    for entry in links:
+        for ct in entry:
+            if ct:
+                if ct[0]:
+                    inc.append(ct[0])
+                if ct[1]:
+                    out.append(ct[1])
+    logic = traci.trafficlight.getAllProgramLogics(tls_id)[0]
+    phase_states = [p.state for p in logic.getPhases()]
+    green = [i for i, s in enumerate(phase_states) if _is_green(s)]
+    return {
+        "lanes": lanes,
+        "incoming": list(dict.fromkeys(inc)),
+        "outgoing": list(dict.fromkeys(out)),
+        "phase_states": phase_states,
+        "green": green,
+    }
+
+
 def load_agent(path: str):
-    """Try to load a trained agent. Return (agent, meta) or (None, error_str)."""
     if not os.path.exists(path):
         return None, f"model not found at {path}"
     try:
-        import torch
-        ckpt = torch.load(path, map_location="cpu")
-        meta = ckpt.get("meta", {}) if isinstance(ckpt, dict) else {}
+        DQNAgent  # noqa: B018
         agent = DQNAgent.load_for_inference(path)
-        return agent, meta
+        return agent, ""
     except Exception as exc:
         return None, f"failed to load: {exc!r}"
 
@@ -95,26 +119,16 @@ def main() -> None:
     ws.start()
     time.sleep(1)
 
-    agent, meta_or_err = load_agent(MODEL_PATH)
-    if agent is None:
-        print(f"AI disabled ({meta_or_err}). SUMO's actuated controllers will run.")
-        agent_meta = {}
-    else:
-        agent_meta = meta_or_err or {}
-        print(f"Loaded agent  state_size={agent.state_size} "
-              f"action_size={agent.action_size}")
+    with open(ADJACENCY_PATH, encoding="utf-8") as fh:
+        adjacency = json.load(fh)
 
     print("Starting SUMO …")
     sumo_binary = checkBinary("sumo-gui" if USE_GUI else "sumo")
     sumo_cmd = [
-        sumo_binary,
-        "-c", SUMO_CONFIG,
-        "--no-step-log", "true",
-        "--time-to-teleport", "-1",
-        "--start",
-        "--quit-on-end",
+        sumo_binary, "-c", SUMO_CONFIG,
+        "--no-step-log", "true", "--time-to-teleport", "-1",
+        "--start", "--quit-on-end",
     ]
-
     try:
         traci.start(sumo_cmd)
     except Exception as exc:
@@ -122,135 +136,149 @@ def main() -> None:
         ws.stop()
         return
 
-    # ── Resolve the TLS we'll control ────────────────────────────────
-    ai_status = "active"
-    controlled_lanes: list = []
-    green_phase_indices: list = []
-    phase_states: list = []
-    current_green_slot = 0
-    time_in_phase = 0
+    tls_ids = [t for t in sorted(adjacency)
+               if t in traci.trafficlight.getIDList()]
 
-    if TLS_ID not in traci.trafficlight.getIDList():
-        print(f"TLS {TLS_ID} not found in network. AI control disabled.")
-        agent = None
-        ai_status = "fallback:tls_missing"
+    # ── Per-TLS state ────────────────────────────────────────────────
+    struct, agents, status = {}, {}, {}
+    slot, tip, in_yellow = {}, {}, {}
+    yellow_left, pending, since_decision, decisions = {}, {}, {}, {}
+    prev_obs_state = {}
 
-    if agent is not None:
-        controlled_lanes = list(dict.fromkeys(
-            traci.trafficlight.getControlledLanes(TLS_ID)
-        ))
-        logic = traci.trafficlight.getAllProgramLogics(TLS_ID)[0]
-        phase_states = [p.state for p in logic.getPhases()]
-        green_phase_indices = [i for i, s in enumerate(phase_states) if _is_green(s)]
+    for tid in tls_ids:
+        st = _probe_tls(tid)
+        struct[tid] = st
+        slot[tid] = 0
+        tip[tid] = 0
+        in_yellow[tid] = False
+        yellow_left[tid] = 0
+        pending[tid] = 0
+        since_decision[tid] = DECISION_INTERVAL
+        decisions[tid] = 0
+        prev_obs_state[tid] = traci.trafficlight.getRedYellowGreenState(tid)
 
-        # If the checkpoint was trained on a different intersection layout, abort.
-        expected_state_size = len(controlled_lanes) * 3 + len(green_phase_indices) + 1
-        if expected_state_size != agent.state_size:
-            print(
-                f"State-size mismatch: env={expected_state_size} "
-                f"vs checkpoint={agent.state_size}. Falling back to actuated."
-            )
-            agent = None
-            ai_status = "fallback:state_size_mismatch"
-        elif len(green_phase_indices) != agent.action_size:
-            print(
-                f"Action-size mismatch: env={len(green_phase_indices)} "
-                f"vs checkpoint={agent.action_size}. Falling back to actuated."
-            )
-            agent = None
-            ai_status = "fallback:action_size_mismatch"
+        path = os.path.join(CKPT_DIR, tid, "best.pth")
+        agent, err = load_agent(path)
+        if agent is None:
+            agents[tid] = None
+            status[tid] = "fallback:no_model"
+            continue
+        # Agents were trained neighbour-aware: +6 floats on the state.
+        expected = len(st["lanes"]) * 3 + len(st["green"]) + 1 + 6
+        if expected != agent.state_size:
+            agents[tid] = None
+            status[tid] = "fallback:state_size_mismatch"
+        elif len(st["green"]) != agent.action_size:
+            agents[tid] = None
+            status[tid] = "fallback:action_size_mismatch"
         else:
-            # Hand the intersection over to the agent. Use raw state strings
-            # (setRedYellowGreenState) because once we apply a yellow override
-            # SUMO switches to a one-phase override program where setPhase
-            # indices stop matching the static logic.
+            agents[tid] = agent
+            status[tid] = "active"
             traci.trafficlight.setRedYellowGreenState(
-                TLS_ID, phase_states[green_phase_indices[0]]
+                tid, st["phase_states"][st["green"][0]]
             )
 
-    if agent is None and ai_status == "active":
-        ai_status = "fallback:no_model"
+    n_active = sum(1 for s in status.values() if s == "active")
+    print(f"Loaded {n_active}/{len(tls_ids)} agents "
+          f"(rest fall back to actuated).")
 
-    # ── Simulation loop ──────────────────────────────────────────────
-    step = 0
-    decisions = 0
-    in_yellow = False
-    yellow_steps_left = 0
-    pending_target_slot = current_green_slot
-    cumulative_wait = 0.0
-    no_vehicle_counter = 0
-    # The trained env queries the policy once per DECISION_INTERVAL green
-    # seconds (not every tick). Mirror that cadence here; init so the first
-    # decision fires as soon as the loop starts.
-    green_steps_since_decision = DECISION_INTERVAL
+    def _queue(lanes):
+        return float(sum(traci.lane.getLastStepHaltingNumber(l)
+                         for l in lanes))
 
-    def total_waiting():
-        return float(sum(traci.lane.getWaitingTime(l) for l in controlled_lanes))
+    def neighbor_triplet(nbr):
+        st = struct.get(nbr)
+        if nbr is None or st is None:
+            return [0.0, 0.0, 0.0]
+        q_in = _queue(st["incoming"])
+        q_out = _queue(st["outgoing"])
+        return [
+            min(1.0, q_in / _NEI_NORM),
+            float(np.clip((q_in - q_out) / _NEI_NORM, -1.0, 1.0)),
+            min(tip.get(nbr, 0), 120) / 120.0,
+        ]
 
-    def build_state():
+    def build_state(tid):
+        st = struct[tid]
         feats = []
-        for lane in controlled_lanes:
+        for lane in st["lanes"]:
             feats.extend([
                 traci.lane.getLastStepHaltingNumber(lane) / 20.0,
                 traci.lane.getWaitingTime(lane) / 60.0,
                 traci.lane.getLastStepMeanSpeed(lane) / 15.0,
             ])
-        one_hot = [0.0] * len(green_phase_indices)
-        one_hot[current_green_slot] = 1.0
+        one_hot = [0.0] * len(st["green"])
+        one_hot[slot[tid]] = 1.0
         feats.extend(one_hot)
-        feats.append(min(time_in_phase, 120) / 120.0)
+        feats.append(min(tip[tid], 120) / 120.0)
+        adj = adjacency.get(tid, {})
+        feats.extend(neighbor_triplet(adj.get("upstream")))
+        feats.extend(neighbor_triplet(adj.get("downstream")))
         return feats
+
+    # ── Simulation loop ──────────────────────────────────────────────
+    step = 0
+    no_vehicle_counter = 0
 
     try:
         while traci.simulation.getMinExpectedNumber() > 0 and step < MAX_STEPS:
-            # ── Agent decision (every DECISION_INTERVAL green seconds) ──
-            # Mirrors sumo_env.step(): the policy is queried on a fixed
-            # cadence; min-green only gates the *switch*, not the query.
-            if (agent is not None and not in_yellow
-                    and green_steps_since_decision >= DECISION_INTERVAL):
-                state = build_state()
-                action = agent.act(state, epsilon=0.0)
-                target_phase_idx = green_phase_indices[action]
-                current_phase_idx = green_phase_indices[current_green_slot]
-                if (target_phase_idx != current_phase_idx
-                        and time_in_phase >= MIN_GREEN):
-                    yellow_state = _yellow_between(
-                        phase_states[current_phase_idx],
-                        phase_states[target_phase_idx],
-                    )
-                    traci.trafficlight.setRedYellowGreenState(TLS_ID, yellow_state)
-                    in_yellow = True
-                    yellow_steps_left = YELLOW_TIME
-                    pending_target_slot = action
-                decisions += 1
-                green_steps_since_decision = 0
+            # Decisions (pre-step, mirrors single-TLS cadence) per light.
+            for tid in tls_ids:
+                if (agents[tid] is not None and status[tid] == "active"
+                        and not in_yellow[tid]
+                        and since_decision[tid] >= DECISION_INTERVAL):
+                    st = struct[tid]
+                    action = agents[tid].act(build_state(tid), epsilon=0.0)
+                    tgt = st["green"][action]
+                    cur = st["green"][slot[tid]]
+                    if tgt != cur and tip[tid] >= MIN_GREEN:
+                        traci.trafficlight.setRedYellowGreenState(
+                            tid, _yellow_between(
+                                st["phase_states"][cur],
+                                st["phase_states"][tgt])
+                        )
+                        in_yellow[tid] = True
+                        yellow_left[tid] = YELLOW_TIME
+                        pending[tid] = action
+                    decisions[tid] += 1
+                    since_decision[tid] = 0
 
             traci.simulationStep()
             step += 1
-            cumulative_wait += total_waiting() if controlled_lanes else 0.0
 
-            if in_yellow:
-                yellow_steps_left -= 1
-                if yellow_steps_left <= 0:
-                    target_phase_idx = green_phase_indices[pending_target_slot]
-                    traci.trafficlight.setRedYellowGreenState(
-                        TLS_ID, phase_states[target_phase_idx]
-                    )
-                    current_green_slot = pending_target_slot
-                    time_in_phase = 0
-                    in_yellow = False
-            else:
-                time_in_phase += 1
-                green_steps_since_decision += 1
+            # Per-light phase machine + time-in-phase bookkeeping.
+            for tid in tls_ids:
+                if status[tid] == "active" and agents[tid] is not None:
+                    if in_yellow[tid]:
+                        yellow_left[tid] -= 1
+                        if yellow_left[tid] <= 0:
+                            st = struct[tid]
+                            traci.trafficlight.setRedYellowGreenState(
+                                tid,
+                                st["phase_states"][st["green"][pending[tid]]]
+                            )
+                            slot[tid] = pending[tid]
+                            tip[tid] = 0
+                            in_yellow[tid] = False
+                    else:
+                        tip[tid] += 1
+                        since_decision[tid] += 1
+                else:
+                    # Fallback / manual: track time-in-phase from observed
+                    # state transitions so neighbour signals stay meaningful.
+                    cur = traci.trafficlight.getRedYellowGreenState(tid)
+                    if cur != prev_obs_state[tid]:
+                        tip[tid] = 0
+                        prev_obs_state[tid] = cur
+                    else:
+                        tip[tid] += 1
 
-            # ── Gather frame for the frontend ────────────────────────
+            # ── Frontend frame ───────────────────────────────────────
             vehicles = []
             for vid in traci.vehicle.getIDList():
                 x, y = traci.vehicle.getPosition(vid)
                 vehicles.append({
-                    "id": vid,
-                    "x": round(x, 2),
-                    "y": round(y, 2),
+                    "id": vid, "x": round(x, 2), "y": round(y, 2),
                     "speed": round(traci.vehicle.getSpeed(vid), 2),
                     "angle": round(traci.vehicle.getAngle(vid), 2),
                     "edge": traci.vehicle.getRoadID(vid),
@@ -264,55 +292,68 @@ def main() -> None:
                     "state": traci.trafficlight.getRedYellowGreenState(tl_id),
                 })
 
+            ai_block = {
+                tid: {
+                    "status": status[tid],
+                    "decisions": decisions[tid],
+                    "currentGreenSlot": slot[tid],
+                    "inYellow": in_yellow[tid],
+                    "minGreen": MIN_GREEN,
+                    "yellowTime": YELLOW_TIME,
+                    "modelPath": (os.path.join(CKPT_DIR, tid, "best.pth")
+                                  if agents[tid] is not None else None),
+                }
+                for tid in tls_ids
+            }
+
             ws.broadcast({
                 "type": "step",
                 "step": step,
                 "vehicles": vehicles,
                 "trafficLights": traffic_lights,
-                "ai": {
-                    "status": ai_status,
-                    "tlsId": TLS_ID if agent is not None else None,
-                    "decisions": decisions,
-                    "currentGreenSlot": current_green_slot,
-                    "inYellow": in_yellow,
-                    "minGreen": MIN_GREEN,
-                    "yellowTime": YELLOW_TIME,
-                    "modelPath": MODEL_PATH if agent is not None else None,
+                "ai": ai_block,
+                "aiSummary": {
+                    "active": sum(1 for s in status.values()
+                                  if s == "active"),
+                    "total": len(tls_ids),
                 },
             })
 
-            # ── Honour incoming commands (manual overrides) ──────────
+            # ── Commands (manual overrides), keyed by tlsId ───────────
             for cmd in ws.get_pending_commands():
                 action_name = cmd.get("action")
                 try:
                     if action_name == "setPhase":
-                        traci.trafficlight.setPhase(cmd["tlsId"], int(cmd["phase"]))
-                        if cmd["tlsId"] == TLS_ID and agent is not None:
-                            # User took manual control — pause the agent.
-                            ai_status = "manual_override"
+                        cid = cmd["tlsId"]
+                        traci.trafficlight.setPhase(cid, int(cmd["phase"]))
+                        if cid in status and agents.get(cid) is not None:
+                            status[cid] = "manual_override"
                     elif action_name == "resumeAI":
-                        if agent is not None:
+                        cid = cmd.get("tlsId")
+                        if cid in struct and agents.get(cid) is not None:
+                            st = struct[cid]
                             traci.trafficlight.setRedYellowGreenState(
-                                TLS_ID,
-                                phase_states[green_phase_indices[current_green_slot]],
+                                cid,
+                                st["phase_states"][st["green"][slot[cid]]]
                             )
-                            time_in_phase = 0
-                            ai_status = "active"
+                            tip[cid] = 0
+                            in_yellow[cid] = False
+                            status[cid] = "active"
                     elif action_name == "setSpeed":
-                        traci.vehicle.setSpeed(cmd["vehId"], float(cmd["speed"]))
+                        traci.vehicle.setSpeed(
+                            cmd["vehId"], float(cmd["speed"]))
                 except Exception as exc:
                     print(f"   command error: {exc}")
                     ws.broadcast({"type": "error", "message": str(exc)})
 
             if step % 100 == 0:
                 active = traci.vehicle.getIDCount()
-                avg_wait = cumulative_wait / max(1, step)
+                tot_dec = sum(decisions.values())
                 print(f"step {step:>4d}  vehicles={active:>3d}  "
-                      f"avg_wait={avg_wait:6.2f}  decisions={decisions:>3d}  "
-                      f"ai={ai_status}")
+                      f"decisions={tot_dec:>4d}  "
+                      f"ai_active={n_active}/{len(tls_ids)}")
 
-            active = traci.vehicle.getIDCount()
-            if active == 0:
+            if traci.vehicle.getIDCount() == 0:
                 no_vehicle_counter += 1
                 if no_vehicle_counter > 100:
                     print("No vehicles for 100 steps — ending.")
@@ -330,8 +371,7 @@ def main() -> None:
         except Exception:
             pass
         ws.stop()
-        print(f"Done. steps={step} decisions={decisions} "
-              f"avg_wait={cumulative_wait / max(1, step):.2f}")
+        print(f"Done. steps={step} total_decisions={sum(decisions.values())}")
 
 
 if __name__ == "__main__":
