@@ -213,11 +213,13 @@ class MultiTlsEnv:
                      + self._neighbor_triplet(adj.get("downstream")))
             u.set_neighbor_features(block)
 
-    def set_reward_weights(self, local_w: float, net_w: float) -> None:
+    def set_reward_weights(self, local_w: float, net_w: float,
+                           coord_w: float = 0.0) -> None:
         """Fan the curriculum reward weights out to every unit. Called by
-        the trainer once per decision to anneal Phase 1 -> Phase 2."""
+        the trainer once per decision to anneal Phase 1 -> Phase 2.
+        ``coord_w`` scales the per-agent downstream-saturation penalty."""
         for u in self.units.values():
-            u.set_reward_weights(local_w, net_w)
+            u.set_reward_weights(local_w, net_w, coord_w)
 
     # ── stepping ──────────────────────────────────────────────
     def step(self, actions: dict):

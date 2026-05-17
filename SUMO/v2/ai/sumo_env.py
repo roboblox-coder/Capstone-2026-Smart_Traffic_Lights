@@ -132,6 +132,10 @@ class SumoTrafficEnv:
         # single-TLS regression guarantee and old-checkpoint reproducibility.
         self._reward_local_w: float = 1.0
         self._reward_net_w: float = float(reward_gamma)
+        # Per-agent downstream-saturation penalty weight. Default 0.0 keeps
+        # the reward byte-identical (single-TLS regression + Phase-A
+        # reproducibility); the multi-TLS trainer ramps it in during Phase 2.
+        self._reward_coord_w: float = 0.0
 
         self._label: Optional[str] = None
         self._step_time: int = 0
@@ -302,16 +306,22 @@ class SumoTrafficEnv:
         self._shared_arrived = int(n_arrived)
         self._n_tls = max(1, int(n_tls))
 
-    def set_reward_weights(self, local_w: float, net_w: float) -> None:
+    def set_reward_weights(self, local_w: float, net_w: float,
+                           coord_w: float = 0.0) -> None:
         """Set the curriculum weights on the ``max_pressure_net`` reward.
 
         ``local_w`` scales the validated local max-pressure penalty;
-        ``net_w`` scales the shared corridor-throughput bonus. The trainer
-        calls this every decision to ramp net_w from 0 (Phase 1: stable
-        local learning) up to its final value (Phase 2: coordination). No
-        effect unless reward_mode == "max_pressure_net"."""
+        ``net_w`` scales the shared corridor-throughput bonus;
+        ``coord_w`` scales the per-agent downstream-saturation penalty
+        (action-attributable: punishes feeding an already-jammed downstream
+        neighbour). The trainer calls this every decision to ramp net_w /
+        coord_w from 0 (Phase 1: stable local learning) up to their final
+        values (Phase 2: coordination). ``coord_w`` defaults to 0.0 so
+        omitting it leaves the reward byte-identical. No effect unless
+        reward_mode == "max_pressure_net"."""
         self._reward_local_w = float(local_w)
         self._reward_net_w = float(net_w)
+        self._reward_coord_w = float(coord_w)
 
     # ── dynamics ──────────────────────────────────────────────
 
@@ -445,7 +455,18 @@ class SumoTrafficEnv:
             n = max(1, len(self._incoming_lanes))
             local = -abs(q_in - q_out) / n
             net = self._shared_arrived / self._n_tls
-            r = self._reward_local_w * local + self._reward_net_w * net
+            # Per-agent downstream-saturation penalty. _neighbor_features[3]
+            # is the downstream neighbour's normalised incoming queue (∈[0,1],
+            # 0 for a lone single-TLS env). Scaling it by THIS light's own
+            # outgoing queue makes it action-attributable: an agent holding a
+            # green that dumps flow into an already-jammed downstream is
+            # penalised; one that isn't, is not — directly targeting the
+            # cascade gridlock seen on the worst seeds.
+            ds_sat = float(self._neighbor_features[3]) if self.neighbor_aware else 0.0
+            coord_pen = ds_sat * (q_out / n)
+            r = (self._reward_local_w * local
+                 + self._reward_net_w * net
+                 - self._reward_coord_w * coord_pen)
             if switched:
                 r -= self.switch_penalty
         elif self.reward_mode == "combined":

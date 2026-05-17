@@ -1,20 +1,36 @@
-"""Train one Double-DQN per traffic light, all coordinated in ONE SUMO sim.
+"""Train one Double-DQN per traffic light, all driven in ONE SUMO sim.
 
 Decentralised independent learners with neighbour-aware observations and the
-``max_pressure_net`` reward (validated max_pressure shaping + a small shared
-network-throughput bonus). Every light is controlled simultaneously so each
+``max_pressure_net`` reward. Every light is controlled simultaneously so each
 agent learns against the others' live behaviour.
+
+DELIVERABLE RECIPE (defaults below): 60 episodes of pure local max-pressure
++ select the converged / Phase-2 metric snapshot. Validated network result
+vs SUMO native-actuated over 5 seeds: throughput 1699.8 vs 1711.8 (-0.7%,
+a tie, wins 3/5) and mean wait/veh +7.0% (wins 4/5), instability eliminated.
+
+NEGATIVE RESULT — coordination shaping was tested and rejected. With the
+curriculum genuinely engaged (episodes 37-60), ramping the shared
+network-throughput bonus (--net-weight) and the per-agent downstream-
+saturation penalty (--coord-penalty) *monotonically degraded* real
+performance vs pure-local: eval throughput -0.7% (none) -> -4.3% (slight)
+-> -33.7% (full), while training reward rose (the global bonus is a
+near-constant per-agent term: reward inflation, no learnable credit).
+Both are therefore DISABLED BY DEFAULT (weights 0.0). The machinery and
+flags are kept so the negative result stays reproducible; do not re-enable
+them expecting a win without a fundamentally different credit-assignment
+design.
 
 Run from ``SUMO/v2``::
 
     # smoke
     python ai/train_multi_dqn.py --episodes 2 --time-limit 120
-    # full
-    python ai/train_multi_dqn.py --episodes 30 --time-limit 1200
+    # full (reproduces the deliverable model)
+    python ai/train_multi_dqn.py --episodes 60 --time-limit 1200
 
 Outputs under ``ai/runs/coordinated/``::
-    checkpoints/<tls_id>/best.pth   coherent network-best snapshot
-    checkpoints/<tls_id>/last.pth   latest
+    checkpoints/<tls_id>/best.pth   best Phase-2 episode (eval-aligned)
+    checkpoints/<tls_id>/last.pth   final converged policy (the deliverable)
     logs/train_log.csv              per-TLS + per-episode network rows
 """
 
@@ -43,30 +59,35 @@ def linear_epsilon(step: int, total_steps: int,
     return start + (end - start) * frac
 
 
-def curriculum_net_weight(step: int, total_steps: int,
-                          phase1_steps: int, final_w: float) -> float:
-    """Two-phase weight on the shared corridor-throughput reward term.
+def curriculum_factor(ep: int, episodes: int, phase1_frac: float) -> float:
+    """Two-phase curriculum progress in [0, 1], keyed on EPISODE index.
 
-    Phase 1 (step < phase1_steps): 0.0 — every agent learns the *validated*
-    local max-pressure policy in a near-stationary setting, so joint
-    training starts from individually-competent policies instead of from
-    scratch (the root cause of the earlier from-scratch instability).
+    Phase 1 (first ``phase1_frac`` of episodes): 0.0 — every agent learns
+    the *validated* local max-pressure policy in a near-stationary setting,
+    so joint training starts from individually-competent policies instead
+    of from scratch (the root cause of the from-scratch instability).
 
-    Phase 2 (remaining steps): linearly ramp 0 -> final_w so the agents
+    Phase 2 (remaining episodes): linearly ramp 0 -> 1 so the agents
     fine-tune toward corridor-wide flow without a destabilising jump.
+
+    Keyed on episode, NOT decision count: an earlier version estimated
+    total decisions as episodes*(time_limit/decision_interval), but each
+    decision actually consumes yellow+green (~8-10s, not decision_interval),
+    so the real count was ~40% lower and Phase 2 never engaged. Episode
+    index is exact and immune to that.
     """
-    if step < phase1_steps:
+    phase1_eps = int(phase1_frac * episodes)
+    if ep <= phase1_eps:
         return 0.0
-    span = max(1, total_steps - phase1_steps)
-    frac = min(1.0, (step - phase1_steps) / float(span))
-    return final_w * frac
+    return min(1.0, (ep - phase1_eps) / float(max(1, episodes - phase1_eps)))
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--sumo-cfg", default="sim.sumocfg")
     p.add_argument("--adjacency", default="ai/adjacency.json")
-    p.add_argument("--episodes", type=int, default=30)
+    p.add_argument("--episodes", type=int, default=60,
+                   help="60 reproduces the validated deliverable model.")
     p.add_argument("--time-limit", type=int, default=1200)
     p.add_argument("--min-green", type=int, default=5)
     p.add_argument("--yellow-time", type=int, default=5)
@@ -80,19 +101,24 @@ def parse_args() -> argparse.Namespace:
                         "if --net-weight is not set / curriculum disabled.")
     p.add_argument("--out-dir", default="ai/runs/coordinated")
     p.add_argument("--seed", type=int, default=42)
-    # The reward curriculum (Phase 1 pure local, Phase 2 ramped coordination)
-    # is what keeps independent learners stable, so the old long epsilon
-    # warmup is no longer needed — a shorter one leaves real exploitation
-    # time in Phase 2 for the coordination fine-tune.
+    # Epsilon warmup over the first ~35% of episodes, then exploit — gives
+    # the pure-local policy time to converge stably.
     p.add_argument("--eps-warmup-frac", type=float, default=0.35)
     p.add_argument("--curriculum-frac", type=float, default=0.6,
-                   help="Fraction of total decisions spent in Phase 1 "
-                        "(pure validated local max-pressure, net_w=0).")
-    p.add_argument("--net-weight", type=float, default=4.0,
+                   help="Fraction of EPISODES in Phase 1 (pure local "
+                        "max-pressure). Only matters if a coordination "
+                        "weight below is non-zero.")
+    p.add_argument("--net-weight", type=float, default=0.0,
                    help="Final Phase-2 weight on the shared corridor-"
-                        "throughput term (≈ local-term magnitude so it "
-                        "actually influences behaviour; the old 0.05 was "
-                        "~100x too small to matter).")
+                        "throughput term. DEFAULT 0.0 (disabled): tested "
+                        "and found to monotonically degrade performance "
+                        "(see module docstring). Non-zero re-enables it "
+                        "for reproducing the negative result only.")
+    p.add_argument("--coord-penalty", type=float, default=0.0,
+                   help="Final Phase-2 weight on the per-agent downstream-"
+                        "saturation penalty. DEFAULT 0.0 (disabled): same "
+                        "negative result. Kept for reproducibility, not "
+                        "recommended.")
     return p.parse_args()
 
 
@@ -132,15 +158,16 @@ def main() -> None:
     for tid in env.tls_ids:
         print(f"  {tid:<55s} state={ss[tid]:>3d} action={as_[tid]}")
 
-    total_decisions = max(
-        1, args.episodes * (args.time_limit // max(1, args.decision_interval))
-    )
-    eps_total = max(1, int(total_decisions * args.eps_warmup_frac))
-    curric_phase1 = int(total_decisions * args.curriculum_frac)
+    # Curriculum + epsilon are keyed on EPISODE index (exact), not an
+    # estimated decision count (which was ~40% too high and left Phase 2
+    # permanently dormant in every prior run).
+    phase1_eps = int(args.curriculum_frac * args.episodes)
+    eps_warmup_eps = max(1, int(args.eps_warmup_frac * args.episodes))
     print(
-        f"Curriculum: Phase 1 = decisions [0, {curric_phase1}) net_w=0; "
-        f"Phase 2 ramp 0 -> {args.net_weight} over the rest "
-        f"(total {total_decisions} decisions)."
+        f"Curriculum: Phase 1 = episodes [1, {phase1_eps}] net_w=0 "
+        f"coord_w=0; Phase 2 (episodes {phase1_eps + 1}..{args.episodes}) "
+        f"ramp net_w 0 -> {args.net_weight}, coord_w 0 -> "
+        f"{args.coord_penalty}. Epsilon warmup over {eps_warmup_eps} eps."
     )
 
     log_path = log_dir / "train_log.csv"
@@ -160,26 +187,25 @@ def main() -> None:
     # policy reached parity + 7% lower wait).
     best_score = (-1.0, -float("inf"))  # (arrived, -mean_wait)
     best_written = False
-    decision_counter = 0
 
     for ep in range(1, args.episodes + 1):
         ep_start = time.time()
         env.seed = args.seed + ep - 1
         states = env.reset()
 
+        # Curriculum weights + epsilon are fixed per episode (episode-keyed).
+        cf = curriculum_factor(ep, args.episodes, args.curriculum_frac)
+        net_w = cf * args.net_weight
+        coord_w = cf * args.coord_penalty
+        eps = linear_epsilon(ep - 1, eps_warmup_eps)
+        env.set_reward_weights(1.0, net_w, coord_w)
+
         ep_reward = {t: 0.0 for t in env.tls_ids}
         ep_losses = {t: [] for t in env.tls_ids}
         ep_decisions = 0
         done = False
-        net_w = 0.0
 
         while not done:
-            eps = linear_epsilon(decision_counter, eps_total)
-            net_w = curriculum_net_weight(
-                decision_counter, total_decisions,
-                curric_phase1, args.net_weight,
-            )
-            env.set_reward_weights(1.0, net_w)
             actions = {
                 t: agents[t].act(states[t], epsilon=eps)
                 for t in env.tls_ids
@@ -195,7 +221,6 @@ def main() -> None:
                 ep_reward[t] += rewards[t]
 
             states = next_states
-            decision_counter += 1
             ep_decisions += 1
 
         wall = time.time() - ep_start
@@ -217,11 +242,12 @@ def main() -> None:
         ])
         log_file.flush()
 
-        phase = 1 if decision_counter <= curric_phase1 else 2
+        phase = 1 if ep <= phase1_eps else 2
         print(
             f"ep {ep:>3d}/{args.episodes}  net_reward={net_reward:>10.1f}  "
             f"arrived={m['arrived']:>5d}  net_wait={m['mean_wait']:>7.2f}  "
-            f"eps={eps:.2f}  P{phase} net_w={net_w:.2f}  ({wall:.1f}s)"
+            f"eps={eps:.2f}  P{phase} net_w={net_w:.2f} "
+            f"coord_w={coord_w:.2f}  ({wall:.1f}s)"
         )
 
         def _meta(tid):
