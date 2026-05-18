@@ -223,7 +223,13 @@
     <!-- Top Bar -->
     <div id="top-bar">
         <h1>🚦 <span>SUMO</span> Live City Viewer</h1>
-        <span id="status-badge">● Disconnected</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <span id="ai-badge" title="AI controller status"
+                style="font-size:.78rem;padding:4px 12px;border-radius:20px;background:rgba(139,148,158,.15);color:#8b949e;">
+                AI: idle
+            </span>
+            <span id="status-badge">● Disconnected</span>
+        </div>
     </div>
 
     <div id="main-wrap">
@@ -287,6 +293,7 @@
         // UI Elements
         const controlsPanel = document.getElementById('controls');
         const badge = document.getElementById('status-badge');
+        const aiBadge = document.getElementById('ai-badge');
         const hudStep = document.getElementById('hud-step');
         const hudVeh = document.getElementById('hud-veh');
         const hudTl = document.getElementById('hud-tl');
@@ -1253,6 +1260,7 @@
             hudVeh.textContent = msg.vehicles.length;
             hudTl.textContent = msg.trafficLights.length;
             document.getElementById('stat-cars').innerText = msg.vehicles.length;
+            updateAiBadge(msg.aiSummary);
 
             // Update instanced vehicle mesh using fixed convBoundary center
             const count = Math.min(msg.vehicles.length, VEH_MAX);
@@ -1276,12 +1284,21 @@
             if (vehMesh.instanceColor) vehMesh.instanceColor.needsUpdate = true;
 
             // Update traffic-light sidebar
-            updateTLPanel(msg.trafficLights);
+            updateTLPanel(msg.trafficLights, msg.ai);
         }
 
         // --- Traffic-Light Sidebar ---
         let knownTLs = {};
-        function updateTLPanel(tls) {
+        function aiColors(status) {
+            const s = status || 'idle';
+            if (s === 'active') return ['rgba(63,185,80,.18)', '#3fb950'];
+            if (s.startsWith('fallback')) return ['rgba(248,81,73,.18)', '#f85149'];
+            if (s === 'manual_override') return ['rgba(212,153,46,.22)', '#d4992e'];
+            return ['rgba(139,148,158,.15)', '#8b949e'];
+        }
+
+        function updateTLPanel(tls, ai) {
+            ai = ai || {};
             for (const tl of tls) {
                 if (!knownTLs[tl.id]) {
                     const card = document.createElement('div');
@@ -1290,6 +1307,7 @@
                         <div>
                             <div class="tl-id">${tl.id}</div>
                             <div class="tl-state" id="tl-state-${tl.id}">${tl.state}</div>
+                            <div class="tl-state" id="tl-ai-${tl.id}" style="margin-top:3px;font-size:.72rem;padding:2px 8px;border-radius:12px;display:inline-block;">AI: —</div>
                         </div>
                         <div class="tl-btns" id="tl-btns-${tl.id}"></div>`;
                     if (tlPanel.querySelector('em')) tlPanel.innerHTML = '';
@@ -1307,7 +1325,29 @@
                 }
                 const stateEl = document.getElementById(`tl-state-${tl.id}`);
                 if (stateEl) stateEl.textContent = `Phase ${tl.phase}  ${tl.state}`;
+
+                const aiEl = document.getElementById(`tl-ai-${tl.id}`);
+                const a = ai[tl.id];
+                if (aiEl && a) {
+                    const [bg, fg] = aiColors(a.status);
+                    aiEl.style.background = bg;
+                    aiEl.style.color = fg;
+                    const y = a.inYellow ? ' Y' : '';
+                    const slot = a.currentGreenSlot !== undefined ? ` slot=${a.currentGreenSlot}` : '';
+                    const dec = a.decisions !== undefined ? ` Δ=${a.decisions}` : '';
+                    aiEl.textContent = `AI: ${a.status}${slot}${y}${dec}`;
+                }
             }
+        }
+
+        function updateAiBadge(summary) {
+            if (!summary || !aiBadge) return;
+            const active = summary.active || 0;
+            const total = summary.total || 0;
+            const [bg, fg] = aiColors(active > 0 ? 'active' : 'idle');
+            aiBadge.style.background = bg;
+            aiBadge.style.color = fg;
+            aiBadge.textContent = `AI: ${active}/${total} active`;
         }
 
         function sendSetPhase(tlsId, phase) {

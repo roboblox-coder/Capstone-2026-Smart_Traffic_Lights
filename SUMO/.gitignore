@@ -14,6 +14,10 @@ v2/2026-*/
 __pycache__/
 *.pyc
 
+# AI training scratch — commit best.pth deliberately, not every transient.
+v2/ai/checkpoints/last.pth
+v2/ai/logs/
+
 # OS / editor junk
 .DS_Store
 Thumbs.db
