@@ -44,6 +44,18 @@ from sumolib import checkBinary  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent / "ai"))
 from dqn_agent import DQNAgent  # noqa: E402
 
+# V2 (FRAP/GAT/MAPPO) inference is optional: torch is the dependency
+# gate. If the import fails, V2_INFERENCE_AVAILABLE is False and the
+# runner stays on the V1 per-TLS path -- the existing demo is
+# unaffected by V2 work being incomplete on a given checkout.
+try:
+    from v2.live_inference import V2InferenceLoop  # noqa: E402
+    V2_INFERENCE_AVAILABLE = True
+except Exception as _v2_exc:
+    V2InferenceLoop = None  # type: ignore[assignment]
+    V2_INFERENCE_AVAILABLE = False
+    _V2_IMPORT_ERR = _v2_exc
+
 from websocket_server import SimulationWebSocketServer  # noqa: E402
 
 
@@ -51,6 +63,7 @@ from websocket_server import SimulationWebSocketServer  # noqa: E402
 SUMO_CONFIG = "sim.sumocfg"
 ADJACENCY_PATH = "ai/adjacency.json"
 CKPT_DIR = "ai/runs/coordinated/checkpoints"
+V2_CKPT_PATH = "ai/runs/v2_mappo/checkpoints/best.pth"
 # Regime MUST match training (multi_env defaults).
 MIN_GREEN = 5
 YELLOW_TIME = 5
@@ -157,6 +170,32 @@ def main() -> None:
         decisions[tid] = 0
         prev_obs_state[tid] = traci.trafficlight.getRedYellowGreenState(tid)
 
+    # ── V2 corridor-level policy (preferred when checkpoint exists) ──
+    v2_loop = None
+    if V2_INFERENCE_AVAILABLE:
+        v2_loop = V2InferenceLoop.try_load(
+            traci_mod=traci, ckpt_path=V2_CKPT_PATH,
+            tls_ids=tls_ids, struct=struct, adjacency=adjacency,
+        )
+        if v2_loop is not None:
+            print(f"V2 inference: loaded {V2_CKPT_PATH} "
+                  f"(corridor-level FRAP/GAT/MAPPO).")
+            # All 12 lights are driven by the single V2 policy; flag the
+            # per-TLS load loop below to skip and mark status as v2.
+            for tid in tls_ids:
+                agents[tid] = None
+                status[tid] = "active:v2"
+                # The light needs to be in a known green at simulation
+                # start; pick slot 0 like the V1 path does.
+                traci.trafficlight.setRedYellowGreenState(
+                    tid, struct[tid]["phase_states"][
+                        struct[tid]["green"][0]]
+                )
+
+    for tid in tls_ids:
+        if v2_loop is not None:
+            # V2 has already populated agents[tid] = None / status = active:v2.
+            continue
         path = os.path.join(CKPT_DIR, tid, "best.pth")
         agent, err = load_agent(path)
         if agent is None:
@@ -178,7 +217,8 @@ def main() -> None:
                 tid, st["phase_states"][st["green"][0]]
             )
 
-    n_active = sum(1 for s in status.values() if s == "active")
+    n_active = sum(1 for s in status.values()
+                   if s in ("active", "active:v2"))
     print(f"Loaded {n_active}/{len(tls_ids)} agents "
           f"(rest fall back to actuated).")
 
@@ -223,32 +263,66 @@ def main() -> None:
     try:
         while traci.simulation.getMinExpectedNumber() > 0 and step < MAX_STEPS:
             # Decisions (pre-step, mirrors single-TLS cadence) per light.
-            for tid in tls_ids:
-                if (agents[tid] is not None and status[tid] == "active"
-                        and not in_yellow[tid]
-                        and since_decision[tid] >= DECISION_INTERVAL):
-                    st = struct[tid]
-                    action = agents[tid].act(build_state(tid), epsilon=0.0)
-                    tgt = st["green"][action]
-                    cur = st["green"][slot[tid]]
-                    if tgt != cur and tip[tid] >= MIN_GREEN:
-                        traci.trafficlight.setRedYellowGreenState(
-                            tid, _yellow_between(
-                                st["phase_states"][cur],
-                                st["phase_states"][tgt])
-                        )
-                        in_yellow[tid] = True
-                        yellow_left[tid] = YELLOW_TIME
-                        pending[tid] = action
-                    decisions[tid] += 1
-                    since_decision[tid] = 0
+            if v2_loop is not None:
+                # Corridor-level decision: fire when at least one light
+                # has hit the cadence and no light is mid-yellow. Keeps
+                # all 12 phase machines in lock-step the way V2 was
+                # trained.
+                any_due = any(since_decision[t] >= DECISION_INTERVAL
+                              for t in tls_ids)
+                any_yellow = any(in_yellow[t] for t in tls_ids)
+                if any_due and not any_yellow:
+                    v2_actions = v2_loop.decide(slot, tip)
+                    for tid in tls_ids:
+                        action = int(v2_actions[tid])
+                        st = struct[tid]
+                        tgt = st["green"][action]
+                        cur = st["green"][slot[tid]]
+                        if tgt != cur and tip[tid] >= MIN_GREEN:
+                            traci.trafficlight.setRedYellowGreenState(
+                                tid, _yellow_between(
+                                    st["phase_states"][cur],
+                                    st["phase_states"][tgt])
+                            )
+                            in_yellow[tid] = True
+                            yellow_left[tid] = YELLOW_TIME
+                            pending[tid] = action
+                        decisions[tid] += 1
+                        since_decision[tid] = 0
+            else:
+                for tid in tls_ids:
+                    if (agents[tid] is not None and status[tid] == "active"
+                            and not in_yellow[tid]
+                            and since_decision[tid] >= DECISION_INTERVAL):
+                        st = struct[tid]
+                        action = agents[tid].act(build_state(tid),
+                                                 epsilon=0.0)
+                        tgt = st["green"][action]
+                        cur = st["green"][slot[tid]]
+                        if tgt != cur and tip[tid] >= MIN_GREEN:
+                            traci.trafficlight.setRedYellowGreenState(
+                                tid, _yellow_between(
+                                    st["phase_states"][cur],
+                                    st["phase_states"][tgt])
+                            )
+                            in_yellow[tid] = True
+                            yellow_left[tid] = YELLOW_TIME
+                            pending[tid] = action
+                        decisions[tid] += 1
+                        since_decision[tid] = 0
 
             traci.simulationStep()
             step += 1
 
             # Per-light phase machine + time-in-phase bookkeeping.
+            # "Driven" means the runner (V1 per-TLS DQN or V2 corridor
+            # policy) owns the phase transitions for this light; fallback /
+            # manual-override lights stay in the observed-transition path.
             for tid in tls_ids:
-                if status[tid] == "active" and agents[tid] is not None:
+                driven = (status[tid] == "active:v2"
+                          or (status[tid] == "active"
+                              and agents[tid] is not None))
+                if driven:
                     if in_yellow[tid]:
                         yellow_left[tid] -= 1
                         if yellow_left[tid] <= 0:
@@ -300,8 +374,12 @@ def main() -> None:
                     "inYellow": in_yellow[tid],
                     "minGreen": MIN_GREEN,
                     "yellowTime": YELLOW_TIME,
-                    "modelPath": (os.path.join(CKPT_DIR, tid, "best.pth")
-                                  if agents[tid] is not None else None),
+                    "modelPath": (V2_CKPT_PATH
+                                  if status[tid] == "active:v2"
+                                  else (os.path.join(CKPT_DIR, tid,
+                                                     "best.pth")
+                                        if agents[tid] is not None
+                                        else None)),
                 }
                 for tid in tls_ids
             }
@@ -314,8 +392,9 @@ def main() -> None:
                 "ai": ai_block,
                 "aiSummary": {
                     "active": sum(1 for s in status.values()
-                                  if s == "active"),
+                                  if s in ("active", "active:v2")),
                     "total": len(tls_ids),
+                    "mode": "v2" if v2_loop is not None else "v1",
                 },
             })
 
@@ -330,7 +409,11 @@ def main() -> None:
                             status[cid] = "manual_override"
                     elif action_name == "resumeAI":
                         cid = cmd.get("tlsId")
-                        if cid in struct and agents.get(cid) is not None:
+                        v2_drives_this = (v2_loop is not None
+                                          and cid in struct)
+                        v1_drives_this = (cid in struct
+                                          and agents.get(cid) is not None)
+                        if v2_drives_this or v1_drives_this:
                             st = struct[cid]
                             traci.trafficlight.setRedYellowGreenState(
                                 cid,
@@ -338,7 +421,8 @@ def main() -> None:
                             )
                             tip[cid] = 0
                             in_yellow[cid] = False
-                            status[cid] = "active"
+                            status[cid] = ("active:v2" if v2_drives_this
+                                           else "active")
                     elif action_name == "setSpeed":
                         traci.vehicle.setSpeed(
                             cmd["vehId"], float(cmd["speed"]))
