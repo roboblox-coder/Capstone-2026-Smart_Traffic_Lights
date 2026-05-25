@@ -288,6 +288,62 @@ class SumoTrafficEnv:
             feats.extend(float(x) for x in self._neighbor_features)
         return np.asarray(feats, dtype=np.float32)
 
+    def get_state_frap(self) -> dict:
+        """Per-movement features + phase masks for the FRAP encoder (V2).
+
+        Returns a dict, not a vector. V2's parameter-shared encoder needs
+        variable-length movement input; flattening to a fixed vector here
+        would erase the phase symmetries FRAP exploits.
+
+        Keys:
+          movement_features    : np.ndarray[num_movements, 3] of
+                                 (halting, vehicles, waiting_time)
+          phase_movement_mask  : np.ndarray[num_green, num_movements] bool;
+                                 mask[slot, m] is True iff movement m has
+                                 a green signal ('G' or 'g') in that phase.
+          num_green            : int, this TLS's actual green-slot count
+                                 (the multi-TLS wrapper pads to P_max).
+          current_slot         : int in [0, num_green), this TLS's
+                                 currently active green slot.
+          time_in_phase        : float in [0,1], min(t, 120) / 120.
+
+        Movement definition: one entry per signal index in the phase state
+        string -- i.e. one per element of ``getControlledLinks(tls)``. This
+        is the granularity SUMO controls the light at, and the granularity
+        FRAP's pairwise competition matrix is defined over.
+        """
+        conn = self._conn()
+        controlled_links = conn.trafficlight.getControlledLinks(self.tls_id)
+        n_mov = len(controlled_links)
+
+        feats = np.zeros((n_mov, 3), dtype=np.float32)
+        for i, link_group in enumerate(controlled_links):
+            lanes = set()
+            for entry in link_group:
+                if entry:
+                    lanes.add(entry[0])  # from-lane
+            if not lanes:
+                continue
+            queue = sum(conn.lane.getLastStepHaltingNumber(l) for l in lanes)
+            vehicles = sum(conn.lane.getLastStepVehicleNumber(l)
+                           for l in lanes)
+            waiting = sum(conn.lane.getWaitingTime(l) for l in lanes)
+            feats[i] = (queue, vehicles, waiting)
+
+        mask = np.zeros((self._num_green, n_mov), dtype=bool)
+        for slot_idx, phase_idx in enumerate(self._green_phase_indices):
+            state_str = self._phase_states[phase_idx]
+            for j in range(min(n_mov, len(state_str))):
+                mask[slot_idx, j] = state_str[j] in ("G", "g")
+
+        return {
+            "movement_features": feats,
+            "phase_movement_mask": mask,
+            "num_green": int(self._num_green),
+            "current_slot": int(self._current_green_slot),
+            "time_in_phase": float(min(self._time_in_phase, 120) / 120.0),
+        }
+
     def set_neighbor_features(self, arr) -> None:
         """Push the upstream/downstream summary (len == 6). Called by the
         multi-TLS wrapper before get_state(); no-op effect unless
@@ -422,6 +478,20 @@ class SumoTrafficEnv:
             r = (self._prev_total_wait - total_wait) - self.starve_penalty * max_lane_wait
             if switched:
                 r -= self.switch_penalty
+        elif self.reward_mode == "pressure_only":
+            # V2/MAPPO reward: pure per-light pressure, no switch penalty,
+            # no shaping. Credit assignment for cross-light coordination
+            # lives in the centralized critic, not in this per-light
+            # reward. Differs from "max_pressure" above in dropping the
+            # switch_penalty subtraction -- PPO's entropy regularisation
+            # already discourages thrash without needing a hand-tuned cost.
+            conn = self._conn()
+            q_in = sum(conn.lane.getLastStepHaltingNumber(l)
+                       for l in self._incoming_lanes)
+            q_out = sum(conn.lane.getLastStepHaltingNumber(l)
+                        for l in self._outgoing_lanes)
+            n = max(1, len(self._incoming_lanes))
+            r = -abs(q_in - q_out) / n
         elif self.reward_mode == "max_pressure":
             # Max-pressure control (PressLight/MPLight): pressure =
             # (queue on incoming lanes) - (queue on outgoing lanes).
