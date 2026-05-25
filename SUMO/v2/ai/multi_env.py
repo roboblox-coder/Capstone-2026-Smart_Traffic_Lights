@@ -282,6 +282,100 @@ class MultiTlsEnv:
             }
         return states, rewards, done, infos
 
+    # ── FRAP-form state batch (V2) ────────────────────────────────
+    @property
+    def frap_p_max(self) -> int:
+        """Maximum num_green across all 12 TLS. Used to right-pad the
+        per-light phase logits / masks so the shared actor can operate
+        on a fixed-shape (n_tls, P_max) tensor."""
+        return max(u._num_green for u in self.units.values())
+
+    @property
+    def frap_max_movements(self) -> int:
+        """Maximum number of controlled-link signal indices across all
+        TLS. Used to right-pad the per-light movement features tensor."""
+        return max(len(s) for u in self.units.values()
+                   for s in u._phase_states)
+
+    def frap_adjacency_tensor(self):
+        """(n_tls, n_tls) bool numpy array for the GAT.
+
+        Includes the self-loop on every diagonal entry so a light can
+        always attend to its own embedding -- the GAT softmax can hit a
+        degenerate case otherwise when no neighbor data is informative.
+        Treats adjacency.json's upstream/downstream pairings as
+        undirected: if j is a neighbour of i in either direction, both
+        ``adj[i, j]`` and ``adj[j, i]`` are True.
+        """
+        ids = list(self.tls_ids)
+        idx = {t: i for i, t in enumerate(ids)}
+        n = len(ids)
+        adj = np.zeros((n, n), dtype=bool)
+        for i, t in enumerate(ids):
+            adj[i, i] = True  # self-loop
+            nbrs = self.adjacency.get(t, {})
+            for direction in ("upstream", "downstream"):
+                nbr = nbrs.get(direction)
+                if nbr in idx:
+                    j = idx[nbr]
+                    adj[i, j] = True
+                    adj[j, i] = True  # symmetrize
+        return adj
+
+    def get_state_frap_batch(self) -> dict:
+        """Padded FRAP-form state across all 12 TLS, ready for the V2 net.
+
+        Returns:
+            {
+              "movement_features"   : float32 [n_tls, max_movements, 3]
+              "movement_mask"       : bool    [n_tls, max_movements]
+                  (True for the real signal indices on this TLS;
+                  False at right-pad positions.)
+              "phase_movement_mask" : bool    [n_tls, P_max, max_movements]
+              "phase_mask"          : bool    [n_tls, P_max]
+              "current_slot"        : int64   [n_tls]
+              "time_in_phase"       : float32 [n_tls]
+              "tls_ids"             : list[str], ordering of n_tls dim
+            }
+
+        Pads with zeros for movement features and False for masks. The
+        actor's masked-categorical head reads ``phase_mask`` to clamp
+        invalid slots to -inf.
+        """
+        ids = list(self.tls_ids)
+        n = len(ids)
+        p_max = self.frap_p_max
+        m_max = self.frap_max_movements
+
+        mov_feats = np.zeros((n, m_max, 3), dtype=np.float32)
+        mov_mask = np.zeros((n, m_max), dtype=bool)
+        pm_mask = np.zeros((n, p_max, m_max), dtype=bool)
+        phase_mask = np.zeros((n, p_max), dtype=bool)
+        cur_slot = np.zeros((n,), dtype=np.int64)
+        t_in_phase = np.zeros((n,), dtype=np.float32)
+
+        for i, tid in enumerate(ids):
+            s = self.units[tid].get_state_frap()
+            f = s["movement_features"]
+            n_mov = f.shape[0]
+            n_grn = s["num_green"]
+            mov_feats[i, :n_mov] = f
+            mov_mask[i, :n_mov] = True
+            pm_mask[i, :n_grn, :n_mov] = s["phase_movement_mask"]
+            phase_mask[i, :n_grn] = True
+            cur_slot[i] = s["current_slot"]
+            t_in_phase[i] = s["time_in_phase"]
+
+        return {
+            "movement_features": mov_feats,
+            "movement_mask": mov_mask,
+            "phase_movement_mask": pm_mask,
+            "phase_mask": phase_mask,
+            "current_slot": cur_slot,
+            "time_in_phase": t_in_phase,
+            "tls_ids": ids,
+        }
+
     def passive_step(self):
         """Native baseline: advance one second, SUMO's own programs in
         charge (no setRedYellowGreenState calls). Returns (states, done)."""

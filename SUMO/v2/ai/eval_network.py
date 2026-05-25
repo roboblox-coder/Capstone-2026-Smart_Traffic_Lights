@@ -88,6 +88,47 @@ def load_coordinated_agents(ckpt_dir: str, env: MultiTlsEnv,
     return agents
 
 
+def load_coordinated_agents_v2(ckpt_path: str, env: MultiTlsEnv):
+    """Load a V2 corridor policy from a MAPPO checkpoint.
+
+    Returns ``(policy, choose_actions_callable)`` where the callable
+    matches the (states, env) -> dict[tls_id, action] shape expected by
+    ``run_controlled``. The ``states`` argument is ignored -- V2 reads
+    its own FRAP-form batch from the env each tick.
+
+    On missing checkpoint or shape mismatch, returns ``(None, None)``
+    so callers can fall back the same way V1's missing-checkpoint path
+    does.
+    """
+    if not os.path.exists(ckpt_path):
+        print(f"  [v2 fallback] no checkpoint at {ckpt_path}")
+        return None, None
+    try:
+        from v2.inference_adapter import V2CorridorPolicy
+    except ImportError as exc:
+        print(f"  [v2 fallback] inference adapter import failed: {exc}")
+        return None, None
+    try:
+        policy = V2CorridorPolicy.load_for_inference(ckpt_path)
+    except Exception as exc:
+        print(f"  [v2 fallback] load failed: {exc}")
+        return None, None
+    # Refuse silent shape drift: env's tls_ids order MUST match the
+    # checkpoint's. The policy enforces it, but failing here gives a
+    # clearer message before the first action is dispatched.
+    if list(env.tls_ids) != policy.tls_ids:
+        print(f"  [v2 fallback] tls_ids mismatch: env "
+              f"{list(env.tls_ids)} vs ckpt {policy.tls_ids}")
+        return None, None
+    adjacency = env.frap_adjacency_tensor()
+
+    def choose(_states, e):
+        batch = e.get_state_frap_batch()
+        return policy.act(batch, adjacency, deterministic=True)
+
+    return policy, choose
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--sumo-cfg", default="sim.sumocfg")
@@ -95,6 +136,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--ckpt-dir", default="ai/runs/coordinated/checkpoints")
     p.add_argument("--ckpt-name", default="best.pth",
                    help="Checkpoint file per TLS (best.pth or last.pth).")
+    p.add_argument("--v2-ckpt",
+                   default="ai/runs/v2_mappo/checkpoints/best.pth",
+                   help="Corridor-level V2 (FRAP/GAT/MAPPO) checkpoint. "
+                        "Compared as 'coordinated_v2_frap' alongside V1 "
+                        "and native when the file exists.")
     p.add_argument("--episodes", type=int, default=5)
     p.add_argument("--time-limit", type=int, default=1200)
     p.add_argument("--seed", type=int, default=42)
@@ -140,6 +186,17 @@ def main() -> None:
         ("coordinated_dqn", controlled_env,
          lambda: lambda e: run_controlled(e, dqn_actions)),
     ]
+
+    # V2 spec only joins the comparison when a real checkpoint is on
+    # disk. Otherwise we'd be racing fixed/native against an
+    # unitialized policy.
+    _v2_policy, v2_choose = load_coordinated_agents_v2(
+        args.v2_ckpt, controlled_env)
+    if v2_choose is not None:
+        specs.append(
+            ("coordinated_v2_frap", controlled_env,
+             lambda: lambda e: run_controlled(e, v2_choose))
+        )
 
     results = {n: [] for n, _, _ in specs}
     out_lines = []
