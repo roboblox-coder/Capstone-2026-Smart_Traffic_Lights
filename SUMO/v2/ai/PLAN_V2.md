@@ -321,9 +321,16 @@ A working order, no implementation here:
 
    The pinned env `SUMO/v2/sim_calibrated.sumocfg` references the
    generated route file + vTypes; bootstrap order is in `report.md`.
-5. `ai/v2/` — Phase 1. New package: `frap_encoder.py`, `colight_gat.py`,
-   `mappo_trainer.py`, `shared_policy.py`. Old `dqn_agent.py` stays
-   unchanged for the v1 regression test.
+5. `ai/v2/` — Phase 1.2 (**scaffold built**, untested at runtime). Six
+   modules: `frap_encoder`, `colight_gat`, `shared_policy`,
+   `centralized_critic`, `mappo_trainer`, `inference_adapter`. Old
+   `dqn_agent.py` stays unchanged for the V1 regression test. Env
+   hooks (`get_state_frap` + `reward_mode="pressure_only"`) are
+   additive on `sumo_env.py`; V1 paths byte-identical. `multi_env.py`
+   gains `get_state_frap_batch` + `frap_adjacency_tensor`.
+   `eval_network.py` adds the `coordinated_v2_frap` spec, gated on the
+   V2 checkpoint existing on disk. The first end-to-end run will
+   surface real issues -- expect to iterate.
 6. `ai/domain_randomization.py` — Phase 1.
 7. `perception/` (new top-level dir) — Phase 2. `detector.py`,
    `tracker.py`, `homography.py`, `state_publisher.py`. Hardware-
