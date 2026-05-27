@@ -222,38 +222,51 @@ class MAPPOTrainer:
 
     # ---------- rollout ----------
 
-    def _encode_step(self, batch: dict) -> tuple:
-        """Run encoder + GAT once. Returns
-        (light_embeds_ctx, phase_prelogits, light_embeds_raw).
+    def _encode_step(self, mov_feats_t: torch.Tensor,
+                     pm_mask_t: torch.Tensor,
+                     phase_mask_t: torch.Tensor) -> tuple:
+        """Vectorized FRAP + GAT forward.
+
+        Accepts either (N_tls, ...) for a single rollout step or
+        (B, N_tls, ...) for a PPO minibatch. The leading shape is
+        preserved on the way out. Returns
+        ``(light_embeds_ctx, phase_prelogits, light_embeds_raw)``;
         ``light_embeds_raw`` is the pre-GAT representation that feeds
-        the critic -- using the raw embedding keeps the critic free of
-        the GAT's frozen-uniform vs learned weights phase shift.
+        the critic (keeps the critic free of the GAT frozen-uniform vs
+        learned weights phase shift).
+
+        Args:
+            mov_feats_t: (..., M_max, 3) movement features.
+            pm_mask_t: (..., P_max, M_max) bool phase-movement mask.
+            phase_mask_t: (..., P_max) bool phase mask.
         """
-        mov_feats = torch.from_numpy(batch["movement_features"]).to(
-            self.device)
-        pm_mask = torch.from_numpy(batch["phase_movement_mask"]).to(
-            self.device)
+        squeeze_b = (mov_feats_t.dim() == 3)  # rollout / eval shape
+        if squeeze_b:
+            mov_feats_t = mov_feats_t.unsqueeze(0)
+            pm_mask_t = pm_mask_t.unsqueeze(0)
+            phase_mask_t = phase_mask_t.unsqueeze(0)
 
-        # FRAP forward per-TLS. Loop is fine: n_tls is 12 and the
-        # encoder is the cheap part of the step. Could be batched with
-        # a custom kernel but the win is marginal.
-        light_embeds = []
-        phase_prelogits = []
-        for i in range(self.n_tls):
-            le, ppl_real = self.encoder(mov_feats[i],
-                                        pm_mask[i, :int(batch["phase_mask"]
-                                                        [i].sum())])
-            # Right-pad phase_prelogits to P_max so the stack is uniform.
-            padded = torch.zeros(self.p_max, device=self.device,
-                                 dtype=ppl_real.dtype)
-            padded[:ppl_real.size(0)] = ppl_real
-            light_embeds.append(le)
-            phase_prelogits.append(padded)
+        B, n_tls = mov_feats_t.shape[:2]
+        # Flatten batch + TLS for FRAP (FRAP is per-light, no
+        # cross-light interactions). One forward, no Python loop over
+        # the corridor.
+        mov_flat = mov_feats_t.reshape(B * n_tls,
+                                       *mov_feats_t.shape[2:])
+        pm_flat = pm_mask_t.reshape(B * n_tls, *pm_mask_t.shape[2:])
+        phase_flat = phase_mask_t.reshape(B * n_tls, -1)
 
-        light_embeds_raw = torch.stack(light_embeds, dim=0)
-        phase_prelogits = torch.stack(phase_prelogits, dim=0)
-        light_embeds_ctx = self.gat(light_embeds_raw, self.adjacency)
-        return light_embeds_ctx, phase_prelogits, light_embeds_raw
+        le_flat, ppl_flat = self.encoder.forward_batched(
+            mov_flat, pm_flat, phase_flat)
+        # Reshape back to (B, N_tls, ...).
+        le_raw = le_flat.reshape(B, n_tls, -1)
+        ppl = ppl_flat.reshape(B, n_tls, -1)
+        # GAT operates per-step: (B, N_tls, D) -> (B, N_tls, D), with
+        # the same adjacency broadcast across the batch.
+        le_ctx = self.gat.forward_batched(le_raw, self.adjacency)
+
+        if squeeze_b:
+            return le_ctx.squeeze(0), ppl.squeeze(0), le_raw.squeeze(0)
+        return le_ctx, ppl, le_raw
 
     def _collect_rollout(self) -> dict:
         """Run ``cfg.rollout_episodes`` episodes; return stacked buffer."""
@@ -267,10 +280,15 @@ class MAPPOTrainer:
             while not done:
                 batch = self.env.get_state_frap_batch()
                 with torch.no_grad():
-                    le_ctx, ppl, le_raw = self._encode_step(batch)
-                    pm = torch.from_numpy(batch["phase_mask"]).to(
-                        self.device)
-                    logits = self.actor(le_ctx, ppl, pm)
+                    mov_t = torch.from_numpy(
+                        batch["movement_features"]).to(self.device)
+                    pm_t = torch.from_numpy(
+                        batch["phase_movement_mask"]).to(self.device)
+                    phase_t = torch.from_numpy(
+                        batch["phase_mask"]).to(self.device)
+                    le_ctx, ppl, le_raw = self._encode_step(
+                        mov_t, pm_t, phase_t)
+                    logits = self.actor(le_ctx, ppl, phase_t)
                     actions, logprobs, _entropy = (
                         SharedActor.sample_actions(logits))
                     values = self.critic(le_raw)
@@ -380,27 +398,17 @@ class MAPPOTrainer:
                 mb_adv = adv_all[idx_t]
                 mb_adv = (mb_adv - mb_adv.mean()) / (mb_adv.std() + 1e-8)
 
-                # Forward through the V2 stack at each step in the
-                # minibatch. The encode loop over T is the bottleneck;
-                # acceptable for a first cut, optimizable later.
-                B = len(idx)
-                logits_b = []
-                values_b = []
-                for b in range(B):
-                    step_batch = {
-                        "movement_features":
-                            mov_feats_all[idx[b]].cpu().numpy(),
-                        "phase_movement_mask":
-                            pm_mask_all[idx[b]].cpu().numpy(),
-                        "phase_mask":
-                            phase_mask_all[idx[b]].cpu().numpy(),
-                    }
-                    le_ctx, ppl, le_raw = self._encode_step(step_batch)
-                    pm = phase_mask_all[idx[b]]
-                    logits_b.append(self.actor(le_ctx, ppl, pm))
-                    values_b.append(self.critic(le_raw))
-                logits_b = torch.stack(logits_b, dim=0)  # (B, n, P_max)
-                values_b = torch.stack(values_b, dim=0)  # (B,)
+                # Forward through the V2 stack for the whole minibatch
+                # in one batched pass. No Python loop over (B, N_tls),
+                # no cpu round-trip -- tensors stay on device.
+                mov_feats_b = mov_feats_all[idx_t]    # (B, N, M, 3)
+                pm_mask_b = pm_mask_all[idx_t]        # (B, N, P, M)
+                phase_mask_b = phase_mask_all[idx_t]  # (B, N, P)
+                le_ctx_b, ppl_b, le_raw_b = self._encode_step(
+                    mov_feats_b, pm_mask_b, phase_mask_b)
+                logits_b = self.actor.forward_batched(
+                    le_ctx_b, ppl_b, phase_mask_b)   # (B, N, P)
+                values_b = self.critic(le_raw_b)     # (B,)
 
                 new_logprobs, entropy = SharedActor.evaluate_actions(
                     logits_b, actions_all[idx_t])  # (B, n)
@@ -497,10 +505,15 @@ class MAPPOTrainer:
                 done = False
                 while not done:
                     batch = self.eval_env.get_state_frap_batch()
-                    le_ctx, ppl, _le_raw = self._encode_step(batch)
-                    pm = torch.from_numpy(batch["phase_mask"]).to(
-                        self.device)
-                    logits = self.actor(le_ctx, ppl, pm)
+                    mov_t = torch.from_numpy(
+                        batch["movement_features"]).to(self.device)
+                    pm_t = torch.from_numpy(
+                        batch["phase_movement_mask"]).to(self.device)
+                    phase_t = torch.from_numpy(
+                        batch["phase_mask"]).to(self.device)
+                    le_ctx, ppl, _le_raw = self._encode_step(
+                        mov_t, pm_t, phase_t)
+                    logits = self.actor(le_ctx, ppl, phase_t)
                     actions, _, _ = SharedActor.sample_actions(
                         logits, deterministic=True)
                     a_np = actions.cpu().numpy()

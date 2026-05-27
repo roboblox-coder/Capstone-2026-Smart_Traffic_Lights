@@ -120,23 +120,15 @@ class V2CorridorPolicy:
 
     def _encode_batch(self, batch: dict,
                       adjacency: torch.Tensor) -> tuple:
+        # One batched FRAP forward across the whole corridor; no
+        # Python per-TLS loop and no GPU<->CPU round-trip.
         mov_feats = torch.from_numpy(batch["movement_features"]).to(
             self.device)
         pm_mask = torch.from_numpy(batch["phase_movement_mask"]).to(
             self.device)
         phase_mask = torch.from_numpy(batch["phase_mask"]).to(self.device)
-        light_embeds, phase_prelogits = [], []
-        for i in range(mov_feats.size(0)):
-            n_grn_i = int(phase_mask[i].sum().item())
-            le, ppl_real = self.modules.encoder(mov_feats[i],
-                                                pm_mask[i, :n_grn_i])
-            padded = torch.zeros(self.p_max, device=self.device,
-                                 dtype=ppl_real.dtype)
-            padded[:ppl_real.size(0)] = ppl_real
-            light_embeds.append(le)
-            phase_prelogits.append(padded)
-        light_embeds = torch.stack(light_embeds, dim=0)
-        phase_prelogits = torch.stack(phase_prelogits, dim=0)
+        light_embeds, phase_prelogits = self.modules.encoder.forward_batched(
+            mov_feats, pm_mask, phase_mask)
         light_embeds_ctx = self.modules.gat(light_embeds, adjacency)
         return light_embeds_ctx, phase_prelogits, phase_mask
 
