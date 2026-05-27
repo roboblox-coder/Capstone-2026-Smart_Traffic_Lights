@@ -131,8 +131,14 @@ class RolloutBuffer:
 class MAPPOTrainer:
 
     def __init__(self, env: MultiTlsEnv, cfg: MAPPOConfig,
-                 device: Optional[str] = None):
+                 device: Optional[str] = None,
+                 eval_env: Optional[MultiTlsEnv] = None):
         self.env = env
+        # eval_env defaults to env (V1-style training: no DR, no need
+        # for a separate eval env). When training with the DR wrapper
+        # the trainer's CLI passes a clean (non-DR) env here so eval
+        # metrics aren't muddied by the per-episode noise.
+        self.eval_env = eval_env if eval_env is not None else env
         self.cfg = cfg
         self.device = torch.device(device or
                                    ("cuda" if torch.cuda.is_available()
@@ -474,18 +480,23 @@ class MAPPOTrainer:
 
     def evaluate(self, seeds: tuple) -> dict:
         """Deterministic rollouts on fixed seeds. Returns aggregate
-        metrics suitable for the plateau-detection auto-stop."""
+        metrics suitable for the plateau-detection auto-stop.
+
+        Always runs against ``self.eval_env`` -- which is a separate
+        non-randomized env when DR is on, so eval signal isn't
+        contaminated by the per-episode demand/noise sampling.
+        """
         wpvs, arrs = [], []
         was_training = self.encoder.training
         self.encoder.eval(); self.gat.eval()
         self.actor.eval(); self.critic.eval()
         with torch.no_grad():
             for s in seeds:
-                self.env.seed = int(s)
-                self.env.reset()
+                self.eval_env.seed = int(s)
+                self.eval_env.reset()
                 done = False
                 while not done:
-                    batch = self.env.get_state_frap_batch()
+                    batch = self.eval_env.get_state_frap_batch()
                     le_ctx, ppl, _le_raw = self._encode_step(batch)
                     pm = torch.from_numpy(batch["phase_mask"]).to(
                         self.device)
@@ -496,8 +507,8 @@ class MAPPOTrainer:
                     actions_dict = {tid: int(a_np[i])
                                     for i, tid in enumerate(
                                         batch["tls_ids"])}
-                    _, _, done, _ = self.env.step(actions_dict)
-                m = self.env.metrics_summary()
+                    _, _, done, _ = self.eval_env.step(actions_dict)
+                m = self.eval_env.metrics_summary()
                 wpvs.append(m["wait_per_vehicle"])
                 arrs.append(m["arrived"])
         if was_training:
@@ -511,6 +522,9 @@ class MAPPOTrainer:
 
     def train(self) -> None:
         n_updates = 0
+        if self.eval_env is not self.env:
+            print("[train] DR active: training env is randomized; eval "
+                  "env is clean (separate SUMO process).")
         while self._episodes_done < self.cfg.total_episodes:
             traj = self._collect_rollout()
             logs = self._ppo_update(traj)
@@ -549,6 +563,8 @@ class MAPPOTrainer:
 
         self.save("last")
         self.env.stop()
+        if self.eval_env is not self.env:
+            self.eval_env.stop()
 
 
 # ---------- CLI ----------
@@ -567,26 +583,40 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--decision-interval", type=int, default=5)
     p.add_argument("--out-dir", default="ai/runs/v2_mappo")
     p.add_argument("--device", default=None)
+    p.add_argument("--randomize", action="store_true",
+                   help="Wrap training env in DRWrapper (per-episode "
+                        "demand + detector noise per PLAN_V2.md §1.3). "
+                        "Eval env stays clean.")
+    p.add_argument("--dr-seed", type=int, default=4242)
     return p.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     adjacency = load_adjacency(args.adjacency)
-    env = MultiTlsEnv(
+    env_kwargs = dict(
         sumo_cfg_file=args.sumo_cfg, adjacency=adjacency,
         time_limit=args.time_limit, min_green=args.min_green,
         yellow_time=args.yellow_time,
         decision_interval=args.decision_interval,
         reward_mode="pressure_only", control_tls=True, seed=args.seed,
     )
+    if args.randomize:
+        from v2.domain_randomization import DRWrapper
+        env = DRWrapper(**env_kwargs, dr_seed=args.dr_seed)
+        eval_env = MultiTlsEnv(**env_kwargs)
+    else:
+        env = MultiTlsEnv(**env_kwargs)
+        eval_env = None  # trainer falls back to training env
+
     cfg = MAPPOConfig(
         total_episodes=args.episodes,
         rollout_episodes=args.rollout_episodes,
         seed=args.seed,
         save_dir=args.out_dir,
     )
-    trainer = MAPPOTrainer(env, cfg, device=args.device)
+    trainer = MAPPOTrainer(env, cfg, device=args.device,
+                           eval_env=eval_env)
     trainer.train()
     return 0
 
