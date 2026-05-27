@@ -182,6 +182,10 @@ class MAPPOTrainer:
         # Eval / checkpoint state.
         self.best_eval_wpv = float("inf")
         self.episodes_since_improvement = 0
+        # Episode count at which best_eval_wpv was last beaten. Used
+        # by the plateau detector so resumed runs continue counting
+        # from where they left off.
+        self._last_improvement_ep = 0
 
         self.save_dir = Path(cfg.save_dir)
         (self.save_dir / "checkpoints").mkdir(parents=True, exist_ok=True)
@@ -478,11 +482,71 @@ class MAPPOTrainer:
             "gat": self.gat.state_dict(),
             "actor": self.actor.state_dict(),
             "critic": self.critic.state_dict(),
+            # Optimizer state so --resume picks up exactly where it
+            # left off (LR schedule, Adam moments). Without these,
+            # resuming would restart momentum from zero and hurt
+            # mid-training stability.
+            "actor_opt": self.actor_opt.state_dict(),
+            "critic_opt": self.critic_opt.state_dict(),
             "episodes_done": self._episodes_done,
             "gradient_steps": self._gradient_steps,
             "best_eval_wpv": self.best_eval_wpv,
+            "episodes_since_improvement":
+                self.episodes_since_improvement,
+            "last_improvement_ep": self._last_improvement_ep,
             "meta": meta or {},
         }, path)
+
+    def load(self, path: str) -> dict:
+        """Restore everything save() persisted; returns the meta dict.
+
+        Validates that the on-disk shape contract matches the trainer
+        the user is resuming into (n_tls, p_max, max_movements). A
+        mismatch means the env or sumocfg was changed underneath the
+        run -- refuse rather than silently misrouting.
+        """
+        ckpt = torch.load(path, map_location=self.device)
+        if ckpt.get("agent_type") != "frap_gat_mappo":
+            raise ValueError(
+                f"checkpoint at {path} is "
+                f"agent_type={ckpt.get('agent_type')!r}; expected "
+                f"'frap_gat_mappo'.")
+        for field, want in (("n_tls", self.n_tls),
+                            ("p_max", self.p_max),
+                            ("max_movements", self.max_movements)):
+            got = ckpt.get(field)
+            if got != want:
+                raise ValueError(
+                    f"checkpoint {field}={got} vs current env "
+                    f"{field}={want}; refusing to resume.")
+        if list(ckpt.get("tls_ids", [])) != list(self.env.tls_ids):
+            raise ValueError(
+                "tls_ids ordering mismatch between checkpoint and "
+                "current env; refusing to resume.")
+        self.encoder.load_state_dict(ckpt["encoder"])
+        self.gat.load_state_dict(ckpt["gat"])
+        self.actor.load_state_dict(ckpt["actor"])
+        self.critic.load_state_dict(ckpt["critic"])
+        if "actor_opt" in ckpt:
+            self.actor_opt.load_state_dict(ckpt["actor_opt"])
+        if "critic_opt" in ckpt:
+            self.critic_opt.load_state_dict(ckpt["critic_opt"])
+        self._episodes_done = int(ckpt.get("episodes_done", 0))
+        self._gradient_steps = int(ckpt.get("gradient_steps", 0))
+        self.best_eval_wpv = float(
+            ckpt.get("best_eval_wpv", float("inf")))
+        self.episodes_since_improvement = int(
+            ckpt.get("episodes_since_improvement", 0))
+        self._last_improvement_ep = int(
+            ckpt.get("last_improvement_ep", self._episodes_done))
+        # Snap the GAT schedule + LR onto the current gradient step
+        # count so resuming mid-ramp doesn't reset the GAT to frozen.
+        self._update_gat_schedule()
+        print(f"[resume] loaded {path} | "
+              f"episodes_done={self._episodes_done} | "
+              f"gradient_steps={self._gradient_steps} | "
+              f"best_eval_wpv={self.best_eval_wpv:.3f}")
+        return ckpt.get("meta", {})
 
     # ---------- eval ----------
 
@@ -533,45 +597,111 @@ class MAPPOTrainer:
 
     # ---------- train loop ----------
 
+    def _log_jsonl(self, payload: dict) -> None:
+        """Append one JSON object to ``<save_dir>/train_log.jsonl`` and
+        flush. Durable per-update metrics for offline analysis -- stdout
+        is for humans, this is for plots."""
+        path = self.save_dir / "train_log.jsonl"
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload) + "\n")
+
+    def _format_elapsed(self, seconds: float) -> str:
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        if seconds < 3600:
+            return f"{int(seconds // 60)}m{int(seconds % 60):02d}s"
+        h = int(seconds // 3600)
+        m = int((seconds % 3600) // 60)
+        return f"{h}h{m:02d}m"
+
     def train(self) -> None:
+        import time as _time
         n_updates = 0
         if self.eval_env is not self.env:
             print("[train] DR active: training env is randomized; eval "
                   "env is clean (separate SUMO process).")
+        # Anchor episode counter at whatever resume left us at; ETA
+        # math uses ep delta from this start so partial resumes don't
+        # confuse the projection.
+        t_start = _time.perf_counter()
+        ep_at_start = self._episodes_done
         while self._episodes_done < self.cfg.total_episodes:
+            t_update_start = _time.perf_counter()
             traj = self._collect_rollout()
             logs = self._ppo_update(traj)
             n_updates += 1
 
+            update_seconds = _time.perf_counter() - t_update_start
+            elapsed = _time.perf_counter() - t_start
+            # ETA on remaining episodes vs episodes-per-second so far.
+            ep_done_this_run = self._episodes_done - ep_at_start
+            ep_per_sec = ep_done_this_run / max(elapsed, 1e-6)
+            ep_remaining = self.cfg.total_episodes - self._episodes_done
+            eta_seconds = (ep_remaining / ep_per_sec
+                           if ep_per_sec > 0 else float("inf"))
+
             print(f"[update {n_updates:4d}] "
                   f"ep={self._episodes_done:>4d}/"
                   f"{self.cfg.total_episodes}  "
+                  f"upd={self._format_elapsed(update_seconds)}  "
+                  f"eta={self._format_elapsed(eta_seconds)}  "
                   f"reward/ep={traj['episode_reward_mean']:>10.2f}  "
-                  f"pol_loss={logs.get('pol_loss', float('nan')):+.4f}  "
-                  f"val_loss={logs.get('val_loss', float('nan')):+.4f}  "
+                  f"pol={logs.get('pol_loss', float('nan')):+.4f}  "
+                  f"val={logs.get('val_loss', float('nan')):+.4f}  "
                   f"ent={logs.get('entropy', float('nan')):+.3f}  "
                   f"kl={logs.get('approx_kl', float('nan')):+.4f}  "
                   f"gat_lr={self.actor_opt.param_groups[1]['lr']:.2e}")
+
+            self._log_jsonl({
+                "kind": "update",
+                "update": n_updates,
+                "episodes_done": self._episodes_done,
+                "gradient_steps": self._gradient_steps,
+                "update_seconds": update_seconds,
+                "elapsed_seconds": elapsed,
+                "eta_seconds": eta_seconds,
+                "reward_per_episode": traj["episode_reward_mean"],
+                "gat_lr": self.actor_opt.param_groups[1]["lr"],
+                "entropy_coef": self._current_entropy_coef(),
+                **logs,
+            })
 
             if n_updates % self.cfg.eval_every_updates == 0:
                 ev = self.evaluate(self.cfg.eval_seeds)
                 print(f"  eval: wait/veh={ev['wait_per_vehicle_mean']:.2f}  "
                       f"throughput={ev['throughput_mean']:.1f}  "
                       f"(n={ev['n_seeds']})")
+                self._log_jsonl({
+                    "kind": "eval",
+                    "update": n_updates,
+                    "episodes_done": self._episodes_done,
+                    "wait_per_vehicle_mean": ev["wait_per_vehicle_mean"],
+                    "throughput_mean": ev["throughput_mean"],
+                    "n_seeds": ev["n_seeds"],
+                })
                 if ev["wait_per_vehicle_mean"] < self.best_eval_wpv:
                     self.best_eval_wpv = ev["wait_per_vehicle_mean"]
+                    self._last_improvement_ep = self._episodes_done
                     self.episodes_since_improvement = 0
                     self.save("best", meta={"eval": ev})
                     print(f"  new best: wait/veh={self.best_eval_wpv:.2f}")
                 else:
-                    self.episodes_since_improvement += (
-                        self.cfg.eval_every_updates
-                        * self.cfg.rollout_episodes)
+                    # Count ACTUAL elapsed episodes since the last
+                    # improvement (previous revision counted by eval
+                    # cadence * rollout, which over-counted on the
+                    # first miss after improvement).
+                    self.episodes_since_improvement = (
+                        self._episodes_done - self._last_improvement_ep)
                 if (self.episodes_since_improvement
                         >= self.cfg.plateau_episodes):
                     print(f"  plateau: no eval improvement for "
                           f"{self.episodes_since_improvement} episodes; "
                           f"stopping.")
+                    self._log_jsonl({
+                        "kind": "plateau_stop",
+                        "update": n_updates,
+                        "episodes_done": self._episodes_done,
+                    })
                     break
 
         self.save("last")
@@ -601,6 +731,20 @@ def parse_args() -> argparse.Namespace:
                         "demand + detector noise per PLAN_V2.md §1.3). "
                         "Eval env stays clean.")
     p.add_argument("--dr-seed", type=int, default=4242)
+    p.add_argument("--resume", default=None,
+                   help="Resume from a checkpoint .pth. Restores nets, "
+                        "optimizers, episode + gradient counters, and "
+                        "plateau tracker. Refuses on shape mismatch.")
+    p.add_argument("--eval-every", type=int, default=5,
+                   help="Run eval every N PPO updates (default 5).")
+    p.add_argument("--eval-seeds", type=int, nargs="+",
+                   default=[1042, 1043, 1044],
+                   help="Seeds for deterministic eval rollouts. "
+                        "Distinct from training seeds so eval isn't "
+                        "evaluated against trained-on demand draws.")
+    p.add_argument("--plateau-episodes", type=int, default=100,
+                   help="Stop if no eval improvement for N episodes "
+                        "(0 disables).")
     return p.parse_args()
 
 
@@ -627,9 +771,14 @@ def main() -> int:
         rollout_episodes=args.rollout_episodes,
         seed=args.seed,
         save_dir=args.out_dir,
+        eval_every_updates=args.eval_every,
+        eval_seeds=tuple(args.eval_seeds),
+        plateau_episodes=args.plateau_episodes,
     )
     trainer = MAPPOTrainer(env, cfg, device=args.device,
                            eval_env=eval_env)
+    if args.resume:
+        trainer.load(args.resume)
     trainer.train()
     return 0
 
