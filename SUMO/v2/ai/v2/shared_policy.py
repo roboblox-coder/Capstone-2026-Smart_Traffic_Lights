@@ -75,7 +75,7 @@ class SharedActor(nn.Module):
     def forward(self, light_embeddings: torch.Tensor,
                 phase_prelogits: torch.Tensor,
                 phase_masks: torch.Tensor) -> torch.Tensor:
-        """Batched over the corridor.
+        """Per-corridor (rollout / eval) shape.
 
         Args:
             light_embeddings: (N_tls, embed_dim)
@@ -84,13 +84,37 @@ class SharedActor(nn.Module):
         Returns:
             (N_tls, P_max) logits with invalid slots masked.
         """
-        n_tls = light_embeddings.size(0)
-        out = torch.empty_like(phase_prelogits)
-        for i in range(n_tls):
-            out[i] = self.logits(light_embeddings[i],
-                                 phase_prelogits[i],
-                                 phase_masks[i])
-        return out
+        # Delegate to the batched path with a unit leading batch dim;
+        # one codepath, less drift between rollout-shape and PPO-shape.
+        out = self.forward_batched(
+            light_embeddings.unsqueeze(0),
+            phase_prelogits.unsqueeze(0),
+            phase_masks.unsqueeze(0),
+        )
+        return out.squeeze(0)
+
+    def forward_batched(self, light_embeddings: torch.Tensor,
+                        phase_prelogits: torch.Tensor,
+                        phase_masks: torch.Tensor) -> torch.Tensor:
+        """Vectorized over arbitrary leading batch dim (PPO inner loop).
+
+        Args:
+            light_embeddings: (B, N_tls, embed_dim)
+            phase_prelogits: (B, N_tls, P_max)
+            phase_masks: (B, N_tls, P_max) bool
+
+        Returns:
+            (B, N_tls, P_max) logits with invalid slots clamped to -1e9.
+        """
+        b, n_tls, d = light_embeddings.shape
+        p_max = phase_prelogits.size(-1)
+        # Broadcast light embedding to every phase slot, concat the
+        # FRAP per-phase prelogit as a 1-dim feature: (B, N_tls, P_max,
+        # D+1). One head() call covers the whole minibatch * corridor.
+        emb = light_embeddings.unsqueeze(2).expand(b, n_tls, p_max, d)
+        feats = torch.cat([emb, phase_prelogits.unsqueeze(-1)], dim=-1)
+        scores = self.head(feats).squeeze(-1)  # (B, N_tls, P_max)
+        return scores.masked_fill(~phase_masks, -1e9)
 
     @staticmethod
     def sample_actions(logits: torch.Tensor,

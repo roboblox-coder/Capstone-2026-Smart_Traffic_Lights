@@ -293,12 +293,110 @@ def test_inference_adapter_roundtrip() -> None:
     print("OK")
 
 
+def test_frap_batched_matches_per_tls() -> None:
+    """The batched FRAP forward must agree with the per-light forward
+    on every (b, t) entry within fp32 tolerance. This is the
+    correctness contract for the trainer's PPO inner-loop refactor."""
+    print("  test_frap_batched_matches_per_tls ... ", end="")
+    torch.manual_seed(0)
+    enc = FRAPEncoder(mov_feat_dim=MOV_FEAT_DIM, embed_dim=EMBED_DIM)
+    enc.eval()
+    batch = synth_batch(seed=7)
+
+    # Per-light path: call the original forward on each TLS.
+    per_le, per_ppl = [], []
+    for i in range(N_TLS):
+        n_grn = int(batch["phase_mask"][i].sum())
+        feats = torch.from_numpy(batch["movement_features"][i])
+        mask = torch.from_numpy(batch["phase_movement_mask"][i, :n_grn])
+        with torch.no_grad():
+            le, ppl = enc(feats, mask)
+        padded = torch.zeros(P_MAX, dtype=ppl.dtype)
+        padded[:ppl.size(0)] = ppl
+        per_le.append(le)
+        per_ppl.append(padded)
+    per_le = torch.stack(per_le, dim=0)        # (N_TLS, D)
+    per_ppl = torch.stack(per_ppl, dim=0)      # (N_TLS, P_MAX)
+
+    # Batched path.
+    mov_feats = torch.from_numpy(batch["movement_features"])
+    pm_mask = torch.from_numpy(batch["phase_movement_mask"])
+    phase_mask = torch.from_numpy(batch["phase_mask"])
+    with torch.no_grad():
+        bat_le, bat_ppl = enc.forward_batched(
+            mov_feats, pm_mask, phase_mask)
+
+    le_err = (per_le - bat_le).abs().max().item()
+    ppl_err = (per_ppl - bat_ppl).abs().max().item()
+    assert le_err < 1e-5, f"light_embed max diff {le_err} too high"
+    assert ppl_err < 1e-5, f"phase_prelogit max diff {ppl_err} too high"
+    print(f"OK (le diff={le_err:.2e}, ppl diff={ppl_err:.2e})")
+
+
+def test_batched_minibatch_shapes() -> None:
+    """End-to-end batched pass mirroring the trainer's PPO inner loop:
+    (B, N_tls, ...) -> FRAP -> GAT -> actor / critic, with batched
+    actor.forward_batched."""
+    print("  test_batched_minibatch_shapes ... ", end="")
+    torch.manual_seed(0)
+    enc = FRAPEncoder(mov_feat_dim=MOV_FEAT_DIM, embed_dim=EMBED_DIM)
+    gat = CoLightGAT(embed_dim=EMBED_DIM)
+    actor = SharedActor(embed_dim=EMBED_DIM)
+    critic = CentralCritic(embed_dim=EMBED_DIM, n_tls=N_TLS)
+
+    B = 5
+    batches = [synth_batch(seed=10 + i) for i in range(B)]
+    mov = torch.from_numpy(np.stack(
+        [b["movement_features"] for b in batches]))
+    pm = torch.from_numpy(np.stack(
+        [b["phase_movement_mask"] for b in batches]))
+    phase = torch.from_numpy(np.stack(
+        [b["phase_mask"] for b in batches]))
+    adj = torch.from_numpy(synth_adjacency())
+
+    # Flatten (B, N_tls) for FRAP.
+    mov_flat = mov.reshape(B * N_TLS, *mov.shape[2:])
+    pm_flat = pm.reshape(B * N_TLS, *pm.shape[2:])
+    phase_flat = phase.reshape(B * N_TLS, -1)
+    le_flat, ppl_flat = enc.forward_batched(mov_flat, pm_flat, phase_flat)
+    le_raw = le_flat.reshape(B, N_TLS, -1)
+    ppl = ppl_flat.reshape(B, N_TLS, -1)
+    assert le_raw.shape == (B, N_TLS, EMBED_DIM)
+    assert ppl.shape == (B, N_TLS, P_MAX)
+
+    le_ctx = gat.forward_batched(le_raw, adj)
+    assert le_ctx.shape == (B, N_TLS, EMBED_DIM)
+
+    logits = actor.forward_batched(le_ctx, ppl, phase)
+    assert logits.shape == (B, N_TLS, P_MAX)
+    # Masked positions still zero-mass under softmax.
+    probs = torch.softmax(logits, dim=-1)
+    masked_mass = (probs * (~phase).float()).sum().item()
+    assert masked_mass < 1e-3, f"masked mass {masked_mass}"
+
+    values = critic(le_raw)
+    assert values.shape == (B,), f"critic batched shape {values.shape}"
+
+    # evaluate_actions over the batch.
+    actions = torch.zeros((B, N_TLS), dtype=torch.long)
+    for b in range(B):
+        for t in range(N_TLS):
+            n_grn = int(phase[b, t].sum())
+            actions[b, t] = int(np.random.randint(0, n_grn))
+    logprobs, entropy = SharedActor.evaluate_actions(logits, actions)
+    assert logprobs.shape == (B, N_TLS)
+    assert entropy.shape == (B, N_TLS)
+    print("OK")
+
+
 def main() -> int:
     print("V2 smoke tests:")
     test_frap_only()
+    test_frap_batched_matches_per_tls()
     test_full_stack_forward()
     test_full_stack_backward()
     test_gat_attention_modes()
+    test_batched_minibatch_shapes()
     test_inference_adapter_roundtrip()
     print("\nAll smoke tests passed.")
     return 0

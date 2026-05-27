@@ -66,7 +66,9 @@ class CoLightGAT(nn.Module):
 
     def forward(self, light_embeddings: torch.Tensor,
                 adjacency: torch.Tensor) -> torch.Tensor:
-        """Args:
+        """Per-corridor (rollout / eval) shape.
+
+        Args:
             light_embeddings: (N_tls, embed_dim) per-light embeddings
                 from FRAPEncoder.
             adjacency: (N_tls, N_tls) bool tensor. ``adj[i, j]`` is True
@@ -76,35 +78,50 @@ class CoLightGAT(nn.Module):
         Returns:
             (N_tls, embed_dim) context-enriched embeddings.
         """
-        n_tls = light_embeddings.size(0)
+        out = self.forward_batched(light_embeddings.unsqueeze(0),
+                                   adjacency)
+        return out.squeeze(0)
+
+    def forward_batched(self, light_embeddings: torch.Tensor,
+                        adjacency: torch.Tensor) -> torch.Tensor:
+        """Vectorized over a leading batch dim (PPO inner loop).
+
+        Args:
+            light_embeddings: (B, N_tls, embed_dim).
+            adjacency: (N_tls, N_tls) bool tensor; shared across batch.
+        Returns:
+            (B, N_tls, embed_dim) context-enriched embeddings.
+        """
+        b, n_tls, _ = light_embeddings.shape
         h = self.num_heads
         d = self.head_dim
 
-        q = self.q_proj(light_embeddings).view(n_tls, h, d)
-        k = self.k_proj(light_embeddings).view(n_tls, h, d)
-        v = self.v_proj(light_embeddings).view(n_tls, h, d)
+        q = self.q_proj(light_embeddings).view(b, n_tls, h, d)
+        k = self.k_proj(light_embeddings).view(b, n_tls, h, d)
+        v = self.v_proj(light_embeddings).view(b, n_tls, h, d)
 
+        # Broadcast adjacency over batch + heads.
         if self._frozen_uniform:
-            # Uniform weight across neighbors (incl. self via the
-            # adjacency diagonal). Equivalent to a Boolean
-            # "max-pressure-with-mask" warmup.
-            mask = adjacency.to(v.dtype).unsqueeze(1).expand(n_tls, h,
-                                                             n_tls)
-            neighbor_count = mask.sum(dim=-1, keepdim=True).clamp_min(1.0)
-            attn = mask / neighbor_count
+            mask_f = adjacency.to(v.dtype).unsqueeze(0).unsqueeze(2)
+            mask_f = mask_f.expand(b, n_tls, h, n_tls)
+            neighbor_count = mask_f.sum(dim=-1, keepdim=True
+                                        ).clamp_min(1.0)
+            attn = mask_f / neighbor_count
         else:
-            # scores[i, h, j] = (q[i, h] . k[j, h]) / sqrt(d)
-            scores = torch.einsum('ihd,jhd->ihj', q, k) / (d ** 0.5)
-            mask = adjacency.unsqueeze(1).expand(n_tls, h, n_tls)
+            # scores[b, i, h, j] = q[b, i, h, :] . k[b, j, h, :] / sqrt(d)
+            scores = torch.einsum('bihd,bjhd->bihj', q, k) / (d ** 0.5)
+            mask = adjacency.unsqueeze(0).unsqueeze(2).expand(b, n_tls,
+                                                              h, n_tls)
             scores = scores.masked_fill(~mask, float('-inf'))
             attn = torch.softmax(scores, dim=-1)
 
-        # Stash for entropy diagnostics (cheap; no grad path).
+        # Stash detached attention for the entropy diagnostic. Stored
+        # shape is always (B, N_tls, H, N_tls); attention_entropy()
+        # averages over the batch and lights.
         self.last_attention = attn.detach()
 
-        # context[i, h] = sum_j attn[i, h, j] * v[j, h]
-        ctx = torch.einsum('ihj,jhd->ihd', attn, v)
-        ctx = ctx.reshape(n_tls, h * d)
+        ctx = torch.einsum('bihj,bjhd->bihd', attn, v)
+        ctx = ctx.reshape(b, n_tls, h * d)
         out = self.out_proj(ctx)
 
         if self.residual:
@@ -121,6 +138,8 @@ class CoLightGAT(nn.Module):
         if self.last_attention is None:
             raise RuntimeError("Call forward() before attention_entropy().")
         a = self.last_attention.clamp_min(1e-12)
-        # Per (light, head) entropy over neighbors
-        per_lh = -(a * a.log()).sum(dim=-1)  # (N_tls, num_heads)
-        return per_lh.mean(dim=0)  # (num_heads,)
+        # last_attention is always shaped (B, N_tls, num_heads, N_tls);
+        # per-(b, light, head) entropy over neighbors -> mean over batch
+        # and lights, returning a per-head vector.
+        per_blh = -(a * a.log()).sum(dim=-1)   # (B, N_tls, num_heads)
+        return per_blh.mean(dim=(0, 1))         # (num_heads,)
