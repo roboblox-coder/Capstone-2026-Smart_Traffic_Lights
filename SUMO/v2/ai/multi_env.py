@@ -122,6 +122,9 @@ class MultiTlsEnv:
             "--start",
             "--quit-on-end",
         ]
+        # Subclasses (DRWrapper) can append --scale / other CLI args per
+        # episode via this attribute; default of [] keeps V1 byte-identical.
+        cmd.extend(list(getattr(self, "extra_cli_args", []) or []))
         traci.start(cmd, label=self._label)
         self._step_time = 0
         self._arrived_total = 0
