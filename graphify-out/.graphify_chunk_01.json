@@ -1,0 +1,733 @@
+{
+  "nodes": [
+    {
+      "id": "pygame_to_sumo",
+      "label": "PyGame to SUMO Translator",
+      "file_type": "code",
+      "source_file": "PyGame_to_SUMO.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "real_life_simulation",
+      "label": "Real Life Simulation Route Generator",
+      "file_type": "code",
+      "source_file": "SUMO/v2/real_life_simulation.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_py",
+      "label": "SUMO Simulation Launcher",
+      "file_type": "code",
+      "source_file": "SUMO/v2/run.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_auto_sim",
+      "label": "Headless Data Extraction Runner",
+      "file_type": "code",
+      "source_file": "SUMO/v2/run_auto_sim.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_traci_sim",
+      "label": "TraCI Simulation Runner",
+      "file_type": "code",
+      "source_file": "SUMO/v2/run_traci_sim.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_websocket_ai",
+      "label": "WebSocket Coordinated DQN Inference Runner",
+      "file_type": "code",
+      "source_file": "SUMO/v2/run_websocket_ai.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_websocket_sim",
+      "label": "WebSocket Simulation Broadcast Runner",
+      "file_type": "code",
+      "source_file": "SUMO/v2/run_websocket_sim.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "websocket_server",
+      "label": "Simulation WebSocket Server",
+      "file_type": "code",
+      "source_file": "SUMO/v2/websocket_server.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "adjacency_json",
+      "label": "Corridor Adjacency Graph",
+      "file_type": "document",
+      "source_file": "SUMO/v2/ai/adjacency.json",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "dqn_agent",
+      "label": "Double-DQN Agent",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/dqn_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "eval",
+      "label": "Single-Intersection Policy Evaluation",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/eval.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "eval_network",
+      "label": "Corridor Network Policy Evaluation",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/eval_network.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "make_plots",
+      "label": "Training Curve Plotter",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/make_plots.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "multi_env",
+      "label": "Multi-Intersection Traffic Environment",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/multi_env.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "network_topology",
+      "label": "Network Adjacency Map Builder",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/network_topology.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "regression_test",
+      "label": "DQN Pipeline Regression Gater",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/regression_test.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sanity_check",
+      "label": "Headless E2E Smoke Test",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/sanity_check.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sumo_env",
+      "label": "SUMO Traffic Light Environment",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/sumo_env.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "traffic_base",
+      "label": "MLP Base Traffic Network Architecture",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/traffic_base.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "train_dqn_sumo",
+      "label": "Single-Intersection DQN Trainer",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/train_dqn_sumo.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "train_multi_dqn",
+      "label": "Coordinated Multi-Agent DQN Trainer",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/train_multi_dqn.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "visualize_sumo_ai",
+      "label": "PyGame Traffic Control Visualizer",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/visualize_sumo_ai.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_coordination_shaping",
+      "label": "Curriculum Coordination Shaping Rationale",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/train_multi_dqn.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Curriculum coordination shaping via shared network-throughput bonus (--net-weight) and downstream-saturation penalty (--coord-penalty) was tested and disabled by default (weight 0.0) as it monotonically degraded real performance vs pure-local waiting-time/pressure policy. The global bonus caused reward inflation without providing learnable credit."
+    },
+    {
+      "id": "concept_anti_thrashing",
+      "label": "Anti-Thrashing Action Semantics",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/sumo_env.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Enforces minimum green time (min_green) and inserts automatic yellow transitions when switching phases, preventing the RL agent from flickering traffic light signals too rapidly."
+    },
+    {
+      "id": "concept_max_pressure_reward",
+      "label": "Max-Pressure Reward Rationale",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/sumo_env.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Based on PressLight/MPLight. Minimizing pressure (queue on incoming minus queue on outgoing) stabilizes queue lengths and prevents dumping vehicles into saturated downstream links."
+    },
+    {
+      "id": "concept_anti_starve_reward",
+      "label": "Anti-Starve Reward Rationale",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/sumo_env.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Adds a penalty for the worst-starved lane to avoid the agent camping indefinitely on the busiest phase slot where flowing lanes dominate wait times."
+    },
+    {
+      "id": "concept_actuated_baseline_corrections",
+      "label": "Actuated Baseline Heuristic Corrections",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/eval.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Corrects legacy mapping of signal indices to unique lanes and uses cumulative waiting time instead of last-step halting count. Halting count drops to near-zero as soon as traffic moves (causing oscillations), whereas waiting time is monotone and serves as a reliable starvation signal."
+    }
+  ],
+  "edges": [
+    {
+      "source": "run_py",
+      "target": "real_life_simulation",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_py",
+      "target": "run_auto_sim",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_py",
+      "target": "run_traci_sim",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_py",
+      "target": "run_websocket_sim",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_websocket_ai",
+      "target": "dqn_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run_websocket_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_websocket_ai",
+      "target": "websocket_server",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run_websocket_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_websocket_ai",
+      "target": "adjacency_json",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run_websocket_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_websocket_sim",
+      "target": "websocket_server",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/run_websocket_sim.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "dqn_agent",
+      "target": "traffic_base",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/dqn_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "eval",
+      "target": "sumo_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/eval.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "eval",
+      "target": "dqn_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/eval.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "eval",
+      "target": "concept_actuated_baseline_corrections",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/eval.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "eval_network",
+      "target": "multi_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/eval_network.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "eval_network",
+      "target": "dqn_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/eval_network.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "eval_network",
+      "target": "eval",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/eval_network.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "multi_env",
+      "target": "sumo_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/multi_env.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "multi_env",
+      "target": "adjacency_json",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/multi_env.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "network_topology",
+      "target": "adjacency_json",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/network_topology.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "regression_test",
+      "target": "multi_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/regression_test.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "regression_test",
+      "target": "dqn_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/regression_test.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "regression_test",
+      "target": "eval_network",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/regression_test.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sanity_check",
+      "target": "sumo_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sanity_check.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sanity_check",
+      "target": "dqn_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sanity_check.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sumo_env",
+      "target": "concept_anti_thrashing",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_env.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sumo_env",
+      "target": "concept_max_pressure_reward",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_env.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sumo_env",
+      "target": "concept_anti_starve_reward",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_env.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "train_dqn_sumo",
+      "target": "sumo_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/train_dqn_sumo.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "train_dqn_sumo",
+      "target": "dqn_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/train_dqn_sumo.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "train_multi_dqn",
+      "target": "multi_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/train_multi_dqn.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "train_multi_dqn",
+      "target": "dqn_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/train_multi_dqn.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "train_multi_dqn",
+      "target": "concept_coordination_shaping",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/train_multi_dqn.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "visualize_sumo_ai",
+      "target": "traffic_base",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/visualize_sumo_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "visualize_sumo_ai",
+      "target": "sumo_env",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/visualize_sumo_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "train_dqn_sumo",
+      "target": "train_multi_dqn",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "SUMO/v2/ai/train_multi_dqn.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "eval",
+      "target": "eval_network",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "SUMO/v2/ai/eval_network.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_websocket_ai",
+      "target": "train_multi_dqn",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "SUMO/v2/run_websocket_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "pygame_to_sumo",
+      "target": "visualize_sumo_ai",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "SUMO/v2/ai/visualize_sumo_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_websocket_sim",
+      "target": "run_websocket_ai",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "SUMO/v2/run_websocket_ai.py",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "websocket_sim_flow",
+      "label": "WebSocket Simulation Communication Flow",
+      "nodes": [
+        "run_websocket_ai",
+        "run_websocket_sim",
+        "websocket_server"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "SUMO/v2/run_websocket_ai.py"
+    },
+    {
+      "id": "multi_intersection_rl",
+      "label": "Multi-Intersection RL Framework",
+      "nodes": [
+        "multi_env",
+        "train_multi_dqn",
+        "eval_network",
+        "regression_test"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "SUMO/v2/ai/train_multi_dqn.py"
+    },
+    {
+      "id": "single_intersection_rl",
+      "label": "Single-Intersection RL Pipeline",
+      "nodes": [
+        "sumo_env",
+        "train_dqn_sumo",
+        "eval",
+        "sanity_check"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "SUMO/v2/ai/train_dqn_sumo.py"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
