@@ -211,23 +211,35 @@ class MAPPOTrainer:
 
     def _update_gat_schedule(self) -> None:
         """Called once per gradient step. Implements the plan's frozen-
-        uniform (0..50k) -> linear ramp (50k..60k) -> full-rate (60k+)
-        schedule from PLAN_V2.md §1.2 R2."""
+        uniform (0..gat_freeze_until_step) -> linear ramp -> full-rate
+        schedule for the GAT, and a cosine decay actor_lr -> actor_lr_final
+        schedule for the encoder + actor (param_groups [0] and [2]).
+        Progress for the cosine decay is measured in episodes (matching
+        entropy_coef), not gradient steps.
+        """
         s = self._gradient_steps
         cfg = self.cfg
+
+        # --- GAT schedule (unchanged logic, new thresholds) ---
         if s < cfg.gat_freeze_until_step:
             self.gat.set_frozen_uniform(True)
-            new_lr = 0.0
+            gat_lr = 0.0
         elif s < cfg.gat_ramp_end_step:
             self.gat.set_frozen_uniform(False)
             f = ((s - cfg.gat_freeze_until_step) /
                  max(1, cfg.gat_ramp_end_step - cfg.gat_freeze_until_step))
-            new_lr = f * cfg.actor_lr
+            gat_lr = f * cfg.actor_lr
         else:
             self.gat.set_frozen_uniform(False)
-            new_lr = cfg.actor_lr
-        # param_groups[1] is the GAT block (see __init__).
-        self.actor_opt.param_groups[1]["lr"] = new_lr
+            gat_lr = cfg.actor_lr
+        self.actor_opt.param_groups[1]["lr"] = gat_lr
+
+        # --- Actor LR cosine decay (encoder + actor head) ---
+        progress = (self._episodes_done /
+                    max(1, self.cfg.total_episodes))
+        new_actor_lr = cosine_lr(progress, cfg.actor_lr, cfg.actor_lr_final)
+        self.actor_opt.param_groups[0]["lr"] = new_actor_lr  # encoder
+        self.actor_opt.param_groups[2]["lr"] = new_actor_lr  # actor head
 
     def _current_entropy_coef(self) -> float:
         """Linear decay across total episodes."""
@@ -674,6 +686,9 @@ class MAPPOTrainer:
                 "eta_seconds": eta_seconds,
                 "reward_per_episode": traj["episode_reward_mean"],
                 "gat_lr": self.actor_opt.param_groups[1]["lr"],
+                "actor_lr": self.actor_opt.param_groups[0]["lr"],
+                "gat_attention_entropy": float(
+                    self.gat.attention_entropy().mean().item()),
                 "entropy_coef": self._current_entropy_coef(),
                 **logs,
             })
