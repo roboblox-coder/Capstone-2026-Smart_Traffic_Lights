@@ -389,6 +389,29 @@ def test_batched_minibatch_shapes() -> None:
     print("OK")
 
 
+def test_cosine_lr_schedule() -> None:
+    """cosine_lr returns lr_start at progress=0, lr_final at progress=1,
+    and the midpoint average between them. Must clamp progress to [0, 1]."""
+    print("  test_cosine_lr_schedule ... ", end="")
+    from v2.mappo_trainer import cosine_lr
+
+    lr0 = 3e-4
+    lrN = 5e-5
+    # Endpoints
+    assert abs(cosine_lr(0.0, lr0, lrN) - lr0) < 1e-12, \
+        f"progress=0 should give lr_start, got {cosine_lr(0.0, lr0, lrN)}"
+    assert abs(cosine_lr(1.0, lr0, lrN) - lrN) < 1e-12, \
+        f"progress=1 should give lr_final, got {cosine_lr(1.0, lr0, lrN)}"
+    # Midpoint of cosine (1+cos(pi/2))/2 = 0.5, so result is the average
+    mid_expected = (lr0 + lrN) / 2
+    assert abs(cosine_lr(0.5, lr0, lrN) - mid_expected) < 1e-12, \
+        f"progress=0.5 should give mean, got {cosine_lr(0.5, lr0, lrN)}"
+    # Clamping below 0 / above 1
+    assert cosine_lr(-0.5, lr0, lrN) == cosine_lr(0.0, lr0, lrN)
+    assert cosine_lr(2.0, lr0, lrN) == cosine_lr(1.0, lr0, lrN)
+    print("OK")
+
+
 def main() -> int:
     print("V2 smoke tests:")
     test_frap_only()
@@ -398,6 +421,7 @@ def main() -> int:
     test_gat_attention_modes()
     test_batched_minibatch_shapes()
     test_inference_adapter_roundtrip()
+    test_cosine_lr_schedule()
     print("\nAll smoke tests passed.")
     return 0
 

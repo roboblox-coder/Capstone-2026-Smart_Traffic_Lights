@@ -49,6 +49,17 @@ from v2.colight_gat import CoLightGAT  # noqa: E402
 from v2.shared_policy import SharedActor  # noqa: E402
 from v2.centralized_critic import CentralCritic  # noqa: E402
 
+import math as _math  # noqa: E402 — used by cosine_lr below
+
+def cosine_lr(progress: float, lr_start: float, lr_final: float) -> float:
+    """Cosine decay from ``lr_start`` to ``lr_final`` over ``progress`` in
+    [0, 1]. Out-of-range progress is clamped. At progress=0 returns
+    lr_start; at progress=1 returns lr_final; at progress=0.5 returns the
+    arithmetic mean.
+    """
+    p = max(0.0, min(1.0, progress))
+    return lr_final + 0.5 * (lr_start - lr_final) * (1.0 + _math.cos(_math.pi * p))
+
 
 # ---------- hyperparameters ----------
 
