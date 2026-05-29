@@ -63,8 +63,9 @@ from websocket_server import SimulationWebSocketServer  # noqa: E402
 SUMO_CONFIG = "sim.sumocfg"
 ADJACENCY_PATH = "ai/adjacency.json"
 CKPT_DIR = "ai/runs/coordinated/checkpoints"
-V2_CKPT_PATH = "ai/runs/v2_mappo/checkpoints/best.pth"
-# Regime MUST match training (multi_env defaults).
+V2_CKPT_PATH = os.path.join(
+    os.path.dirname(__file__), "ai", "runs", "v2_mappo", "checkpoints", "best_ep200.pth"
+)# Regime MUST match training (multi_env defaults).
 MIN_GREEN = 5
 YELLOW_TIME = 5
 DECISION_INTERVAL = 5
@@ -127,6 +128,19 @@ def load_agent(path: str):
 
 
 def main() -> None:
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument("--sumo-cfg", default=None)
+    args = p.parse_args()
+
+    sumo_cfg = args.sumo_cfg
+    if sumo_cfg is None:
+        if os.path.exists(V2_CKPT_PATH) and os.path.exists("sim_calibrated.sumocfg"):
+            sumo_cfg = "sim_calibrated.sumocfg"
+            print(f"Auto-selected calibrated config: {sumo_cfg} for V2 inference.")
+        else:
+            sumo_cfg = SUMO_CONFIG
+
     print("Starting WebSocket server …")
     ws = SimulationWebSocketServer(host=WS_HOST, port=WS_PORT)
     ws.start()
@@ -138,7 +152,7 @@ def main() -> None:
     print("Starting SUMO …")
     sumo_binary = checkBinary("sumo-gui" if USE_GUI else "sumo")
     sumo_cmd = [
-        sumo_binary, "-c", SUMO_CONFIG,
+        sumo_binary, "-c", sumo_cfg,
         "--no-step-log", "true", "--time-to-teleport", "-1",
         "--start", "--quit-on-end",
     ]
@@ -444,6 +458,10 @@ def main() -> None:
                     break
             else:
                 no_vehicle_counter = 0
+
+            # Pace the simulation if clients are connected to prevent GIL starvation and socket flooding
+            if ws.client_count > 0:
+                time.sleep(0.05)
 
     except KeyboardInterrupt:
         print("\nInterrupted.")
