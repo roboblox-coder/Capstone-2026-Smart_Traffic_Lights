@@ -33,6 +33,54 @@ from dqn_agent import DQNAgent  # noqa: E402
 from eval import _fmt_mean_std  # noqa: E402  (reuse formatter)
 
 
+def compute_vs_native_verdict(policy_runs: list, native_runs: list) -> dict:
+    """Pure helper: compute mean throughput / wait, per-seed wins, and
+    pct improvement of ``policy_runs`` vs ``native_runs``. Caller passes
+    parallel lists of per-episode result dicts with keys ``arrived`` and
+    ``wait_per_vehicle``. Returns:
+
+        {
+          "throughput_pct": float,   # positive = policy beats native
+          "wait_pct":       float,   # positive = policy has lower wait
+          "throughput_wins": int,    # seeds where policy > native arrived
+          "wait_wins":      int,     # seeds where policy < native wait
+          "n_seeds":        int,
+          "policy_arr":     float,   # mean arrived
+          "policy_wpv":     float,   # mean wait per vehicle
+          "native_arr":     float,
+          "native_wpv":     float,
+        }
+    """
+    n = min(len(policy_runs), len(native_runs))
+    if n == 0:
+        return {"throughput_pct": 0.0, "wait_pct": 0.0,
+                "throughput_wins": 0, "wait_wins": 0, "n_seeds": 0,
+                "policy_arr": 0.0, "policy_wpv": 0.0,
+                "native_arr": 0.0, "native_wpv": 0.0}
+    p_arr = sum(r["arrived"] for r in policy_runs[:n]) / n
+    p_wpv = sum(r["wait_per_vehicle"] for r in policy_runs[:n]) / n
+    n_arr = sum(r["arrived"] for r in native_runs[:n]) / n
+    n_wpv = sum(r["wait_per_vehicle"] for r in native_runs[:n]) / n
+    arr_pct = (p_arr - n_arr) / max(1e-9, n_arr) * 100.0
+    wait_pct = (n_wpv - p_wpv) / max(1e-9, n_wpv) * 100.0
+    arr_wins = sum(1 for i in range(n)
+                   if policy_runs[i]["arrived"] > native_runs[i]["arrived"])
+    wait_wins = sum(1 for i in range(n)
+                    if policy_runs[i]["wait_per_vehicle"]
+                    < native_runs[i]["wait_per_vehicle"])
+    return {
+        "throughput_pct": arr_pct,
+        "wait_pct": wait_pct,
+        "throughput_wins": arr_wins,
+        "wait_wins": wait_wins,
+        "n_seeds": n,
+        "policy_arr": p_arr,
+        "policy_wpv": p_wpv,
+        "native_arr": n_arr,
+        "native_wpv": n_wpv,
+    }
+
+
 def run_controlled(env: MultiTlsEnv, choose_actions) -> dict:
     states = env.reset()
     done = False
@@ -282,6 +330,38 @@ def main() -> None:
             emit("Verdict: coordinated DQN does NOT beat native on network "
                  "throughput. Retrain (more episodes / reward_gamma) before "
                  "wiring into the demo.")
+
+    # V2-vs-native verdict (parallel to the V1 block above). Only emitted
+    # when the V2 spec ran in this eval (i.e. v2_choose was not None).
+    if "coordinated_v2_frap" in results and results["coordinated_v2_frap"]:
+        v2 = compute_vs_native_verdict(
+            results["coordinated_v2_frap"], results[base])
+        emit("\n=== coordinated_v2_frap vs all_native_actuated (network) ===")
+        emit(f"  throughput : {v2['policy_arr']:8.1f} vs "
+             f"{v2['native_arr']:8.1f}  "
+             f"({v2['throughput_pct']:+.1f}%, beats native on "
+             f"{v2['throughput_wins']}/{v2['n_seeds']} seeds)")
+        emit(f"  wait/veh   : {v2['policy_wpv']:8.2f} vs "
+             f"{v2['native_wpv']:8.2f}  "
+             f"({v2['wait_pct']:+.1f}%, beats native on "
+             f"{v2['wait_wins']}/{v2['n_seeds']} seeds)")
+        emit("")
+        # Honest gate from RUN_AI.md: +6pp throughput AND -12pp wait.
+        passes_throughput = v2["throughput_pct"] >= 6.0
+        passes_wait = v2["wait_pct"] >= 12.0
+        if passes_throughput and passes_wait:
+            emit("Verdict: V2 clears the honest gate vs native "
+                 f"(throughput +{v2['throughput_pct']:.1f}% >= +6%, "
+                 f"wait +{v2['wait_pct']:.1f}% lower >= +12%). "
+                 "Eligible for promotion to live demo.")
+        else:
+            reasons = []
+            if not passes_throughput:
+                reasons.append(f"throughput {v2['throughput_pct']:+.1f}% < +6%")
+            if not passes_wait:
+                reasons.append(f"wait {v2['wait_pct']:+.1f}% < +12% lower")
+            emit("Verdict: V2 does NOT clear the honest gate vs native "
+                 f"({'; '.join(reasons)}). Do not promote.")
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
