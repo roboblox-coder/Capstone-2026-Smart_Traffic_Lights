@@ -64,7 +64,7 @@ SUMO_CONFIG = "sim.sumocfg"
 ADJACENCY_PATH = "ai/adjacency.json"
 CKPT_DIR = "ai/runs/coordinated/checkpoints"
 V2_CKPT_PATH = os.path.join(
-    os.path.dirname(__file__), "ai", "runs", "v2_mappo", "checkpoints", "best_ep200.pth"
+    os.path.dirname(__file__), "ai", "runs", "v2_mappo", "checkpoints", "best.pth"
 )# Regime MUST match training (multi_env defaults).
 MIN_GREEN = 5
 YELLOW_TIME = 5

@@ -146,6 +146,10 @@ try:
 
         step += 1
 
+        # Pace the simulation if clients are connected to prevent GIL starvation and socket flooding
+        if ws_server.client_count > 0:
+            time.sleep(0.05)
+
         # Progress indicator
         if step % 100 == 0:
             active = traci.vehicle.getIDCount()

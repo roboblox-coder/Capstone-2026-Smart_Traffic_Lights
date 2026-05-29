@@ -112,7 +112,7 @@ def write_vtypes_xml(out_path: str, params: KraussParams,
             f'{json.dumps(fitted_against, sort_keys=True)}')
     else:
         header_lines.append(
-            '       Mode: literature defaults (no empirical fit -- '
+            '       Mode: literature defaults (no empirical fit: '
             'see report.md R3).')
     header_lines.append('       Per-field provenance:')
     for k, v in src.items():
