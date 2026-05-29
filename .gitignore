@@ -10,5 +10,6 @@ graphify-out-*/
 
 # SUMO per-run outputs (regenerated every sim; not source)
 SUMO/v2/e2output.xml
+SUMO/v2/test_v2.log
 SUMO/v2/ai/runs/v2_smoke*/
 SUMO/v2/ai/runs/v2_resume_test*/
