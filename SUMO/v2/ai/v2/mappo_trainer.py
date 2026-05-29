@@ -60,12 +60,13 @@ class MAPPOConfig:
     clip_eps: float = 0.2
     value_clip_eps: float = 0.5
     entropy_coef: float = 0.01
-    entropy_coef_final: float = 0.001
+    entropy_coef_final: float = 0.005
     value_loss_coef: float = 0.5
     max_grad_norm: float = 0.5
 
     # Optimization
     actor_lr: float = 3e-4
+    actor_lr_final: float = 5e-5  # cosine decay endpoint over total_episodes
     critic_lr: float = 1e-3
     ppo_epochs: int = 4
     minibatch_size: int = 2048
@@ -77,8 +78,8 @@ class MAPPOConfig:
     critic_hidden: int = 512
 
     # GAT unfreeze schedule (steps refer to gradient updates).
-    gat_freeze_until_step: int = 50_000
-    gat_ramp_end_step: int = 60_000
+    gat_freeze_until_step: int = 1_500
+    gat_ramp_end_step: int = 2_000
 
     # Rollout / training
     rollout_episodes: int = 6
