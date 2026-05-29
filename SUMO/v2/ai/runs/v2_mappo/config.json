@@ -1,0 +1,31 @@
+{
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "value_clip_eps": 0.5,
+  "entropy_coef": 0.01,
+  "entropy_coef_final": 0.001,
+  "value_loss_coef": 0.5,
+  "max_grad_norm": 0.5,
+  "actor_lr": 0.0003,
+  "critic_lr": 0.001,
+  "ppo_epochs": 4,
+  "minibatch_size": 2048,
+  "embed_dim": 128,
+  "gat_heads": 4,
+  "gat_head_dim": 32,
+  "critic_hidden": 512,
+  "gat_freeze_until_step": 50000,
+  "gat_ramp_end_step": 60000,
+  "rollout_episodes": 6,
+  "total_episodes": 1500,
+  "seed": 42,
+  "eval_every_updates": 5,
+  "eval_seeds": [
+    1042,
+    1043,
+    1044
+  ],
+  "plateau_episodes": 100,
+  "save_dir": "ai/runs/v2_mappo"
+}
