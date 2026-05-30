@@ -89,8 +89,13 @@ class MAPPOConfig:
     critic_hidden: int = 512
 
     # GAT unfreeze schedule (steps refer to gradient updates).
-    gat_freeze_until_step: int = 1_500
-    gat_ramp_end_step: int = 2_000
+    # Earlier thresholds (1500 / 2000) let the FRAP+critic-only policy
+    # drift badly during the freeze -- the previous retrain's eval
+    # collapsed from wpv 10K (ep 150) to 201K (ep 270) while gat_lr was
+    # still 0. Engage GAT earlier so attention can correct course before
+    # the policy degenerates.
+    gat_freeze_until_step: int = 500
+    gat_ramp_end_step: int = 1_000
 
     # Rollout / training
     rollout_episodes: int = 6
@@ -198,6 +203,14 @@ class MAPPOTrainer:
         # by the plateau detector so resumed runs continue counting
         # from where they left off.
         self._last_improvement_ep = 0
+        # Episode at which the GAT first became fully active
+        # (gradient_steps >= gat_ramp_end_step). Plateau detection
+        # measures "no improvement since the LATER of last-improvement
+        # or unfreeze," so the model gets at least plateau_episodes of
+        # learning with attention live before early-stop is allowed.
+        # Lazy-initialized; on resume past the unfreeze threshold this
+        # snaps to the resume episode (mild bias, acceptable).
+        self._unfreeze_ep_anchor: Optional[int] = None
 
         self.save_dir = Path(cfg.save_dir)
         (self.save_dir / "checkpoints").mkdir(parents=True, exist_ok=True)
@@ -719,17 +732,38 @@ class MAPPOTrainer:
                     # first miss after improvement).
                     self.episodes_since_improvement = (
                         self._episodes_done - self._last_improvement_ep)
-                if (self.episodes_since_improvement
-                        >= self.cfg.plateau_episodes):
-                    print(f"  plateau: no eval improvement for "
-                          f"{self.episodes_since_improvement} episodes; "
-                          f"stopping.")
-                    self._log_jsonl({
-                        "kind": "plateau_stop",
-                        "update": n_updates,
-                        "episodes_done": self._episodes_done,
-                    })
-                    break
+                # Gate plateau on the GAT being fully active. While the
+                # GAT is frozen or ramping, the model cannot express its
+                # full architecture, so a flat / declining eval is not
+                # evidence the policy converged -- it's evidence the
+                # warmup architecture is exhausted. Measuring plateau
+                # from the LATER of (last_improvement, unfreeze_anchor)
+                # guarantees the model has at least plateau_episodes of
+                # training with attention live before early-stop fires.
+                gat_fully_active = (
+                    self._gradient_steps >= self.cfg.gat_ramp_end_step)
+                if gat_fully_active and self._unfreeze_ep_anchor is None:
+                    self._unfreeze_ep_anchor = self._episodes_done
+                if gat_fully_active:
+                    baseline_ep = max(self._last_improvement_ep,
+                                      self._unfreeze_ep_anchor)
+                    unimproved_with_gat = (
+                        self._episodes_done - baseline_ep)
+                    if unimproved_with_gat >= self.cfg.plateau_episodes:
+                        print(f"  plateau (post-unfreeze): no eval "
+                              f"improvement for {unimproved_with_gat} "
+                              f"episodes since later of last-improvement "
+                              f"({self._last_improvement_ep}) or GAT "
+                              f"unfreeze ({self._unfreeze_ep_anchor}); "
+                              f"stopping.")
+                        self._log_jsonl({
+                            "kind": "plateau_stop",
+                            "update": n_updates,
+                            "episodes_done": self._episodes_done,
+                            "unimproved_with_gat": unimproved_with_gat,
+                            "unfreeze_ep_anchor": self._unfreeze_ep_anchor,
+                        })
+                        break
 
         self.save("last")
         self.env.stop()
