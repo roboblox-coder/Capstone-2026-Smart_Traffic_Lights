@@ -228,11 +228,7 @@ def main() -> None:
         return out
 
     specs = [
-        ("all_fixed", controlled_env,
-         lambda: lambda e: run_controlled(e, fixed_actions_factory())),
         ("all_native_actuated", native_env, lambda: run_native),
-        ("coordinated_dqn", controlled_env,
-         lambda: lambda e: run_controlled(e, dqn_actions)),
     ]
 
     # V2 spec only joins the comparison when a real checkpoint is on
@@ -290,7 +286,7 @@ def main() -> None:
              f"{_fmt_mean_std([r['mean_wait'] for r in runs], 10, 2)}")
 
     base = "all_native_actuated"
-    if results[base] and results["coordinated_dqn"]:
+    if results[base] and results.get("coordinated_dqn"):
         def _mean(n, k):
             return float(np.mean([r[k] for r in results[n]]))
 
