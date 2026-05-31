@@ -233,6 +233,13 @@ class MAPPOTrainer:
         s = self._gradient_steps
         cfg = self.cfg
 
+        # --- Actor LR cosine decay (encoder + actor head) ---
+        progress = (self._episodes_done /
+                    max(1, self.cfg.total_episodes))
+        new_actor_lr = cosine_lr(progress, cfg.actor_lr, cfg.actor_lr_final)
+        self.actor_opt.param_groups[0]["lr"] = new_actor_lr  # encoder
+        self.actor_opt.param_groups[2]["lr"] = new_actor_lr  # actor head
+
         # --- GAT schedule (unchanged logic, new thresholds) ---
         if s < cfg.gat_freeze_until_step:
             self.gat.set_frozen_uniform(True)
@@ -241,18 +248,11 @@ class MAPPOTrainer:
             self.gat.set_frozen_uniform(False)
             f = ((s - cfg.gat_freeze_until_step) /
                  max(1, cfg.gat_ramp_end_step - cfg.gat_freeze_until_step))
-            gat_lr = f * cfg.actor_lr
+            gat_lr = f * new_actor_lr
         else:
             self.gat.set_frozen_uniform(False)
-            gat_lr = cfg.actor_lr
+            gat_lr = new_actor_lr
         self.actor_opt.param_groups[1]["lr"] = gat_lr
-
-        # --- Actor LR cosine decay (encoder + actor head) ---
-        progress = (self._episodes_done /
-                    max(1, self.cfg.total_episodes))
-        new_actor_lr = cosine_lr(progress, cfg.actor_lr, cfg.actor_lr_final)
-        self.actor_opt.param_groups[0]["lr"] = new_actor_lr  # encoder
-        self.actor_opt.param_groups[2]["lr"] = new_actor_lr  # actor head
 
     def _current_entropy_coef(self) -> float:
         """Linear decay across total episodes."""
