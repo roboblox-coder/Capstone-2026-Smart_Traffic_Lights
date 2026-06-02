@@ -90,8 +90,59 @@ def test_q_masks_padded_phases():
         "padded phase slots must be strongly negative (never argmax-able)"
 
 
+def _agent_synth_state(seed=0):
+    """A single-light FRAP state dict like the env emits per light."""
+    rng = np.random.default_rng(seed)
+    M, P = M_MAX, P_MAX
+    ng = 3
+    mov = rng.uniform(0, 10, size=(M, 3)).astype(np.float32)
+    pm = np.zeros((P, M), dtype=bool)
+    for s in range(ng):
+        pm[s, (s * 3):(s * 3 + 3)] = True
+    phase = np.zeros((P,), dtype=bool)
+    phase[:ng] = True
+    return {"movement_features": mov, "phase_movement_mask": pm,
+            "phase_mask": phase}
+
+
+def test_agent_act_in_range():
+    from v3.frap_dqn_agent import FRAPDQNAgent
+    ag = FRAPDQNAgent(mov_feat_dim=3, p_max=P_MAX, m_max=M_MAX,
+                      embed_dim=EMBED, batch_size=8)
+    st = _agent_synth_state(1)
+    a = ag.act(st, epsilon=0.0)
+    ng = int(st["phase_mask"].sum())
+    assert 0 <= a < ng, f"action {a} outside real phases [0,{ng})"
+    # epsilon=1.0 must also stay within real phases (never picks padded).
+    for _ in range(20):
+        a = ag.act(st, epsilon=1.0)
+        assert 0 <= a < ng
+
+
+def test_agent_learn_step_runs():
+    """A learn() call on a filled buffer returns a finite loss and steps
+    the params."""
+    from v3.frap_dqn_agent import FRAPDQNAgent
+    ag = FRAPDQNAgent(mov_feat_dim=3, p_max=P_MAX, m_max=M_MAX,
+                      embed_dim=EMBED, batch_size=8)
+    for i in range(32):
+        s = _agent_synth_state(i)
+        ns = _agent_synth_state(i + 100)
+        ag.remember(s, action=i % 3, reward=float(i % 5),
+                    next_state=ns, done=(i % 7 == 0))
+    before = [p.clone() for p in ag.online.parameters()]
+    loss = ag.learn()
+    assert loss is not None and np.isfinite(loss), f"bad loss {loss}"
+    after = list(ag.online.parameters())
+    moved = any((a - b).abs().sum().item() > 0
+                for a, b in zip(after, before))
+    assert moved, "online params did not update"
+
+
 if __name__ == "__main__":
     test_phase_embeddings_batched_shape()
     test_q_per_phase_discrimination()
     test_q_masks_padded_phases()
-    print("task2 OK")
+    test_agent_act_in_range()
+    test_agent_learn_step_runs()
+    print("task3 OK")
