@@ -177,6 +177,32 @@ def load_coordinated_agents_v2(ckpt_path: str, env: MultiTlsEnv):
     return policy, choose
 
 
+def load_v3_frap_dqn(ckpt_path: str, env):
+    """Load the shared FRAP-DQN and return a (states, env)->actions dict
+    callable, matching run_controlled's contract. None if missing."""
+    import os
+    if not os.path.exists(ckpt_path):
+        print(f"  [v3 fallback] no checkpoint at {ckpt_path}")
+        return None, None
+    try:
+        from v3.frap_dqn_agent import FRAPDQNAgent
+        agent = FRAPDQNAgent.load_for_inference(ckpt_path)
+    except Exception as exc:
+        print(f"  [v3 fallback] load failed: {exc}")
+        return None, None
+
+    def choose(_states, e):
+        batch = e.get_state_frap_batch()
+        out = {}
+        for i, tid in enumerate(batch["tls_ids"]):
+            st = {"movement_features": batch["movement_features"][i],
+                  "phase_movement_mask": batch["phase_movement_mask"][i],
+                  "phase_mask": batch["phase_mask"][i]}
+            out[tid] = agent.act(st, epsilon=0.0)
+        return out
+    return agent, choose
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--sumo-cfg", default="sim.sumocfg")
@@ -189,6 +215,10 @@ def parse_args() -> argparse.Namespace:
                    help="Corridor-level V2 (FRAP/GAT/MAPPO) checkpoint. "
                         "Compared as 'coordinated_v2_frap' alongside V1 "
                         "and native when the file exists.")
+    p.add_argument("--v3-ckpt",
+                   default="ai/runs/v3_frap_dqn/checkpoints/best.pth",
+                   help="V3 FRAP-DQN checkpoint; added as "
+                        "'coordinated_v3_frap_dqn' when present.")
     p.add_argument("--episodes", type=int, default=5)
     p.add_argument("--time-limit", type=int, default=1200)
     p.add_argument("--seed", type=int, default=42)
@@ -240,6 +270,13 @@ def main() -> None:
         specs.append(
             ("coordinated_v2_frap", controlled_env,
              lambda: lambda e: run_controlled(e, v2_choose))
+        )
+
+    _v3_agent, v3_choose = load_v3_frap_dqn(args.v3_ckpt, controlled_env)
+    if v3_choose is not None:
+        specs.append(
+            ("coordinated_v3_frap_dqn", controlled_env,
+             lambda: lambda e: run_controlled(e, v3_choose))
         )
 
     results = {n: [] for n, _, _ in specs}
