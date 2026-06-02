@@ -16,3 +16,5 @@ SUMO/v2/ai/runs/v2_resume_test*/
 # Diagnostic + retrain experiment outputs (large checkpoints/logs, not source)
 SUMO/v2/ai/runs/v2_diag*/
 SUMO/v2/ai/runs/v2_mappo_retrain*/
+SUMO/v2/ai/runs/v3_smoke*/
+SUMO/v2/ai/runs/v3_frap_dqn*/
