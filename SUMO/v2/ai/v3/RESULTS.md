@@ -47,6 +47,34 @@ and ~3% on throughput, verified on 5 paired seeds" is the honest,
 defensible, deployment-relevant result — exactly the control an RL
 corridor controller would replace.
 
+## Native-actuated: demonstrated ceiling (not for lack of trying)
+
+Beating SUMO's *actuated* baseline (2,078 / 5,504) was pursued across
+**four training experiments + multiple distinct levers**, all 5-seed
+evaluated on the clean comparison seeds:
+
+| experiment | lever | throughput | wait |
+|---|---|---:|---:|
+| 30-ep combined | baseline | 1,779 | 6,947 |
+| Stage 1 (300 ep) | longer training | 1,797 | 7,797 |
+| Exp2 | gamma 0.99 | (collapsed) | ~worse |
+| Exp3 | Polyak soft targets (stability) | 1,708 | 7,034 |
+| Exp4 | wait-weighted reward (β=0.3) | 1,772 | 7,179 |
+
+All cluster ~6,900–7,800 wait / ~1,700–1,800 throughput. Native stays
+clearly ahead. **Conclusion: native-actuated is the ceiling for the
+independent per-light DQN on this over-saturated corridor.** Two
+structural reasons (see `PLAN_BEAT_NATIVE.md`): throughput is
+capacity-bound under saturation, and the controllers are
+*per-intersection* — they cannot do the corridor-wide green-wave
+progression that would close the delay gap.
+
+**The one unexhausted lever:** corridor **coordination (GAT, Phase 2)** —
+the green-wave mechanism native-actuated also lacks. That is the only
+remaining path with a structural reason to beat native-actuated, and it
+is a real build (re-integrate the V2 GAT onto the working DQN), not a
+hyperparameter tweak. Deferred as a deliberate next phase.
+
 ## Reproduce / extend
 
 - Fixed-time strength is tunable: `--fixed-green-seconds` (default 25).
