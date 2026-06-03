@@ -64,6 +64,10 @@ def main() -> int:
                     help="Env reward. 'combined' directly rewards "
                          "throughput + wait (no gridlock loophole that "
                          "max_pressure has on heavy demand).")
+    ap.add_argument("--gamma", type=float, default=0.95,
+                    help="DQN discount. 0.99 for longer-horizon credit.")
+    ap.add_argument("--lr", type=float, default=5e-4)
+    ap.add_argument("--target-sync", type=int, default=500)
     ap.add_argument("--out-dir", default="ai/runs/v3_frap_dqn")
     args = ap.parse_args()
 
@@ -78,7 +82,9 @@ def main() -> int:
     b0 = env.get_state_frap_batch()
     p_max = b0["phase_mask"].shape[1]
     m_max = b0["movement_features"].shape[1]
-    agent = FRAPDQNAgent(mov_feat_dim=3, p_max=p_max, m_max=m_max)
+    agent = FRAPDQNAgent(mov_feat_dim=3, p_max=p_max, m_max=m_max,
+                         gamma=args.gamma, lr=args.lr,
+                         target_sync_steps=args.target_sync)
 
     out = Path(args.out_dir)
     (out / "checkpoints").mkdir(parents=True, exist_ok=True)
