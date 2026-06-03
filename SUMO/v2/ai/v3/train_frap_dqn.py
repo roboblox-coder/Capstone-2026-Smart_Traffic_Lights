@@ -68,6 +68,9 @@ def main() -> int:
                     help="DQN discount. 0.99 for longer-horizon credit.")
     ap.add_argument("--lr", type=float, default=5e-4)
     ap.add_argument("--target-sync", type=int, default=500)
+    ap.add_argument("--tau", type=float, default=0.0,
+                    help="Polyak soft target-update rate (e.g. 0.005). "
+                         "0 = hard sync. Fixes mid-training collapse.")
     ap.add_argument("--out-dir", default="ai/runs/v3_frap_dqn")
     args = ap.parse_args()
 
@@ -84,7 +87,7 @@ def main() -> int:
     m_max = b0["movement_features"].shape[1]
     agent = FRAPDQNAgent(mov_feat_dim=3, p_max=p_max, m_max=m_max,
                          gamma=args.gamma, lr=args.lr,
-                         target_sync_steps=args.target_sync)
+                         target_sync_steps=args.target_sync, tau=args.tau)
 
     out = Path(args.out_dir)
     (out / "checkpoints").mkdir(parents=True, exist_ok=True)

@@ -77,12 +77,19 @@ class FRAPDQNAgent:
                  lr: float = 5e-4, gamma: float = 0.95,
                  buffer_capacity: int = 50_000, batch_size: int = 64,
                  target_sync_steps: int = 500,
+                 tau: float = 0.0,
                  device: Optional[str] = None):
         self.p_max = p_max
         self.m_max = m_max
         self.gamma = gamma
         self.batch_size = batch_size
         self.target_sync_steps = target_sync_steps
+        # tau>0 => Polyak soft target updates every learn step
+        # (target = tau*online + (1-tau)*target). Smooths the target
+        # network so Q-targets don't lurch on hard syncs -- the standard
+        # fix for the mid-training value blow-up / policy collapse seen
+        # in the long V3 runs. tau=0 keeps the original hard-sync.
+        self.tau = tau
         self.device = torch.device(
             device or ("cuda" if torch.cuda.is_available() else "cpu"))
 
@@ -147,7 +154,13 @@ class FRAPDQNAgent:
         self.optimizer.step()
 
         self._learn_steps += 1
-        if self._learn_steps % self.target_sync_steps == 0:
+        if self.tau > 0.0:
+            # Polyak soft update every step.
+            with torch.no_grad():
+                for tp, op in zip(self.target.parameters(),
+                                  self.online.parameters()):
+                    tp.mul_(1.0 - self.tau).add_(self.tau * op)
+        elif self._learn_steps % self.target_sync_steps == 0:
             self.target.load_state_dict(self.online.state_dict())
         return float(loss.item())
 
