@@ -113,6 +113,35 @@ def fixed_actions_factory():
     return choose
 
 
+def fixed_time_actions_factory(green_seconds: int = 25,
+                               decision_interval: int = 5):
+    """Realistic fixed-time plan: each light HOLDS each green phase for
+    ~green_seconds before advancing, instead of the choppy 1-decision
+    round-robin (which gives only decision_interval seconds of green).
+
+    This is the fair real-world baseline -- most deployed arterial
+    signals run a fixed equal-split cycle with 20-40s greens, not a 5s
+    round-robin. Beating THIS is the meaningful 'improves on conventional
+    signal control' claim.
+    """
+    hold = max(1, round(green_seconds / max(1, decision_interval)))
+    state: dict = {}  # tid -> [slot, ticks_held]
+
+    def choose(_states, env):
+        out = {}
+        for t in env.tls_ids:
+            n = env.units[t]._num_green
+            slot, held = state.get(t, [0, 0])
+            held += 1
+            if held >= hold:
+                slot = (slot + 1) % n
+                held = 0
+            state[t] = [slot, held]
+            out[t] = slot
+        return out
+    return choose
+
+
 def load_coordinated_agents(ckpt_dir: str, env: MultiTlsEnv,
                             ckpt_name: str = "best.pth") -> dict:
     """One agent per TLS. A per-TLS shape mismatch falls back to fixed for
@@ -226,6 +255,9 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--yellow-time", type=int, default=5)
     p.add_argument("--decision-interval", type=int, default=5)
     p.add_argument("--out", default="ai/logs/eval_network.txt")
+    p.add_argument("--fixed-green-seconds", type=int, default=25,
+                   help="Green duration for the realistic fixed-time "
+                        "baseline (the conventional-signal comparison).")
     return p.parse_args()
 
 
@@ -257,7 +289,12 @@ def main() -> None:
                 out[t] = a.act(states[t], epsilon=0.0)
         return out
 
+    ft_choose = fixed_time_actions_factory(
+        green_seconds=args.fixed_green_seconds,
+        decision_interval=args.decision_interval)
     specs = [
+        ("fixed_time", controlled_env,
+         lambda: lambda e: run_controlled(e, ft_choose)),
         ("all_native_actuated", native_env, lambda: run_native),
     ]
 
