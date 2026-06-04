@@ -140,8 +140,9 @@ def main() -> int:
     ap.add_argument("--run-dir", default="ai/runs/v3_exp4",
                     help="Training run dir with train_log.jsonl.")
     ap.add_argument("--eval-file",
-                    default="ai/logs/eval_v3_vs_fixedtime.txt",
-                    help="eval_network.py summary output to chart.")
+                    default="ai/v3/eval_v3_vs_fixedtime.txt",
+                    help="eval_network.py summary output to chart "
+                         "(committed copy works on a fresh clone).")
     ap.add_argument("--out-dir", default="ai/v3/plots")
     args = ap.parse_args()
 

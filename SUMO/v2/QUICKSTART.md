@@ -22,7 +22,7 @@ controller, on 5 paired seeds:
 
 ```bash
 python ai/eval_network.py --sumo-cfg sim_calibrated.sumocfg \
-    --v3-ckpt ai/runs/v3_frap_dqn_combined/checkpoints/best.pth \
+    --v3-ckpt ai/v3/model_best.pth \
     --episodes 5 --time-limit 1200 --fixed-green-seconds 25
 ```
 
@@ -53,7 +53,23 @@ python ai/v3/make_v3_plots.py
 Both PNGs are committed to the repo, so they also render directly on
 GitHub under `SUMO/v2/ai/v3/plots/`.
 
-## 4. Train it yourself (~25 min for a quick model)
+## 4. Watch it drive traffic live (browser)
+
+```bash
+python run_websocket_ai.py          # starts SUMO + WebSocket server
+# then open frontend/index.html in a browser
+```
+
+- Vehicles move in a 3D view; the 12 lights are driven by the AI.
+- **Model dropdown (top bar):** switch the active controller —
+  **V1 · DQN / V2 · MAPPO / V3 · FRAP-DQN** — *live, mid-simulation*.
+- **AI Decisions panel (sidebar):** a live scrolling log of every phase
+  change the active model makes (`step · light → green slot`), and a
+  `⟳ switched to …` line when you change models.
+
+All loaded models are selectable; the demo defaults to V3.
+
+## 5. Train it yourself (~25 min for a quick model)
 
 ```bash
 python ai/v3/train_frap_dqn.py \
@@ -72,7 +88,7 @@ Key knobs (see `ai/v3/RESULTS.md` for what each was found to do):
 (Polyak soft target updates, reduces collapse), `--reward-beta` (wait vs
 throughput balance), `--gamma`, `--lr`.
 
-## 5. Verify the core logic without SUMO (~5 s)
+## 6. Verify the core logic without SUMO (~5 s)
 
 ```bash
 python -m ai.v3.tests.test_frap_q   # per-phase Q discrimination + agent

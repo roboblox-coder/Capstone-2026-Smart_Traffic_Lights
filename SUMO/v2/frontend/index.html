@@ -224,6 +224,11 @@
     <div id="top-bar">
         <h1>🚦 <span>SUMO</span> Live City Viewer</h1>
         <div style="display:flex;gap:8px;align-items:center;">
+            <label style="font-size:.74rem;color:#8b949e;">AI model:</label>
+            <select id="model-select" title="Switch the active AI controller live"
+                style="font-size:.76rem;padding:4px 8px;border-radius:8px;background:#161b22;color:#e6edf3;border:1px solid #30363d;cursor:pointer;">
+                <option value="">(loading…)</option>
+            </select>
             <span id="ai-badge" title="AI controller status"
                 style="font-size:.78rem;padding:4px 12px;border-radius:20px;background:rgba(139,148,158,.15);color:#8b949e;">
                 AI: idle
@@ -245,6 +250,11 @@
 
         <!-- Right Sidebar -->
         <aside>
+            <h2>AI Decisions <span id="ai-dec-model" style="font-size:.7rem;color:#58a6ff;font-weight:400;"></span></h2>
+            <div id="ai-decisions"
+                style="font-family:ui-monospace,Menlo,monospace;font-size:.72rem;line-height:1.5;max-height:200px;overflow-y:auto;background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:8px;margin-bottom:12px;">
+                <em style="color:#8b949e">Waiting for the AI to act…</em>
+            </div>
             <h2>Traffic Lights</h2>
             <div id="tl-panel"><em style="font-size:.78rem;color:#8b949e">Waiting for data…</em></div>
             <div id="log-wrap">
@@ -300,6 +310,56 @@
         const tlPanel = document.getElementById('tl-panel');
         const logEl = document.getElementById('log');
         const canvasContainer = document.getElementById('canvas-container');
+        const modelSelect = document.getElementById('model-select');
+        const aiDecisionsEl = document.getElementById('ai-decisions');
+        const aiDecModelEl = document.getElementById('ai-dec-model');
+
+        // Send a model-switch command when the user picks from the dropdown.
+        modelSelect.addEventListener('change', () => {
+            const m = modelSelect.value;
+            if (m && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'selectModel', model: m }));
+                wsLog(`→ selectModel(${m})`);
+            }
+        });
+        let _modelsPopulated = '';
+        const MODEL_LABEL = { v1: 'V1 · DQN', v2: 'V2 · MAPPO', v3: 'V3 · FRAP-DQN' };
+
+        function updateModelSelect(summary) {
+            const avail = (summary && summary.availableModels) || [];
+            const key = avail.join(',');
+            if (key !== _modelsPopulated) {           // rebuild only on change
+                modelSelect.innerHTML = '';
+                if (avail.length === 0) {
+                    const o = document.createElement('option');
+                    o.value = ''; o.textContent = '(none loaded)';
+                    modelSelect.appendChild(o);
+                }
+                for (const m of avail) {
+                    const o = document.createElement('option');
+                    o.value = m; o.textContent = MODEL_LABEL[m] || m;
+                    modelSelect.appendChild(o);
+                }
+                _modelsPopulated = key;
+            }
+            if (summary && summary.activeModel &&
+                document.activeElement !== modelSelect) {
+                modelSelect.value = summary.activeModel;  // reflect backend
+            }
+        }
+
+        function renderDecisions(log, activeModel) {
+            aiDecModelEl.textContent = activeModel ? `(${(MODEL_LABEL[activeModel]||activeModel)})` : '';
+            if (!log || log.length === 0) return;
+            // newest first
+            const rows = log.slice().reverse().map(d => {
+                if (d.event) return `<div style="color:#58a6ff;">⟳ step ${d.step} · ${d.event}</div>`;
+                return `<div><span style="color:#8b949e;">step ${d.step}</span> · `
+                     + `light <span style="color:#e6edf3;">${d.light}</span> `
+                     + `→ <span style="color:#3fb950;">green slot ${d.slot}</span></div>`;
+            });
+            aiDecisionsEl.innerHTML = rows.join('');
+        }
 
         // --- INITIALIZATION ---
         function init() {
@@ -1261,6 +1321,9 @@
             hudTl.textContent = msg.trafficLights.length;
             document.getElementById('stat-cars').innerText = msg.vehicles.length;
             updateAiBadge(msg.aiSummary);
+            updateModelSelect(msg.aiSummary);
+            renderDecisions(msg.decisionsLog,
+                msg.aiSummary && msg.aiSummary.activeModel);
 
             // Update instanced vehicle mesh using fixed convBoundary center
             const count = Math.min(msg.vehicles.length, VEH_MAX);

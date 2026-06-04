@@ -245,8 +245,9 @@ def parse_args() -> argparse.Namespace:
                         "Compared as 'coordinated_v2_frap' alongside V1 "
                         "and native when the file exists.")
     p.add_argument("--v3-ckpt",
-                   default="ai/runs/v3_frap_dqn/checkpoints/best.pth",
-                   help="V3 FRAP-DQN checkpoint; added as "
+                   default="ai/v3/model_best.pth",
+                   help="V3 FRAP-DQN checkpoint (committed default works "
+                        "on a fresh clone); added as "
                         "'coordinated_v3_frap_dqn' when present.")
     p.add_argument("--episodes", type=int, default=5)
     p.add_argument("--time-limit", type=int, default=1200)
