@@ -1,0 +1,1029 @@
+{
+  "nodes": [
+    {
+      "id": "build_calibrated_routes_py",
+      "label": "build_calibrated_routes.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/sumo_calibration/build_calibrated_routes.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "calibrate_carfollow_py",
+      "label": "calibrate_carfollow.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/sumo_calibration/calibrate_carfollow.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "calibrate_carfollow_KraussParams",
+      "label": "KraussParams",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/sumo_calibration/calibrate_carfollow.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "centralized_critic_py",
+      "label": "centralized_critic.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/centralized_critic.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "centralized_critic_CentralCritic",
+      "label": "CentralCritic",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/centralized_critic.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "colight_gat_py",
+      "label": "colight_gat.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/colight_gat.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "colight_gat_CoLightGAT",
+      "label": "CoLightGAT",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/colight_gat.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "domain_randomization_py",
+      "label": "domain_randomization.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/domain_randomization.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "domain_randomization_DRWrapper",
+      "label": "DRWrapper",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/domain_randomization.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "frap_encoder_py",
+      "label": "frap_encoder.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/frap_encoder.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "frap_encoder_FRAPEncoder",
+      "label": "FRAPEncoder",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/frap_encoder.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "inference_adapter_py",
+      "label": "inference_adapter.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/inference_adapter.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "inference_adapter_V2CorridorPolicy",
+      "label": "V2CorridorPolicy",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/inference_adapter.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "live_inference_py",
+      "label": "live_inference.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/live_inference.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "live_inference_V2InferenceLoop",
+      "label": "V2InferenceLoop",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/live_inference.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mappo_trainer_py",
+      "label": "mappo_trainer.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mappo_trainer_MAPPOTrainer",
+      "label": "MAPPOTrainer",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mappo_trainer_RolloutBuffer",
+      "label": "RolloutBuffer",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "shared_policy_py",
+      "label": "shared_policy.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/shared_policy.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "shared_policy_SharedActor",
+      "label": "SharedActor",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/shared_policy.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "test_smoke_py",
+      "label": "test_smoke.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/tests/test_smoke.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sumo_calibration_init_py",
+      "label": "sumo_calibration/__init__.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/sumo_calibration/__init__.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v2_init_py",
+      "label": "v2/__init__.py",
+      "file_type": "code",
+      "source_file": "SUMO/v2/ai/v2/__init__.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "graphify_md",
+      "label": "GRAPHIFY.md",
+      "file_type": "document",
+      "source_file": "GRAPHIFY.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_md",
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "synaptix_website_md",
+      "label": "Synaptix Website.md",
+      "file_type": "document",
+      "source_file": "Synaptix Website.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sumo_readme_md",
+      "label": "SUMO/README.md",
+      "file_type": "document",
+      "source_file": "SUMO/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sumo_requirements_txt",
+      "label": "SUMO/requirements.txt",
+      "file_type": "document",
+      "source_file": "SUMO/requirements.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "junctions_out_txt",
+      "label": "junctions_out.txt",
+      "file_type": "document",
+      "source_file": "SUMO/v2/junctions_out.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_ai_md",
+      "label": "RUN_AI.md",
+      "file_type": "document",
+      "source_file": "SUMO/v2/RUN_AI.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_ctde",
+      "label": "Centralized Training with Decentralized Execution (CTDE)",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/v2/centralized_critic.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_frap",
+      "label": "FRAP Phase-Symmetry-Invariant Encoder",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/v2/frap_encoder.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_colight_gat",
+      "label": "CoLight Graph Attention",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/v2/colight_gat.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_domain_randomization",
+      "label": "Domain Randomization",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/v2/domain_randomization.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_advantage_normalization",
+      "label": "Per-Minibatch Advantage Normalization",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_parameter_sharing",
+      "label": "Corridor Parameter Sharing",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/v2/shared_policy.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_calibration_provenance",
+      "label": "Calibration Provenance Tracking",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/sumo_calibration/build_calibrated_routes.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_krauss_calibration",
+      "label": "Krauss Model Calibration",
+      "file_type": "rationale",
+      "source_file": "SUMO/v2/ai/sumo_calibration/calibrate_carfollow.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "concept_ctde",
+      "target": "centralized_critic_CentralCritic",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/centralized_critic.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "concept_frap",
+      "target": "frap_encoder_FRAPEncoder",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/frap_encoder.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "concept_colight_gat",
+      "target": "colight_gat_CoLightGAT",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/colight_gat.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "concept_domain_randomization",
+      "target": "domain_randomization_DRWrapper",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/domain_randomization.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "concept_advantage_normalization",
+      "target": "mappo_trainer_MAPPOTrainer",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "concept_parameter_sharing",
+      "target": "shared_policy_SharedActor",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/shared_policy.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "concept_calibration_provenance",
+      "target": "build_calibrated_routes_py",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_calibration/build_calibrated_routes.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "concept_krauss_calibration",
+      "target": "calibrate_carfollow_py",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_calibration/calibrate_carfollow.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_MAPPOTrainer",
+      "target": "centralized_critic_CentralCritic",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_MAPPOTrainer",
+      "target": "colight_gat_CoLightGAT",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_MAPPOTrainer",
+      "target": "frap_encoder_FRAPEncoder",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_MAPPOTrainer",
+      "target": "shared_policy_SharedActor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_MAPPOTrainer",
+      "target": "mappo_trainer_RolloutBuffer",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "inference_adapter_V2CorridorPolicy",
+      "target": "frap_encoder_FRAPEncoder",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/inference_adapter.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "inference_adapter_V2CorridorPolicy",
+      "target": "colight_gat_CoLightGAT",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/inference_adapter.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "inference_adapter_V2CorridorPolicy",
+      "target": "shared_policy_SharedActor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/inference_adapter.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "inference_adapter_V2CorridorPolicy",
+      "target": "centralized_critic_CentralCritic",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/inference_adapter.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "live_inference_V2InferenceLoop",
+      "target": "inference_adapter_V2CorridorPolicy",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/live_inference.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "test_smoke_py",
+      "target": "frap_encoder_FRAPEncoder",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/tests/test_smoke.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "test_smoke_py",
+      "target": "colight_gat_CoLightGAT",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/tests/test_smoke.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "test_smoke_py",
+      "target": "shared_policy_SharedActor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/tests/test_smoke.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "test_smoke_py",
+      "target": "centralized_critic_CentralCritic",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/tests/test_smoke.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "test_smoke_py",
+      "target": "inference_adapter_V2CorridorPolicy",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/tests/test_smoke.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "graphify_md",
+      "target": "frap_encoder_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GRAPHIFY.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "graphify_md",
+      "target": "colight_gat_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GRAPHIFY.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "graphify_md",
+      "target": "shared_policy_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GRAPHIFY.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "graphify_md",
+      "target": "centralized_critic_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GRAPHIFY.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "graphify_md",
+      "target": "mappo_trainer_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GRAPHIFY.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "graphify_md",
+      "target": "inference_adapter_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "GRAPHIFY.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_md",
+      "target": "sumo_readme_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sumo_readme_md",
+      "target": "sumo_requirements_txt",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sumo_calibration_init_py",
+      "target": "build_calibrated_routes_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_calibration/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sumo_calibration_init_py",
+      "target": "calibrate_carfollow_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_calibration/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "v2_init_py",
+      "target": "frap_encoder_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "v2_init_py",
+      "target": "colight_gat_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "v2_init_py",
+      "target": "shared_policy_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "v2_init_py",
+      "target": "centralized_critic_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "v2_init_py",
+      "target": "mappo_trainer_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "v2_init_py",
+      "target": "inference_adapter_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "calibrate_carfollow_py",
+      "target": "calibrate_carfollow_KraussParams",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_calibration/calibrate_carfollow.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "centralized_critic_py",
+      "target": "centralized_critic_CentralCritic",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/centralized_critic.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "colight_gat_py",
+      "target": "colight_gat_CoLightGAT",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/colight_gat.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "domain_randomization_py",
+      "target": "domain_randomization_DRWrapper",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/domain_randomization.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "frap_encoder_py",
+      "target": "frap_encoder_FRAPEncoder",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/frap_encoder.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "inference_adapter_py",
+      "target": "inference_adapter_V2CorridorPolicy",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/inference_adapter.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "live_inference_py",
+      "target": "live_inference_V2InferenceLoop",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/live_inference.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_py",
+      "target": "mappo_trainer_MAPPOTrainer",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_py",
+      "target": "mappo_trainer_RolloutBuffer",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "shared_policy_py",
+      "target": "shared_policy_SharedActor",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/shared_policy.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mappo_trainer_py",
+      "target": "domain_randomization_DRWrapper",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "SUMO/v2/ai/v2/mappo_trainer.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "domain_randomization_py",
+      "target": "frap_encoder_py",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "SUMO/v2/ai/v2/domain_randomization.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_calibrated_routes_py",
+      "target": "calibrate_carfollow_py",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "SUMO/v2/ai/sumo_calibration/__init__.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_md",
+      "target": "sumo_readme_md",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_ai_md",
+      "target": "live_inference_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "SUMO/v2/RUN_AI.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_ai_md",
+      "target": "mappo_trainer_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "SUMO/v2/RUN_AI.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_md",
+      "target": "synaptix_website_md",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "v2_neural_modules",
+      "label": "V2 MAPPO Neural Modules",
+      "nodes": [
+        "frap_encoder_FRAPEncoder",
+        "colight_gat_CoLightGAT",
+        "shared_policy_SharedActor",
+        "centralized_critic_CentralCritic"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/__init__.py"
+    },
+    {
+      "id": "calibration_pipeline",
+      "label": "SUMO Calibration Pipeline",
+      "nodes": [
+        "build_calibrated_routes_py",
+        "calibrate_carfollow_py",
+        "concept_calibration_provenance",
+        "concept_krauss_calibration"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/sumo_calibration/__init__.py"
+    },
+    {
+      "id": "v2_inference_pipeline",
+      "label": "V2 Inference Pipeline",
+      "nodes": [
+        "inference_adapter_V2CorridorPolicy",
+        "live_inference_V2InferenceLoop",
+        "shared_policy_SharedActor"
+      ],
+      "relation": "implement",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "SUMO/v2/ai/v2/live_inference.py"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

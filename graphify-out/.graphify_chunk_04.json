@@ -1,0 +1,644 @@
+{
+  "nodes": [
+    {
+      "id": "flow_basic_sensor",
+      "label": "Basic Sensor",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_basic_camera",
+      "label": "Basic Camera",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_yolo_perception_engine",
+      "label": "YOLO Perception Engine",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_vehicle_count_density",
+      "label": "Vehicle Count / Density",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_edge_intelligence",
+      "label": "Edge Intelligence",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_emergency_pedestrian_detection",
+      "label": "Emergency Vehicle/ Pedestrian Detection",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_lpwan_lora_protocol",
+      "label": "LPWAN / Lora Protocol",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_basic_traffic_cameras_iot_gateway",
+      "label": "Basic Traffic Cameras (IOT Gateway)",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_distributed_database",
+      "label": "Distributed Database",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_real_time_optimization",
+      "label": "Real-time Optimization",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_machine_learning_model",
+      "label": "Machine Learning Model",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_historical_trends",
+      "label": "Historical Trends",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_predictive_traffic_optimizations",
+      "label": "Redictive Traffic Optimizat_os",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_ml_reinforcement_learning_agent",
+      "label": "Machine Learning Model Reinfrment Learning Agent",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_adaptive_traffic_signal",
+      "label": "Adaptive Traffic Signal",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_adaptive_traffic_system_middle",
+      "label": "Adaptive Traffic System (Middle)",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_adaptive_traffic_system_bottom",
+      "label": "Adaptive Traffic System (Bottom)",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_core_real_time_adaptive_infrastructure",
+      "label": "Real-Time Adaptive Infrastructure",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_core_iot_driven_connectivity",
+      "label": "IOT-Driven Connectiivity",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_core_predictive_data_analysis",
+      "label": "Predictive Data Analysis",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_core_intelligent_management_output",
+      "label": "Intelligent Management Output",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flow_core_mobility_emergency_response",
+      "label": "Mobility & Emergency Response",
+      "file_type": "image",
+      "source_file": "Flow.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "flow_basic_sensor",
+      "target": "flow_basic_camera",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_basic_sensor",
+      "target": "flow_yolo_perception_engine",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_basic_camera",
+      "target": "flow_vehicle_count_density",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_yolo_perception_engine",
+      "target": "flow_vehicle_count_density",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_yolo_perception_engine",
+      "target": "flow_edge_intelligence",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_edge_intelligence",
+      "target": "flow_emergency_pedestrian_detection",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_vehicle_count_density",
+      "target": "flow_emergency_pedestrian_detection",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_vehicle_count_density",
+      "target": "flow_real_time_optimization",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_lpwan_lora_protocol",
+      "target": "flow_basic_traffic_cameras_iot_gateway",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_lpwan_lora_protocol",
+      "target": "flow_distributed_database",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_basic_traffic_cameras_iot_gateway",
+      "target": "flow_distributed_database",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_basic_traffic_cameras_iot_gateway",
+      "target": "flow_real_time_optimization",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_machine_learning_model",
+      "target": "flow_historical_trends",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_historical_trends",
+      "target": "flow_predictive_traffic_optimizations",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_historical_trends",
+      "target": "flow_ml_reinforcement_learning_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_predictive_traffic_optimizations",
+      "target": "flow_adaptive_traffic_signal",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_predictive_traffic_optimizations",
+      "target": "flow_adaptive_traffic_system_middle",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_predictive_traffic_optimizations",
+      "target": "flow_adaptive_traffic_system_bottom",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_ml_reinforcement_learning_agent",
+      "target": "flow_adaptive_traffic_signal",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_ml_reinforcement_learning_agent",
+      "target": "flow_adaptive_traffic_system_middle",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_ml_reinforcement_learning_agent",
+      "target": "flow_adaptive_traffic_system_bottom",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_adaptive_traffic_signal",
+      "target": "flow_adaptive_traffic_system_middle",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_adaptive_traffic_system_middle",
+      "target": "flow_adaptive_traffic_system_bottom",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_real_time_adaptive_infrastructure",
+      "target": "flow_real_time_optimization",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_real_time_adaptive_infrastructure",
+      "target": "flow_adaptive_traffic_system_middle",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_iot_driven_connectivity",
+      "target": "flow_lpwan_lora_protocol",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_iot_driven_connectivity",
+      "target": "flow_basic_traffic_cameras_iot_gateway",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_predictive_data_analysis",
+      "target": "flow_machine_learning_model",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_predictive_data_analysis",
+      "target": "flow_predictive_traffic_optimizations",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_intelligent_management_output",
+      "target": "flow_adaptive_traffic_signal",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_core_mobility_emergency_response",
+      "target": "flow_emergency_pedestrian_detection",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_adaptive_traffic_system_middle",
+      "target": "flow_adaptive_traffic_system_bottom",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_basic_camera",
+      "target": "flow_basic_traffic_cameras_iot_gateway",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_machine_learning_model",
+      "target": "flow_ml_reinforcement_learning_agent",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "Flow.png",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "local_perception_intersection_level",
+      "label": "Local Perception (Intersection Level) Flow",
+      "nodes": [
+        "flow_basic_sensor",
+        "flow_basic_camera",
+        "flow_yolo_perception_engine",
+        "flow_vehicle_count_density",
+        "flow_edge_intelligence",
+        "flow_emergency_pedestrian_detection",
+        "flow_lpwan_lora_protocol",
+        "flow_basic_traffic_cameras_iot_gateway",
+        "flow_distributed_database",
+        "flow_real_time_optimization"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png"
+    },
+    {
+      "id": "core_intelligence_the_brain",
+      "label": "Core Intelligence (The Brain) Flow",
+      "nodes": [
+        "flow_machine_learning_model",
+        "flow_historical_trends",
+        "flow_predictive_traffic_optimizations",
+        "flow_ml_reinforcement_learning_agent",
+        "flow_adaptive_traffic_signal",
+        "flow_adaptive_traffic_system_middle",
+        "flow_adaptive_traffic_system_bottom"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png"
+    },
+    {
+      "id": "core_project_components_list",
+      "label": "Core Project Components List",
+      "nodes": [
+        "flow_core_real_time_adaptive_infrastructure",
+        "flow_core_iot_driven_connectivity",
+        "flow_core_predictive_data_analysis",
+        "flow_core_intelligent_management_output",
+        "flow_core_mobility_emergency_response"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Flow.png"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

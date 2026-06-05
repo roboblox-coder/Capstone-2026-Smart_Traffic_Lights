@@ -1,0 +1,47 @@
+# eval: episodes=5 time_limit=1200s base_seed=42 tls=3153556582
+# regime: min_green=5 yellow_time=5 decision_interval=1
+
+--- episode 1  seed=42 ---
+  fixed              reward=  -517.0  arrived=1240  backlog=1396  wait/veh= 159.47  mean_wait= 350.02  decisions=601
+  actuated           reward=  -160.1  arrived=1857  backlog=1239  wait/veh=  77.01  mean_wait= 198.67  decisions=795
+  native_actuated    reward=     0.0  arrived=1686  backlog=1317  wait/veh= 182.77  mean_wait= 457.39  decisions=  0
+  dqn                reward= -2146.6  arrived=1707  backlog=1318  wait/veh= 384.22  mean_wait= 968.57  decisions=820
+
+--- episode 2  seed=43 ---
+  fixed              reward=  -471.0  arrived=1353  backlog=1350  wait/veh= 145.29  mean_wait= 326.98  decisions=601
+  actuated           reward=  -164.0  arrived=1687  backlog=1326  wait/veh=  61.41  mean_wait= 154.06  decisions=751
+  native_actuated    reward=     0.0  arrived=1749  backlog=1223  wait/veh= 181.82  mean_wait= 450.31  decisions=  0
+  dqn                reward= -2015.4  arrived=1797  backlog=1308  wait/veh= 323.15  mean_wait= 836.15  decisions=830
+
+--- episode 3  seed=44 ---
+  fixed              reward=  -599.0  arrived=1344  backlog=1363  wait/veh= 161.70  mean_wait= 364.48  decisions=601
+  actuated           reward=   -72.4  arrived=1772  backlog=1262  wait/veh=  77.37  mean_wait= 195.45  decisions=784
+  native_actuated    reward=     0.0  arrived=1696  backlog=1260  wait/veh= 168.03  mean_wait= 413.92  decisions=  0
+  dqn                reward= -2746.6  arrived=1756  backlog=1273  wait/veh= 353.59  mean_wait= 892.53  decisions=820
+
+--- episode 4  seed=45 ---
+  fixed              reward=  -787.0  arrived=1291  backlog=1398  wait/veh= 167.98  mean_wait= 376.10  decisions=601
+  actuated           reward=  -581.1  arrived=1783  backlog=1226  wait/veh=  79.28  mean_wait= 198.79  decisions=795
+  native_actuated    reward=     0.0  arrived=1705  backlog=1305  wait/veh= 207.47  mean_wait= 520.40  decisions=  0
+  dqn                reward= -2394.4  arrived=1772  backlog=1285  wait/veh= 379.71  mean_wait= 966.50  decisions=833
+
+--- episode 5  seed=46 ---
+  fixed              reward=  -948.0  arrived=1413  backlog=1309  wait/veh= 164.66  mean_wait= 373.20  decisions=601
+  actuated           reward= -1219.6  arrived=1766  backlog=1221  wait/veh=  75.39  mean_wait= 187.50  decisions=772
+  native_actuated    reward=     0.0  arrived=1723  backlog=1290  wait/veh= 220.55  mean_wait= 553.75  decisions=  0
+  dqn                reward= -2765.5  arrived=1750  backlog=1336  wait/veh= 358.63  mean_wait= 921.50  decisions=827
+
+=== summary (mean +/- std across episodes) ===
+policy                     arrived         backlog        wait/veh       mean_wait       decisions
+--------------------------------------------------------------------------------------------------
+fixed                   1328.2 +/-58.7      1363.2 +/-32.9      159.82 +/-7.81      358.16 +/-18.03       601.0 +/-0.0
+actuated                1773.0 +/-54.0      1254.8 +/-38.3       74.09 +/-6.46      186.90 +/-16.92       779.4 +/-16.5
+native_actuated         1711.8 +/-22.2      1279.0 +/-33.9      192.13 +/-19.06      479.15 +/-50.65         0.0 +/-0.0
+dqn                     1756.4 +/-29.6      1304.0 +/-22.6      359.86 +/-21.80      917.05 +/-49.53       826.0 +/-5.3
+
+=== vs native_actuated (the self-actuated model to beat) ===
+  dqn
+    wait/veh :   359.86 vs   192.13  (-87.3%, beats native on 0/5 seeds)
+    arrived  :   1756.4 vs   1711.8  (+2.6%, beats native on 5/5 seeds)
+
+Verdict: no DQN beats native_actuated on BOTH metrics. Iterate (state enrichment / action structure / more training) before Phase 2.

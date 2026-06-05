@@ -1,0 +1,46 @@
+# network eval: episodes=5 time_limit=1200s base_seed=42 tls=12
+# regime: min_green=5 yellow_time=5 decision_interval=5  reward=max_pressure_net
+
+--- episode 1  seed=42 ---
+  fixed_time             arrived= 1740  backlog=  974  wait/veh= 8707.11  net_mean_wait= 19692.59
+  all_native_actuated    arrived= 2095  backlog=  958  wait/veh= 5196.23  net_mean_wait= 13220.07
+  coordinated_v2_frap    arrived= 1632  backlog= 1177  wait/veh= 7534.59  net_mean_wait= 17622.53
+  coordinated_v3_frap_dqn arrived= 1753  backlog= 1093  wait/veh= 7047.59  net_mean_wait= 16700.62
+
+--- episode 2  seed=43 ---
+  fixed_time             arrived= 1717  backlog=  980  wait/veh= 8763.10  net_mean_wait= 19695.07
+  all_native_actuated    arrived= 2076  backlog= 1005  wait/veh= 5503.70  net_mean_wait= 14130.76
+  coordinated_v2_frap    arrived= 1558  backlog= 1200  wait/veh=10446.99  net_mean_wait= 23990.68
+  coordinated_v3_frap_dqn arrived= 1775  backlog= 1037  wait/veh= 7199.25  net_mean_wait= 16856.18
+
+--- episode 3  seed=44 ---
+  fixed_time             arrived= 1697  backlog= 1046  wait/veh=10847.75  net_mean_wait= 24796.15
+  all_native_actuated    arrived= 1966  backlog= 1038  wait/veh= 7113.79  net_mean_wait= 17808.19
+  coordinated_v2_frap    arrived= 1726  backlog= 1087  wait/veh= 5089.16  net_mean_wait= 11919.90
+  coordinated_v3_frap_dqn arrived= 1798  backlog= 1059  wait/veh= 6764.72  net_mean_wait= 16092.25
+
+--- episode 4  seed=45 ---
+  fixed_time             arrived= 1728  backlog=  997  wait/veh= 7267.42  net_mean_wait= 16503.11
+  all_native_actuated    arrived= 2089  backlog=  970  wait/veh= 5629.28  net_mean_wait= 14349.97
+  coordinated_v2_frap    arrived= 1629  backlog= 1158  wait/veh= 6561.91  net_mean_wait= 15227.35
+  coordinated_v3_frap_dqn arrived= 1752  backlog= 1087  wait/veh= 7871.22  net_mean_wait= 18606.49
+
+--- episode 5  seed=46 ---
+  fixed_time             arrived= 1723  backlog= 1012  wait/veh= 8300.30  net_mean_wait= 18917.77
+  all_native_actuated    arrived= 2163  backlog=  985  wait/veh= 4077.18  net_mean_wait= 10695.81
+  coordinated_v2_frap    arrived= 1667  backlog= 1113  wait/veh= 8297.71  net_mean_wait= 19223.03
+  coordinated_v3_frap_dqn arrived= 1816  backlog= 1050  wait/veh= 5853.04  net_mean_wait= 13967.37
+
+=== summary (network totals, mean +/- std across episodes) ===
+policy                         arrived         backlog        wait/veh   net_mean_wait
+--------------------------------------------------------------------------------------
+fixed_time                  1721.0 +/-14.2      1001.8 +/-25.8     8777.14 +/-1166.12    19920.94 +/-2704.03
+all_native_actuated         2077.8 +/-63.5       991.2 +/-28.2     5504.04 +/-973.41    14040.96 +/-2287.33
+coordinated_v2_frap         1642.4 +/-54.8      1147.0 +/-41.4     7586.07 +/-1787.59    17596.70 +/-4034.07
+coordinated_v3_frap_dqn      1778.8 +/-25.1      1065.2 +/-21.5     6947.16 +/-656.95    16444.58 +/-1494.62
+
+=== coordinated_v2_frap vs all_native_actuated (network) ===
+  throughput :   1642.4 vs   2077.8  (-21.0%, beats native on 0/5 seeds)
+  wait/veh   :  7586.07 vs  5504.04  (-37.8%, beats native on 1/5 seeds)
+
+Verdict: V2 does NOT clear the honest gate vs native (throughput -21.0% < +6%; wait -37.8% < +12% lower). Do not promote.

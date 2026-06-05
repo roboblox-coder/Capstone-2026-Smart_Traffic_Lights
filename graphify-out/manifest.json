@@ -1,0 +1,342 @@
+{
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\PyGame_to_SUMO.py": {
+    "mtime": 1778538160.702393,
+    "ast_hash": "37c1e0f2efe771bed9e4b727142af036",
+    "semantic_hash": "37c1e0f2efe771bed9e4b727142af036"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\real_life_simulation.py": {
+    "mtime": 1778538160.7513933,
+    "ast_hash": "7c9f9ad0fc5d82cdd8d24e071fa8d2f3",
+    "semantic_hash": "7c9f9ad0fc5d82cdd8d24e071fa8d2f3"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\run.py": {
+    "mtime": 1778538160.7563963,
+    "ast_hash": "17c017b40e4e316cff7f0105060fe105",
+    "semantic_hash": "17c017b40e4e316cff7f0105060fe105"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\run_auto_sim.py": {
+    "mtime": 1778538160.7573965,
+    "ast_hash": "368192b88f4a829c1d991d83340d5530",
+    "semantic_hash": "368192b88f4a829c1d991d83340d5530"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\run_traci_sim.py": {
+    "mtime": 1778538160.7573965,
+    "ast_hash": "9950d001fd1a36fec10e02fcfdf78048",
+    "semantic_hash": "9950d001fd1a36fec10e02fcfdf78048"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\run_websocket_ai.py": {
+    "mtime": 1779860147.9294012,
+    "ast_hash": "38a0d53f9797ff73c704f1a9f2924c81",
+    "semantic_hash": "38a0d53f9797ff73c704f1a9f2924c81"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\run_websocket_sim.py": {
+    "mtime": 1778538160.7593958,
+    "ast_hash": "4a8472a3ad92a698a001765867d7ed80",
+    "semantic_hash": "4a8472a3ad92a698a001765867d7ed80"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\websocket_server.py": {
+    "mtime": 1778703546.2348318,
+    "ast_hash": "2477f460d5e903cc8e1887d910ba52e0",
+    "semantic_hash": "2477f460d5e903cc8e1887d910ba52e0"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\adjacency.json": {
+    "mtime": 1779308286.4503355,
+    "ast_hash": "972396cf32493c47098b7eb311a1bedd",
+    "semantic_hash": "972396cf32493c47098b7eb311a1bedd"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\dqn_agent.py": {
+    "mtime": 1778703546.180297,
+    "ast_hash": "867c7bd7754da0b7f68be5c1bc063e2b",
+    "semantic_hash": "867c7bd7754da0b7f68be5c1bc063e2b"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\eval.py": {
+    "mtime": 1778888600.6308658,
+    "ast_hash": "16a2f6dde8a579141a51122f07d61554",
+    "semantic_hash": "16a2f6dde8a579141a51122f07d61554"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\eval_network.py": {
+    "mtime": 1779860147.7712765,
+    "ast_hash": "de57c1b24708f8c12959300cabf64a7f",
+    "semantic_hash": "de57c1b24708f8c12959300cabf64a7f"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\make_plots.py": {
+    "mtime": 1778703546.1832876,
+    "ast_hash": "5a7743e487e1130b83dee82ac2b66279",
+    "semantic_hash": "5a7743e487e1130b83dee82ac2b66279"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\multi_env.py": {
+    "mtime": 1779860147.7802775,
+    "ast_hash": "284611532a3c1345cecaf9b4feb34f65",
+    "semantic_hash": "284611532a3c1345cecaf9b4feb34f65"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\network_topology.py": {
+    "mtime": 1779308286.4749517,
+    "ast_hash": "6cf740e5650cd1371c2878041799bc4f",
+    "semantic_hash": "6cf740e5650cd1371c2878041799bc4f"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\regression_test.py": {
+    "mtime": 1779860147.788276,
+    "ast_hash": "7b1d70833a847742314646551ac9965c",
+    "semantic_hash": "7b1d70833a847742314646551ac9965c"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\sanity_check.py": {
+    "mtime": 1778703546.1842752,
+    "ast_hash": "9ea3e4536c1951d967587aaede0b29ea",
+    "semantic_hash": "9ea3e4536c1951d967587aaede0b29ea"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\sumo_env.py": {
+    "mtime": 1779860147.834798,
+    "ast_hash": "0f6892812f9fa87cef3a93f6e50d99ba",
+    "semantic_hash": "0f6892812f9fa87cef3a93f6e50d99ba"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\traffic_base.py": {
+    "mtime": 1778538160.7253933,
+    "ast_hash": "28d05d69f22e442fc0c8ce2df49fa58a",
+    "semantic_hash": "28d05d69f22e442fc0c8ce2df49fa58a"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\train_dqn_sumo.py": {
+    "mtime": 1778888600.9749963,
+    "ast_hash": "8ebddd770244a7fc916a07c8ac018ee2",
+    "semantic_hash": "8ebddd770244a7fc916a07c8ac018ee2"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\train_multi_dqn.py": {
+    "mtime": 1779308286.6399124,
+    "ast_hash": "9398eef03a29ef0810e7ae374eddd540",
+    "semantic_hash": "9398eef03a29ef0810e7ae374eddd540"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\visualize_sumo_ai.py": {
+    "mtime": 1778538160.731396,
+    "ast_hash": "23d5d113d9bb1e75e4d3fce06a126068",
+    "semantic_hash": "23d5d113d9bb1e75e4d3fce06a126068"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\__init__.py": {
+    "mtime": 1778703546.1642811,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\sumo_calibration\\build_calibrated_routes.py": {
+    "mtime": 1779860147.8052752,
+    "ast_hash": "1d9816aa7feedd979549602a0ead57c8",
+    "semantic_hash": "1d9816aa7feedd979549602a0ead57c8"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\sumo_calibration\\calibrate_carfollow.py": {
+    "mtime": 1779860147.814284,
+    "ast_hash": "95a4d06811ed1c10f3b021906a68225c",
+    "semantic_hash": "95a4d06811ed1c10f3b021906a68225c"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\sumo_calibration\\__init__.py": {
+    "mtime": 1779860147.7972767,
+    "ast_hash": "b203832df458e21cba7ad245d45e5749",
+    "semantic_hash": "b203832df458e21cba7ad245d45e5749"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\centralized_critic.py": {
+    "mtime": 1779860147.851798,
+    "ast_hash": "8d7fccca67c39b94035dcd592c1c37d6",
+    "semantic_hash": "8d7fccca67c39b94035dcd592c1c37d6"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\colight_gat.py": {
+    "mtime": 1779860147.8597982,
+    "ast_hash": "cbe0e41f7e356b4f9d027dde303a81f1",
+    "semantic_hash": "cbe0e41f7e356b4f9d027dde303a81f1"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\domain_randomization.py": {
+    "mtime": 1779860147.868798,
+    "ast_hash": "769581bbb705cd4045e4c63812b04a77",
+    "semantic_hash": "769581bbb705cd4045e4c63812b04a77"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\frap_encoder.py": {
+    "mtime": 1779860147.8757975,
+    "ast_hash": "e2ae214874be03f99bdeb1149bbbbbe7",
+    "semantic_hash": "e2ae214874be03f99bdeb1149bbbbbe7"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\inference_adapter.py": {
+    "mtime": 1779860147.8837974,
+    "ast_hash": "fd273e3fa7334fbfbac1563612a694d0",
+    "semantic_hash": "fd273e3fa7334fbfbac1563612a694d0"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\live_inference.py": {
+    "mtime": 1779860147.8917983,
+    "ast_hash": "4534e61153a0b327db1825c957c0e44d",
+    "semantic_hash": "4534e61153a0b327db1825c957c0e44d"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\mappo_trainer.py": {
+    "mtime": 1779860147.902806,
+    "ast_hash": "6d9fd2262c869a38be0c53440b231054",
+    "semantic_hash": "6d9fd2262c869a38be0c53440b231054"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\shared_policy.py": {
+    "mtime": 1779860147.9108098,
+    "ast_hash": "58fcb2babaa7fc157bfd4d97c3b47b85",
+    "semantic_hash": "58fcb2babaa7fc157bfd4d97c3b47b85"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\__init__.py": {
+    "mtime": 1779860147.8428028,
+    "ast_hash": "7271e2b925c62004a48aad43d8ec73e0",
+    "semantic_hash": "7271e2b925c62004a48aad43d8ec73e0"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\tests\\test_smoke.py": {
+    "mtime": 1779860147.9208293,
+    "ast_hash": "75377d6cbcd5e953d62459fd502d8747",
+    "semantic_hash": "75377d6cbcd5e953d62459fd502d8747"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\v2\\tests\\__init__.py": {
+    "mtime": 1779860147.911809,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\GRAPHIFY.md": {
+    "mtime": 1779860147.7532756,
+    "ast_hash": "9fcde966bde4f7e5e5a09c6a560321cc",
+    "semantic_hash": "9fcde966bde4f7e5e5a09c6a560321cc"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\README.md": {
+    "mtime": 1778538160.703401,
+    "ast_hash": "0d89de437e736ed82fef2922bf516964",
+    "semantic_hash": "0d89de437e736ed82fef2922bf516964"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\Synaptix Website.md": {
+    "mtime": 1778538160.7673953,
+    "ast_hash": "1d2bed57f0af46d0180f2c1f6f74d9ee",
+    "semantic_hash": "1d2bed57f0af46d0180f2c1f6f74d9ee"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\README.md": {
+    "mtime": 1778538160.7053926,
+    "ast_hash": "3e3d8765b10ffd1ef4f445358af8adc1",
+    "semantic_hash": "3e3d8765b10ffd1ef4f445358af8adc1"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\requirements.txt": {
+    "mtime": 1778888600.6043315,
+    "ast_hash": "77095a2ff8ae2d88bcaf19057dd7fbfd",
+    "semantic_hash": "77095a2ff8ae2d88bcaf19057dd7fbfd"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\junctions_out.txt": {
+    "mtime": 1778538160.7503908,
+    "ast_hash": "485ae59e7778c26d25f72bf40c8500e7",
+    "semantic_hash": "485ae59e7778c26d25f72bf40c8500e7"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\RUN_AI.md": {
+    "mtime": 1779308286.4431977,
+    "ast_hash": "40c4c8102b431fe2b0b39027c64bc34e",
+    "semantic_hash": "40c4c8102b431fe2b0b39027c64bc34e"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\HANDOFF.md": {
+    "mtime": 1778703546.1632793,
+    "ast_hash": "ab5b899e6a220fc0c56f7820f4770b3f",
+    "semantic_hash": "ab5b899e6a220fc0c56f7820f4770b3f"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\PLAN_V2.md": {
+    "mtime": 1779860147.7632773,
+    "ast_hash": "c2f4f50ddf49dbc3afbdf5edd53bcb7d",
+    "semantic_hash": "c2f4f50ddf49dbc3afbdf5edd53bcb7d"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\README.md": {
+    "mtime": 1778888600.6173446,
+    "ast_hash": "c204de119f9a83cbe3fd4e610ef75476",
+    "semantic_hash": "c204de119f9a83cbe3fd4e610ef75476"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_ablation.txt": {
+    "mtime": 1778888600.6428597,
+    "ast_hash": "7cdac2d66eda346467a52b587e6163f7",
+    "semantic_hash": "7cdac2d66eda346467a52b587e6163f7"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_baseline_vs_dqn.txt": {
+    "mtime": 1778888600.654859,
+    "ast_hash": "7628aa1c229bfc00b683a7d54c2f6ac2",
+    "semantic_hash": "7628aa1c229bfc00b683a7d54c2f6ac2"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_console.txt": {
+    "mtime": 1778888600.6678658,
+    "ast_hash": "6be28a6913931dbf3906ee6e9252ea55",
+    "semantic_hash": "6be28a6913931dbf3906ee6e9252ea55"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_optA5.txt": {
+    "mtime": 1778888600.6818562,
+    "ast_hash": "b2156484f14b39f5705c8356d82175cd",
+    "semantic_hash": "b2156484f14b39f5705c8356d82175cd"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_optA5_final.txt": {
+    "mtime": 1778888600.6918592,
+    "ast_hash": "d86aa6d0eff0343448d9a14f49ec5f29",
+    "semantic_hash": "d86aa6d0eff0343448d9a14f49ec5f29"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_optA5_smoke.txt": {
+    "mtime": 1778888600.6998613,
+    "ast_hash": "1ad2de1cca6e37fb58be7514a0755316",
+    "semantic_hash": "1ad2de1cca6e37fb58be7514a0755316"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_optA5_smoke2.txt": {
+    "mtime": 1778888600.7098613,
+    "ast_hash": "56ffab38f735b2e05b67e509a9e738bf",
+    "semantic_hash": "56ffab38f735b2e05b67e509a9e738bf"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_optA_relaxed.txt": {
+    "mtime": 1778888600.7188683,
+    "ast_hash": "112f3491c4fdb4b2ddc091b52a456a88",
+    "semantic_hash": "112f3491c4fdb4b2ddc091b52a456a88"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_optA_smoke.txt": {
+    "mtime": 1778888600.7293887,
+    "ast_hash": "63ce646050f093be0db376cb09569f6f",
+    "semantic_hash": "63ce646050f093be0db376cb09569f6f"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_optB.txt": {
+    "mtime": 1778888600.7393894,
+    "ast_hash": "3cbf7bddc42e6669d071c5aae705ab76",
+    "semantic_hash": "3cbf7bddc42e6669d071c5aae705ab76"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\eval_smoke.txt": {
+    "mtime": 1778888600.7473905,
+    "ast_hash": "76f104ff52ebad585c658383818d8823",
+    "semantic_hash": "76f104ff52ebad585c658383818d8823"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\train_anti_starve_console.txt": {
+    "mtime": 1778888600.7563806,
+    "ast_hash": "2c387fdfaf2914db0641ddb198a99d9e",
+    "semantic_hash": "2c387fdfaf2914db0641ddb198a99d9e"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\train_combined_console.txt": {
+    "mtime": 1778888600.7673879,
+    "ast_hash": "c7fb1585a026cab39477500097c056e6",
+    "semantic_hash": "c7fb1585a026cab39477500097c056e6"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\train_differential_console.txt": {
+    "mtime": 1778888600.778381,
+    "ast_hash": "bc40ebf216e3021699a0e0f4cacdec7d",
+    "semantic_hash": "bc40ebf216e3021699a0e0f4cacdec7d"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\logs\\train_max_pressure_console.txt": {
+    "mtime": 1778888600.7903838,
+    "ast_hash": "a29ff4226ed8c40f3532b4b972445405",
+    "semantic_hash": "a29ff4226ed8c40f3532b4b972445405"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\ai\\sumo_calibration\\report.md": {
+    "mtime": 1779860147.8248024,
+    "ast_hash": "8ebe3357718a154318ed546af215bf55",
+    "semantic_hash": "8ebe3357718a154318ed546af215bf55"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\frontend\\index.html": {
+    "mtime": 1779308286.6490166,
+    "ast_hash": "df7a44d15719935f091751c00288206f",
+    "semantic_hash": "df7a44d15719935f091751c00288206f"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\frontend\\index_CyberPunk.html": {
+    "mtime": 1778538160.7383933,
+    "ast_hash": "d7fc7747a3497f0dc2efaee576aa7e93",
+    "semantic_hash": "d7fc7747a3497f0dc2efaee576aa7e93"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\frontend\\index_performance_optimized.html": {
+    "mtime": 1778538160.7403965,
+    "ast_hash": "131c936ac7ac8f3c3d878539c44eb84e",
+    "semantic_hash": "131c936ac7ac8f3c3d878539c44eb84e"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\PyTorch AI_ Reasons why it's a good choice.pdf": {
+    "mtime": 1778538160.703401,
+    "ast_hash": "193a5cc7e2ee99b4abd59ef4612afd85",
+    "semantic_hash": "193a5cc7e2ee99b4abd59ef4612afd85"
+  },
+  "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\Flow.png": {
+    "mtime": 1778538160.696397,
+    "ast_hash": "c0f759abc03c2c189a5a797a3f513a1f",
+    "semantic_hash": "c0f759abc03c2c189a5a797a3f513a1f"
+  }
+}

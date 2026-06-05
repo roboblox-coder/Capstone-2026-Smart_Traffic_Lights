@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# graphify
+graphify-out/
+graphify-out-*/
+.graphify/
+
+# SUMO per-run outputs (regenerated every sim; not source)
+SUMO/v2/e2output.xml
+SUMO/v2/test_v2.log
+SUMO/v2/ai/runs/v2_smoke*/
+SUMO/v2/ai/runs/v2_resume_test*/
+# Diagnostic + retrain experiment outputs (large checkpoints/logs, not source)
+SUMO/v2/ai/runs/v2_diag*/
+SUMO/v2/ai/runs/v2_mappo_retrain*/
+SUMO/v2/ai/runs/v3_smoke*/
+SUMO/v2/ai/runs/v3_frap_dqn*/

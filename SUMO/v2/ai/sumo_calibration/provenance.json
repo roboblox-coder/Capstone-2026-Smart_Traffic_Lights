@@ -1,0 +1,508 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-28T02:43:38.181700Z",
+  "source_files": {
+    "turn_ratios": "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\Real_intersection_data\\Turn_ratio.xlsx",
+    "intersection_addresses": "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\Real_intersection_data\\Intersection_address.xlsx",
+    "network": "C:\\Users\\Duke3\\Documents\\GitHub\\AI-Traffic\\SUMO\\v2\\NE_8th_St_Corridor.net.xml"
+  },
+  "default_volume_per_dir": 300,
+  "summary": {
+    "intersections_real": 6,
+    "intersections_estimated": 8,
+    "intersections_match_failed": 0,
+    "edges_real": 22,
+    "edges_estimated": 21
+  },
+  "intersections": [
+    {
+      "int_id": 7,
+      "junction_id": "cluster_3648303878_5019372006_7625804229_7625804230",
+      "source": "real",
+      "ns_address": "Bellevue Wy NE \u2020",
+      "ew_address": "NE 8th St",
+      "volumes_by_dir": {
+        "NB": 737,
+        "SB": 734,
+        "EB": 710,
+        "WB": 1160
+      },
+      "edge_ids_by_dir": {
+        "SB": "243441994#0",
+        "NB": "427906774",
+        "EB": "513490801#0",
+        "WB": "513503501#0"
+      },
+      "notes": []
+    },
+    {
+      "int_id": 16,
+      "junction_id": "cluster_5019371995_53129841",
+      "source": "real",
+      "ns_address": "106th Ave NE \u2020",
+      "ew_address": "NE 8th St",
+      "volumes_by_dir": {
+        "NB": 547,
+        "SB": 390,
+        "EB": 919,
+        "WB": 1421
+      },
+      "edge_ids_by_dir": {
+        "SB": "-622484162#7",
+        "WB": "513503507",
+        "EB": "513503512",
+        "NB": "770771941#0"
+      },
+      "notes": []
+    },
+    {
+      "int_id": 21,
+      "junction_id": "4270714542",
+      "source": "real",
+      "ns_address": "108th Ave NE \u2020",
+      "ew_address": "NE 8th St",
+      "volumes_by_dir": {
+        "NB": 609,
+        "SB": 263,
+        "EB": 1026,
+        "WB": 1270
+      },
+      "edge_ids_by_dir": {
+        "SB": "-427906729#2",
+        "NB": "402083655#0"
+      },
+      "notes": []
+    },
+    {
+      "int_id": 27,
+      "junction_id": "cluster_5019372003_53129846",
+      "source": "real",
+      "ns_address": "110th Ave NE \u2020",
+      "ew_address": "NE 8th St",
+      "volumes_by_dir": {
+        "NB": 479,
+        "SB": 381,
+        "EB": 1359,
+        "WB": 1623
+      },
+      "edge_ids_by_dir": {
+        "NB": "-513238726",
+        "SB": "402083657#0",
+        "EB": "427906923",
+        "WB": "427906927#0"
+      },
+      "notes": []
+    },
+    {
+      "int_id": 26,
+      "junction_id": "cluster_1804700801_53030309_7625804249_7625804251",
+      "source": "real",
+      "ns_address": "112th Ave NE \u2020",
+      "ew_address": "NE 8th St",
+      "volumes_by_dir": {
+        "NB": 695,
+        "SB": 1071,
+        "EB": 1426,
+        "WB": 1792
+      },
+      "edge_ids_by_dir": {
+        "WB": "1058885032",
+        "NB": "1262800969",
+        "SB": "592232752#0",
+        "EB": "750007896#0"
+      },
+      "notes": []
+    },
+    {
+      "int_id": 30,
+      "junction_id": "cluster_1804700800_53129739",
+      "source": "real",
+      "ns_address": "116th Ave NE \u2020",
+      "ew_address": "NE 8th St",
+      "volumes_by_dir": {
+        "NB": 807,
+        "SB": 1227,
+        "EB": 1501,
+        "WB": 1323
+      },
+      "edge_ids_by_dir": {
+        "SB": "-428073486",
+        "NB": "421760949",
+        "EB": "428073532",
+        "WB": "428073550#0"
+      },
+      "notes": []
+    },
+    {
+      "int_id": -1,
+      "junction_id": "7953710843",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "SB": 300,
+        "NB": 300
+      },
+      "edge_ids_by_dir": {
+        "SB": "1295951544",
+        "NB": "1295951547"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    },
+    {
+      "int_id": -1,
+      "junction_id": "53254289",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "WB": 300,
+        "NB": 300
+      },
+      "edge_ids_by_dir": {
+        "WB": "-425272689#3",
+        "NB": "425272688#0"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    },
+    {
+      "int_id": -1,
+      "junction_id": "cluster_5019372000_53129844",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "SB": 300,
+        "NB": 300,
+        "WB": 300,
+        "EB": 300
+      },
+      "edge_ids_by_dir": {
+        "SB": "-427906724#1",
+        "NB": "427906729#0",
+        "WB": "513503509#0",
+        "EB": "513503511"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    },
+    {
+      "int_id": -1,
+      "junction_id": "3153556582",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "SB": 300,
+        "NB": 300,
+        "EB": 300
+      },
+      "edge_ids_by_dir": {
+        "SB": "-427906751#2",
+        "NB": "427906757#0",
+        "EB": "451954734#0"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    },
+    {
+      "int_id": -1,
+      "junction_id": "cluster_10209828640_53148675",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "WB": 300,
+        "NB": 300,
+        "SB": 300
+      },
+      "edge_ids_by_dir": {
+        "WB": "-513238722#1",
+        "NB": "1116291571#0",
+        "SB": "6400142#0"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    },
+    {
+      "int_id": -1,
+      "junction_id": "53141735",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "SB": 300,
+        "EB": 300,
+        "NB": 300
+      },
+      "edge_ids_by_dir": {
+        "SB": "-775139011#2",
+        "EB": "108384167#0",
+        "NB": "6393971#0"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    },
+    {
+      "int_id": -1,
+      "junction_id": "cluster_4245960164_4245960168_4245960171",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "NB": 300,
+        "SB": 300
+      },
+      "edge_ids_by_dir": {
+        "NB": "470492322#0",
+        "SB": "968748784"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    },
+    {
+      "int_id": -1,
+      "junction_id": "7013287371",
+      "source": "estimated",
+      "ns_address": "",
+      "ew_address": "",
+      "volumes_by_dir": {
+        "EB": 300,
+        "SB": 300
+      },
+      "edge_ids_by_dir": {
+        "EB": "750007897#0",
+        "SB": "750007900"
+      },
+      "notes": [
+        "default_volume_per_dir=300"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "427906774",
+      "volume": 737,
+      "source": "real"
+    },
+    {
+      "edge_id": "243441994#0",
+      "volume": 734,
+      "source": "real"
+    },
+    {
+      "edge_id": "513490801#0",
+      "volume": 710,
+      "source": "real"
+    },
+    {
+      "edge_id": "513503501#0",
+      "volume": 1160,
+      "source": "real"
+    },
+    {
+      "edge_id": "770771941#0",
+      "volume": 547,
+      "source": "real"
+    },
+    {
+      "edge_id": "-622484162#7",
+      "volume": 390,
+      "source": "real"
+    },
+    {
+      "edge_id": "513503512",
+      "volume": 919,
+      "source": "real"
+    },
+    {
+      "edge_id": "513503507",
+      "volume": 1421,
+      "source": "real"
+    },
+    {
+      "edge_id": "402083655#0",
+      "volume": 609,
+      "source": "real"
+    },
+    {
+      "edge_id": "-427906729#2",
+      "volume": 263,
+      "source": "real"
+    },
+    {
+      "edge_id": "-513238726",
+      "volume": 479,
+      "source": "real"
+    },
+    {
+      "edge_id": "402083657#0",
+      "volume": 381,
+      "source": "real"
+    },
+    {
+      "edge_id": "427906923",
+      "volume": 1359,
+      "source": "real"
+    },
+    {
+      "edge_id": "427906927#0",
+      "volume": 1623,
+      "source": "real"
+    },
+    {
+      "edge_id": "1262800969",
+      "volume": 695,
+      "source": "real"
+    },
+    {
+      "edge_id": "592232752#0",
+      "volume": 1071,
+      "source": "real"
+    },
+    {
+      "edge_id": "750007896#0",
+      "volume": 1426,
+      "source": "real"
+    },
+    {
+      "edge_id": "1058885032",
+      "volume": 1792,
+      "source": "real"
+    },
+    {
+      "edge_id": "421760949",
+      "volume": 807,
+      "source": "real"
+    },
+    {
+      "edge_id": "-428073486",
+      "volume": 1227,
+      "source": "real"
+    },
+    {
+      "edge_id": "428073532",
+      "volume": 1501,
+      "source": "real"
+    },
+    {
+      "edge_id": "428073550#0",
+      "volume": 1323,
+      "source": "real"
+    },
+    {
+      "edge_id": "1295951544",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "1295951547",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "-425272689#3",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "425272688#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "-427906724#1",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "427906729#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "513503509#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "513503511",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "-427906751#2",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "427906757#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "451954734#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "-513238722#1",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "1116291571#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "6400142#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "-775139011#2",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "108384167#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "6393971#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "470492322#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "968748784",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "750007897#0",
+      "volume": 300,
+      "source": "estimated"
+    },
+    {
+      "edge_id": "750007900",
+      "volume": 300,
+      "source": "estimated"
+    }
+  ]
+}
