@@ -150,6 +150,14 @@ class SumoTrafficEnv:
         # Vehicles that arrived since the last _reward() call (for the
         # throughput term in the ``combined`` reward).
         self._arrived_since_reward: int = 0
+        # Per-light local outflow: vehicles that left this TLS's incoming
+        # lanes since the last snapshot_served() call. This is the
+        # action-attributable throughput signal the ``combined`` reward
+        # uses in multi-light training, where _arrived_since_reward stays 0
+        # because MultiTlsEnv owns the clock (never calls _sim_tick). See
+        # snapshot_served().
+        self._served_since_reward: int = 0
+        self._prev_incoming_ids: set = set()
 
         self._controlled_lanes: list = []
         # Incoming/outgoing lane sets for the ``max_pressure`` reward.
@@ -235,6 +243,8 @@ class SumoTrafficEnv:
         self._departed_total = 0
         self._cumulative_wait = 0.0
         self._arrived_since_reward = 0
+        self._served_since_reward = 0
+        self._prev_incoming_ids = set()
 
         if self.control_tls:
             # Lock the TLS into the agent-controlled regime. Drive via raw
@@ -378,6 +388,25 @@ class SumoTrafficEnv:
         self._reward_local_w = float(local_w)
         self._reward_net_w = float(net_w)
         self._reward_coord_w = float(coord_w)
+
+    def snapshot_served(self) -> None:
+        """Update vehicles-served count: vehicles that left this TLS's
+        incoming lanes since the last snapshot (approx vehicles discharged
+        through the junction this decision).
+
+        ``cur`` is the union of vehicle ids over *all* incoming lanes, so a
+        vehicle lane-changing to another incoming lane of the same TLS
+        cancels out and is not miscounted as served. Teleports are
+        negligible (the sim runs with ``--time-to-teleport -1``). The
+        multi-TLS wrapper calls this once per decision before reading
+        rewards, and seeds it at episode start (units persist across
+        resets, so the baseline must be re-taken each episode)."""
+        conn = self._conn()
+        cur = set()
+        for l in self._incoming_lanes:
+            cur.update(conn.lane.getLastStepVehicleIDs(l))
+        self._served_since_reward = len(self._prev_incoming_ids - cur)
+        self._prev_incoming_ids = cur
 
     # ── dynamics ──────────────────────────────────────────────
 
@@ -545,7 +574,13 @@ class SumoTrafficEnv:
             # and penalise growth in total waiting time. Wait term is
             # normalised by lane count to keep DQN targets O(1).
             n = max(1, len(self._controlled_lanes))
-            arrived_term = float(self._arrived_since_reward)
+            # Prefer the per-light local outflow set by snapshot_served()
+            # (multi-light training, where _arrived_since_reward is always 0
+            # because MultiTlsEnv owns the clock). Fall back to the global
+            # arrival count for the single-TLS path, which has no
+            # snapshot_served caller and where _arrived_since_reward works.
+            arrived_term = float(getattr(self, "_served_since_reward", 0)
+                                 or self._arrived_since_reward)
             wait_term = (self._prev_total_wait - total_wait) / n
             r = self.reward_alpha * arrived_term + self.reward_beta * wait_term
             if switched:

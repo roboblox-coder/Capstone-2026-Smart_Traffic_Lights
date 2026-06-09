@@ -149,6 +149,12 @@ class MultiTlsEnv:
                     u._phase_states[u._green_phase_indices[0]],
                 )
 
+        # Seed each light's served-vehicle baseline for this episode. Units
+        # persist across resets, so without this the first decision's outflow
+        # would diff against the previous episode's stale vehicle ids.
+        for u in self.units.values():
+            u.snapshot_served()
+
     def stop(self) -> None:
         if self._label is None:
             return
@@ -214,6 +220,9 @@ class MultiTlsEnv:
 
     def _refresh_coordination_signals(self, net_arrived: int) -> None:
         for tid, u in self.units.items():
+            # Count this light's local outflow for the ``combined`` reward's
+            # throughput term *before* its reward is read this decision.
+            u.snapshot_served()
             u.set_shared_arrived(net_arrived, self._n_tls)
             adj = self.adjacency.get(tid, {})
             block = (self._neighbor_triplet(adj.get("upstream"))
