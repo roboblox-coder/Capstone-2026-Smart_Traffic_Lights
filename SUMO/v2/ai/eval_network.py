@@ -253,7 +253,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--time-limit", type=int, default=1200)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--min-green", type=int, default=5)
-    p.add_argument("--yellow-time", type=int, default=5)
+    p.add_argument("--yellow-time", type=int, default=3,
+                   help="Yellow (s) per AI switch; 3 matches the native "
+                        "corridor majority (was 5 — a ~2s/cycle handicap "
+                        "vs the baseline this eval is judged against).")
     p.add_argument("--decision-interval", type=int, default=5)
     p.add_argument("--out", default="ai/logs/eval_network.txt")
     p.add_argument("--fixed-green-seconds", type=int, default=25,

@@ -47,7 +47,7 @@ class MultiTlsEnv:
         tls_ids: Optional[list] = None,
         time_limit: int = 1200,
         min_green: int = 5,
-        yellow_time: int = 5,
+        yellow_time: int = 3,
         decision_interval: int = 5,
         reward_mode: str = "max_pressure_net",
         reward_gamma: float = 0.05,

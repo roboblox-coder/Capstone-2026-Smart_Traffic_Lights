@@ -53,6 +53,10 @@ def main() -> int:
     ap.add_argument("--adjacency", default="ai/adjacency.json")
     ap.add_argument("--episodes", type=int, default=30)
     ap.add_argument("--time-limit", type=int, default=1200)
+    ap.add_argument("--yellow-time", type=int, default=3,
+                    help="Yellow (s) per switch. 3 matches the native "
+                         "corridor majority; 5 was a ~2s/cycle handicap "
+                         "vs the baseline at several lights.")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--eps-start", type=float, default=1.0)
     ap.add_argument("--eps-end", type=float, default=0.05)
@@ -81,7 +85,8 @@ def main() -> int:
 
     adjacency = load_adjacency(args.adjacency)
     common = dict(sumo_cfg_file=args.sumo_cfg, adjacency=adjacency,
-                  time_limit=args.time_limit, reward_mode=args.reward_mode,
+                  time_limit=args.time_limit, yellow_time=args.yellow_time,
+                  reward_mode=args.reward_mode,
                   reward_alpha=args.reward_alpha, reward_beta=args.reward_beta,
                   control_tls=True, seed=args.seed)
     env = MultiTlsEnv(**common)

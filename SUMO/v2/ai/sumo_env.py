@@ -76,7 +76,7 @@ class SumoTrafficEnv:
         time_limit: int = 3600,
         use_gui: bool = False,
         min_green: int = 5,
-        yellow_time: int = 5,
+        yellow_time: int = 3,
         reward_mode: str = "waiting",
         switch_penalty: float = 0.1,
         extra_sumo_args: Optional[list] = None,
