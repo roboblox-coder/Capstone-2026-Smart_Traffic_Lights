@@ -1,5 +1,9 @@
 # Plan: Beat Native Signal Control on a Verifiable Metric
 
+> **SUPERSEDED (2026-06-09) by `PLAN_V4_EXECUTION.md`** after the
+> `ai/TRAINING_REVIEW.md` audit found the experiments behind this plan's
+> conclusions ran on a broken reward. Kept for history.
+
 **Goal:** demonstrate the V3 FRAP-DQN controller beats conventional
 ("native") traffic signal control on the calibrated NE 8th St corridor,
 on a metric anyone can re-verify.

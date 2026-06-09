@@ -25,6 +25,10 @@ proved, and where the effort stands against the real goal.
 - **We have NOT beaten native on the real data yet.** V3 is the closest
   (−14% throughput / −26% wait, from a 30-episode run). Closing that gap
   to +5%/+5% is the active goal.
+- **2026-06-09 audit: the "native-actuated is the ceiling" conclusion is
+  under re-test.** A code audit found the `combined` reward's throughput
+  term was silently zero in every V3 experiment (plus three other
+  defects) — see the audit section at the bottom and `TRAINING_REVIEW.md`.
 
 ---
 
@@ -206,3 +210,32 @@ a hyperparameter tweak; deferred as a deliberate next phase.
   identical seeds). Best V3 checkpoint:
   `ai/runs/v3_frap_dqn_combined/checkpoints/best.pth`.
 - Specs/plans: `docs/superpowers/specs/`, `docs/superpowers/plans/`.
+
+---
+
+## 2026-06-09 audit — ceiling conclusion premature
+
+An independent code audit (`ai/TRAINING_REVIEW.md`, findings F1–F8) found
+that every V3 "ceiling" experiment ran with four live defects:
+
+- **F1 (bug):** the `combined` reward's throughput term was **always
+  zero** in multi-light training — `_arrived_since_reward` is only
+  incremented by `SumoTrafficEnv._sim_tick()`, which `MultiTlsEnv` never
+  calls. All four experiments actually optimized a wait-only reward;
+  `--reward-alpha` (and Exp4's β sweep, in the intended sense) did
+  nothing. The agent was never rewarded for throughput.
+- **F2:** the FRAP state has no current-phase green-bit and no
+  time-in-phase — the Q-net cannot price "hold" vs "switch".
+- **F3:** FRAP movement features are un-normalized (raw waiting seconds
+  dominate the encoder ~100×).
+- **F4:** the AI pays 5s yellows while the native baseline pays 3s at
+  three intersections — a built-in handicap on the reported comparison.
+
+**Status of prior claims:** the V3-beats-fixed-time result *stands*
+(paired-seed comparison, unaffected by any of the above). The
+"native-actuated is the ceiling for the per-light DQN" conclusion is
+**suspended** until the fixes are retrained — meta-lesson repeated:
+*verify the objective before blaming the learner* applied once more.
+
+**Next:** staged remediation + retrain plan in
+`ai/v3/PLAN_V4_EXECUTION.md` (supersedes `ai/v3/PLAN_BEAT_NATIVE.md`).

@@ -1,4 +1,35 @@
-# AI pipeline — what's left
+# AI pipeline — handoff
+
+## Current handoff (2026-06-09): V4 remediation + retrain
+
+The active work is executing the post-audit V4 plan. Read in this order
+— it is everything the executing agent needs, no repo exploration
+required:
+
+1. **`ai/TRAINING_REVIEW.md`** — code audit, findings F1–F8 with
+   file:line anchors (headline: the `combined` reward's throughput term
+   was silently zero in all V3 training; the "native-actuated is the
+   ceiling" conclusion is suspended).
+2. **`ai/v3/PLAN_V4_EXECUTION.md`** — the staged execution plan
+   (Stage 0 fixes → training quality → cheap coordination → claim
+   hygiene), with per-task code sketches, verification commands, and
+   stop-and-report gates. Includes cheap-execution rules: which files
+   to read, which to never read.
+3. **`graphify-out/GRAPH_REPORT.md`** — committed knowledge graph of
+   the codebase (god-nodes, community map). Use it for orientation
+   instead of grepping; `graphify query "..."` works against
+   `graphify-out/graph.json`.
+
+History/context if needed: `ai/DECISIONS_V1_V2_V3.md` (V1→V2→V3 +
+audit addendum), `ai/v3/RESULTS.md` (current verified numbers).
+
+Everything below this divider is the historical V1 handoff. Its
+**Known risks** list is still load-bearing (TraCI labels,
+`setRedYellowGreenState` — do not "simplify" those).
+
+---
+
+## Historical (V1 pipeline)
 
 The Double-DQN controller is wired into the live WebSocket simulation
 and the frontend AI badge updates correctly. The smoke test passes,
@@ -6,7 +37,7 @@ a short training run produces a `best.pth` checkpoint, and the
 frontend reports `AI: active slot=N Δ=…` in green over a live socket.
 
 The remaining work is the long training run and the post-training
-analysis. Deadline is **Wednesday**.
+analysis.
 
 ---
 

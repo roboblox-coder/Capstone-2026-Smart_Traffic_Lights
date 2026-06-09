@@ -49,6 +49,15 @@ corridor controller would replace.
 
 ## Native-actuated: demonstrated ceiling (not for lack of trying)
 
+> **⚠ 2026-06-09 audit caveat — ceiling conclusion suspended.** All four
+> experiments below ran with the `combined` reward's **throughput term
+> silently zero** (`TRAINING_REVIEW.md` finding F1: `MultiTlsEnv` never
+> increments the units' `_arrived_since_reward`), plus a blind state
+> (F2), un-normalized features (F3), and a 5s-vs-3s yellow handicap vs
+> native (F4). The fixed-time win above **stands** (paired seeds,
+> unaffected). The ceiling claim is under re-test via
+> `PLAN_V4_EXECUTION.md`.
+
 Beating SUMO's *actuated* baseline (2,078 / 5,504) was pursued across
 **four training experiments + multiple distinct levers**, all 5-seed
 evaluated on the clean comparison seeds:
