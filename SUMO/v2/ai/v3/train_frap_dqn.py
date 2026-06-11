@@ -58,6 +58,12 @@ def main() -> int:
                     help="Yellow (s) per switch. 3 matches the native "
                          "corridor majority; 5 was a ~2s/cycle handicap "
                          "vs the baseline at several lights.")
+    ap.add_argument("--decision-interval", type=int, default=5,
+                    help="Seconds each decision holds the green. The di2 "
+                         "run (best model to date) used 2 — min_green "
+                         "still prevents thrash; finer decisions let the "
+                         "policy react faster. Was previously only "
+                         "settable by editing MultiTlsEnv's default.")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--eps-start", type=float, default=1.0)
     ap.add_argument("--eps-end", type=float, default=0.05)
@@ -104,6 +110,7 @@ def main() -> int:
     adjacency = load_adjacency(args.adjacency)
     common = dict(sumo_cfg_file=args.sumo_cfg, adjacency=adjacency,
                   time_limit=args.time_limit, yellow_time=args.yellow_time,
+                  decision_interval=args.decision_interval,
                   reward_mode=args.reward_mode,
                   reward_alpha=args.reward_alpha, reward_beta=args.reward_beta,
                   control_tls=True, seed=args.seed)
