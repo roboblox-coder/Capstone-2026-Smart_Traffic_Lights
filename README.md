@@ -1,252 +1,146 @@
-# Capstone-2026-Smart_Traffic_Lights
-Repository &amp; workspace for everything related to BC's Team 5 Capstone project.
+# SYNAPTIX — Project: ATLAS
+### Automated Traffic Logic And Synchronization
 
-# Project Name: "SYNAPTIX Project: ATLAS"
+Repository & workspace for Bellevue College Team 5's capstone project.
 
-- Brief description of your project.
-"Project: ATLAS" is our attempt to utilize an AI algorithm paired with a system of cameras as a plan to improve the quality of traffic at intersections for pedestrians, bicyclists, late-night drivers, and emergency vehicles alike.
+"Project: ATLAS" is our attempt to utilize an AI algorithm paired with a
+system of cameras as a plan to improve the quality of traffic at
+intersections for pedestrians, bicyclists, late-night drivers, and
+emergency vehicles alike.
 
-## Table of Contents
-- [Introduction](#introduction)
-- [Features](#features)
-- [Design Details](#design-details)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+ATLAS is an affordable, privacy-first traffic management solution
+designed to modernize urban intersections without the high costs of
+industrial sensors or the security risks of mass data storage. By
+utilizing low-cost camera systems and real-time AI, ATLAS eliminates
+unnecessary idling for drivers and creates a safer environment for
+pedestrians and emergency vehicles. Our "zero-retention" approach
+ensures that while the system is highly intelligent, it remains
+invisible to data breaches — processing what it sees in the moment and
+discarding the footage instantly to protect citizen privacy.
 
-## Introduction
-
-Provide a concise introduction to your project. Explain what problem it solves and why it's useful.
-
-Project: ATLAS is an affordable, privacy-first traffic management solution designed to modernize urban intersections without the high costs of industrial sensors or the security risks of mass data storage. By utilizing low-cost camera systems and real-time AI, ATLAS eliminates unnecessary idling for drivers and creates a safer environment for pedestrians and emergency vehicles. Our "zero-retention" approach ensures that while the system is highly intelligent, it remains invisible to data breaches—processing what it sees in the moment and discarding the footage instantly to protect citizen privacy.
+**Live demo site:** https://synaptix-website-773415276572.us-west1.run.app/
 
 ## Features
 
-List the key features of your project. Use bullet points for clarity.
+- **Cost-efficient perception:** replaces expensive LiDAR and inductive
+  loops with high-performance, budget-friendly cameras to lower
+  installation barriers for any city.
+- **Privacy-by-design (stateless processing):** operates entirely on
+  real-time data streams with no video storage, so no personally
+  identifiable information is ever at risk.
+- **Dynamic AI sequencing:** a PyTorch-driven reinforcement-learning
+  policy that prioritizes road users based on immediate demand.
+- **Vulnerable road user safety:** real-time detection of bicyclists
+  and pedestrians to adjust signal timings dynamically.
 
-- Feature 1: AI ALgorithm using Three.js, SUMO (Simulation of Urban MObility) & PyTorch AI
-- Feature 2: Cameras
+## Architecture
 
-- ... (AI expanded version):
+- **Hardware (low-cost vision):** standard-definition wide-angle
+  cameras provide sufficient data for AI classification at a fraction
+  of industrial sensor cost.
+- **AI engine (PyTorch):** a parameter-shared FRAP Double-DQN controls
+  all 12 signalized intersections of a calibrated digital twin of
+  Bellevue's NE 8th St corridor (built from real intersection counts).
+- **Simulation & logic (SUMO + Three.js):** SUMO (Simulation of Urban
+  MObility) runs the corridor; a WebSocket bridge streams live vehicle
+  and signal state into a Three.js 3D viewer in the browser.
+- **Ephemeral data pipeline:** once the AI extracts numerical metadata
+  (counts and positions), the raw video buffer is overwritten — nothing
+  is written to disk or sent to a cloud.
 
-- Cost-Efficient Perception: Replaces expensive LiDAR and inductive loops with high-performance, budget-friendly cameras to lower installation barriers for any city.
-- Privacy-by-Design (Stateless Processing): Operates entirely on real-time data streams with no video storage, ensuring no personal identifiable information (PII) is ever at risk of being stolen or leaked.
-- Dynamic AI Sequencing: A PyTorch-driven algorithm that prioritizes road users based on immediate demand, clearing intersections for late-night drivers and emergency "green waves."
-- Vulnerable Road User (VRU) Safety: Real-time detection of bicyclists and pedestrians to adjust signal timings dynamically, preventing accidents before they happen.
+## Results (simulation, verified)
 
-## Design Details
+Measured on the calibrated NE 8th St corridor (12 lights), 5 paired
+random seeds, identical demand for every controller:
 
-Explain the high-level design decisions and architecture of your project. Include diagrams or code snippets if necessary.
+- **vs conventional fixed-time signals** (what most arterials run): the
+  RL controller cuts average wait per vehicle by **~21–35%** and edges
+  throughput (**+3–10%**), winning 4–5 of 5 seeds depending on model.
+- **vs SUMO's adaptive (actuated) controller:** the best model
+  (`SUMO/v2/ai/v3/model_di2_best.pth`) also shows **~8% lower wait
+  (4/5 seeds)**; this single-checkpoint result is provisional pending
+  re-validation (see the V4 re-test notes).
+- Throughput remains capacity-bound on this over-saturated corridor —
+  the win is delay, not volume.
 
-- Hardware (Low-Cost Vision): The system utilizes standard-definition wide-angle cameras. These provide sufficient data for AI classification while keeping hardware costs significantly lower than industrial-grade traffic sensors.
+Full tables, reproduction commands, and honest caveats:
+[`SUMO/v2/ai/v3/RESULTS.md`](SUMO/v2/ai/v3/RESULTS.md).
 
-- AI Engine (PyTorch): We use a lightweight PyTorch model optimized for the "edge." The model performs object detection (identifying cars vs. pedestrians) and immediately converts these into numerical data points (e.g., "3 cars in Lane A, 1 pedestrian at Crosswalk B").
+## Quickstart
 
-- Simulation & Logic (Three.js & SUMO): The SUMO simulation environment acts as the central logic controller. It ingests the numerical data points to simulate the most efficient signal phase, testing and executing timing changes in a virtual-to-physical loop. This simulation will then be "re-drawn" by Three.js into a 3d simulation in order to make the visual aspects of the simulation more visually appealing.
-
-- Ephemeral Data Pipeline: To ensure privacy, the system follows an In-Flight Processing model. Once the AI extracts the necessary metadata (object count and position), the raw video buffer is overwritten. No footage is saved to a hard drive or sent to a central cloud server.
-
-
-
-# 🚦 SUMO Traffic Simulation — NE 8th St Corridor (Bellevue)
-
-## Prerequisites
-
-| Tool | Download |
-|------|----------|
-| **SUMO** (desktop app) | [sumo.dlr.de/docs/Downloads.php](https://sumo.dlr.de/docs/Downloads.php) |
-| **Python 3.10+** | [python.org/downloads](https://www.python.org/downloads/) |
-
-After installing SUMO, set the **`SUMO_HOME`** environment variable so the scripts can find SUMO's built-in tools:
-
-- **Windows** — add a System Environment Variable:  
-  `SUMO_HOME = C:\Program Files (x86)\Eclipse\Sumo`  *(adjust to your install path)*
-- **macOS/Linux** — add to your shell profile (`~/.bashrc` / `~/.zshrc`):  
-  ```bash
-  export SUMO_HOME="/usr/share/sumo"
-  ```
-
-> **Tip:** If `SUMO_HOME` is not set, the scripts will try to auto-detect the path from the installed `sumolib` Python package. Setting `SUMO_HOME` is still recommended.
-
----
-
-## Setup
-
-```bash
-# 1. Clone / download this repo
-git clone <repo-url>
-cd SUMO
-
-# 2. Create & activate a virtual environment
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-# macOS / Linux
-source .venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-```
-
----
-
-## Running the Simulation
+Prerequisites: **Python 3.10+** and **SUMO**
+([download](https://sumo.dlr.de/docs/Downloads.php)). Set `SUMO_HOME`
+to the SUMO install folder (e.g. `C:\Program Files (x86)\Eclipse\Sumo`)
+and add `%SUMO_HOME%\bin` to `PATH`. If `SUMO_HOME` is unset, the
+scripts try to auto-detect it from the `sumolib` package.
 
 ```bash
-cd v2
-python run.py
-```
+git clone https://github.com/DukeSchnepf/AI-Traffic.git
+cd AI-Traffic/SUMO/v2
 
-This opens an interactive menu:
-
-| Option | Mode | Description |
-|--------|------|-------------|
-| **1** | Harvard Real-Life | Generates routes from Harvard traffic data, then opens SUMO-GUI |
-| **2** | Synthetic Traffic | Runs with pre-built synthetic routes in SUMO-GUI |
-| **3** | Headless Export | Runs SUMO headlessly, exports FCD & queue data → CSV |
-| **4** | TraCI | Runs via TraCI for programmatic / AI control |
-| **5** | WebSocket | TraCI + live WebSocket feed for a Three.js frontend |
-
-> **Option 5** starts a WebSocket server on `ws://localhost:8765`.  
-> Open `v2/frontend/index.html` in a browser to see vehicles move in real time.
-
----
-
-## PyTorch Installation Guide
-
-🚦 ATLAS SUMO Web Demo – Quick Start
-This guide will help you set up and run the 3D traffic simulation website using the files from the main branch.
-
-1. Prerequisites
-Python 3.10+ – Download from python.org
-
-SUMO (Simulation of Urban MObility) – Download from sumo.dlr.de
-
-After installing, set the environment variable SUMO_HOME to the installation folder (e.g., C:\Program Files (x86)\Eclipse\Sumo)
-
-Add %SUMO_HOME%\bin to your system PATH
-
-2. Get the Code
-Open Git Bash and run:
-
-bash
-# Clone the repository (this downloads all files)
-cd ~/OneDrive/Documents/College/   # or any folder you prefer
-git clone https://github.com/roboblox-coder/Capstone-2026-Smart_Traffic_Lights.git
-cd Capstone-2026-Smart_Traffic_Lights
-git checkout main   # ensure you're on the main branch
-Now you have the complete project. All the files you need are inside SUMO/v2/.
-
-3. Set Up the Python Environment
-bash
-# Go into the v2 folder
-cd SUMO/v2
-
-# Create a virtual environment (isolates dependencies)
 python -m venv .venv
+source .venv/Scripts/activate        # Windows Git Bash
+pip install traci sumolib websockets # base demo
+pip install torch numpy              # add these for the AI
 
-# Activate it (Git Bash on Windows)
-source .venv/Scripts/activate
-4. Install Required Packages
-bash
-pip install traci sumolib websockets
-(No AI packages needed for the base demo; they are only required if you later add the AI agent.)
-
-5. Run the WebSocket Simulation
-bash
+# Base demo (no AI): SUMO + WebSocket bridge
 python run_websocket_sim.py
-This command starts the SUMO simulation and a WebSocket server that broadcasts vehicle positions. Keep this terminal window open.
+# then open frontend/index.html in a browser
 
-6. Open the 3D Frontend
-Open your web browser (Chrome, Firefox, or Edge)
-
-Navigate to the following file (you can also double‑click it in File Explorer):
-
-text
-C:\Users\YourName\OneDrive\Documents\College\Capstone-2026-Smart_Traffic_Lights\SUMO\v2\frontend\index.html
-You should see a 3D city scene with moving vehicles. The traffic lights will operate using a default fixed‑time program (no AI) – this proves the simulation and website are working.
-
-Troubleshooting
-"Could not connect to TraCI" – Make sure SUMO is installed and SUMO_HOME is set correctly.
-
-Browser shows "Disconnected" – Wait a few seconds; the WebSocket server may still be starting. Check the terminal for error messages.
-
-Large simulation output files – The script creates folders like WebSocket_Simulation_Data_1. These are temporary and can be deleted; they are already ignored by Git.
-
-
-# Simulation Website:
-https://synaptix-website-773415276572.us-west1.run.app/ 
-
-
-
-## Project Structure
-
-```
-SUMO/
-├── requirements.txt          # Python dependencies
-├── README.md                 # This file
-├── .gitignore
-└── v2/
-    ├── run.py                # 🚀 Main launcher (start here)
-    ├── real_life_simulation.py  # Converts Harvard Excel → SUMO routes
-    ├── run_auto_sim.py       # Headless sim + CSV export
-    ├── run_traci_sim.py      # TraCI-based sim with AI hooks
-    ├── run_websocket_sim.py  # TraCI + WebSocket broadcaster
-    ├── websocket_server.py   # Reusable WS server module
-    ├── sim.sumocfg           # SUMO config file
-    ├── NE_8th_St_Corridor.net.xml  # Road network
-    ├── e2output.xml
-    ├── harvard_simulation.rou.xml  # Routes from Harvard data
-    ├── synthetic.rou.xml     # Synthetic routes
-    ├── Real_intersection_data/     # Harvard Excel source files
-    ├── ai/                   # This AI helps you set up and run the 3D traffic simulation website using the files from the main branch.
-        ├── sumo_env
-        ├── traffic_base
-        ├── train_dqn_sumo
-        └── visualize_sumo_ai
-    └── frontend/
-        └── index.html (simulation.html on the website)  # Three.js live viewer (no build step)
+# AI-controlled demo and training/eval workflows:
+# see RUN_AI.md in this folder
 ```
 
+The interactive launcher `python run.py` offers more modes
+(Harvard-data routes, synthetic traffic, headless CSV export, TraCI).
 
+Evaluate the AI against the baselines (fixed-time, SUMO actuated) on
+identical seeds:
 
-#### The following is a W.I.P. since this project is still in its extremely early phases. These sections will be updated and refined as time goes on and development on project ATLAS continues.
-### Example Code:
+```bash
+python ai/eval_network.py --sumo-cfg sim_calibrated.sumocfg \
+  --v3-ckpt ai/v3/model_di2_best.pth --episodes 5 --time-limit 1200 \
+  --decision-interval 2 --yellow-time 5 --fixed-green-seconds 25
+```
 
-```python
-# Code snippet or example to showcase design principles
+## Repository layout
 
-Installation
-Provide instructions on how to install your project. Include any dependencies or prerequisites.
-Requires Python and PyGame to run.
+```
+.
+├── README.md
+├── docs/
+│   ├── design/      # design specs + implementation plans (V2, V3)
+│   └── archive/     # early prototypes and superseded plans
+└── SUMO/
+    └── v2/
+        ├── run.py                    # interactive launcher
+        ├── run_websocket_sim.py      # live demo, SUMO-native signals
+        ├── run_websocket_ai.py       # live demo, AI-controlled signals
+        ├── RUN_AI.md                 # AI quickstart
+        ├── sim.sumocfg / sim_calibrated.sumocfg
+        ├── NE_8th_St_Corridor.net.xml
+        ├── Real_intersection_data/   # source traffic counts
+        ├── sumo_calibration/         # demand calibration + report
+        ├── frontend/index.html       # Three.js 3D viewer
+        └── ai/
+            ├── sumo_env.py           # single-light RL environment
+            ├── multi_env.py          # 12-light corridor environment
+            ├── eval_network.py       # AI vs baselines, paired seeds
+            ├── v2/                   # MAPPO/GAT line (superseded)
+            └── v3/                   # FRAP-DQN line (current)
+                ├── train_frap_dqn.py
+                ├── model_best.pth        # committed eval default
+                ├── model_di2_best.pth    # production best
+                └── RESULTS.md            # verified numbers + caveats
+```
 
-# Installation steps
-$ git clone https://github.com/your-username/your-repo.git
-$ cd your-repo
-$ npm install  # or any other relevant command
+Key documents: results & claims
+([RESULTS.md](SUMO/v2/ai/v3/RESULTS.md)), decision history
+([DECISIONS_V1_V2_V3.md](SUMO/v2/ai/DECISIONS_V1_V2_V3.md)), training
+audit ([TRAINING_REVIEW.md](SUMO/v2/ai/TRAINING_REVIEW.md)), current
+status & next steps ([HANDOFF.md](SUMO/v2/ai/HANDOFF.md)).
 
-Configuration
-Explain how users can configure your project. If applicable, include details about configuration files.
+## Team
 
-Example Configuration:
-# Configuration file example
-key: value
-
-Usage
-Provide examples and instructions on how users can use your project. Include code snippets or command-line examples.
-
-Example Usage:
-# Example command or usage
-
-Contributing
-Explain how others can contribute to your project. Include guidelines for pull requests and any code of conduct.
-
-License
-Specify the license under which your project is distributed. For example, MIT License, Apache License, etc.
-
-
-Make sure to replace placeholders such as "Project Name," "your-username," and "your-repo" with the appropriate information for your repository.
+Duke Schnepf, Cory Maccini, Nikolaus Henkel, Ryan Liang —
+supervised by Dr. Sara Farag.
