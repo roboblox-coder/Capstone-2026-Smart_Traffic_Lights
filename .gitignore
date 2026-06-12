@@ -1,20 +1,19 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# graphify
+# Local tooling / editor / session artifacts (never source)
+.claude/
+GRAPHIFY.md
 graphify-out/
 graphify-out-*/
 .graphify/
 
-# SUMO per-run outputs (regenerated every sim; not source)
+# Experiment outputs: checkpoints, logs, scratch. Deliverable models are
+# promoted into SUMO/v2/ai/ paths deliberately (e.g. ai/v3/model_*.pth);
+# everything generated under runs/ stays local.
+SUMO/v2/ai/runs/
+SUMO/v2/*.log
 SUMO/v2/e2output.xml
-SUMO/v2/test_v2.log
-SUMO/v2/ai/runs/v2_smoke*/
-SUMO/v2/ai/runs/v2_resume_test*/
-# Diagnostic + retrain experiment outputs (large checkpoints/logs, not source)
-SUMO/v2/ai/runs/v2_diag*/
-SUMO/v2/ai/runs/v2_mappo_retrain*/
-SUMO/v2/ai/runs/v3_smoke*/
-SUMO/v2/ai/runs/v3_frap_dqn*/
