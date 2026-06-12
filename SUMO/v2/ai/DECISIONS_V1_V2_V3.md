@@ -207,8 +207,9 @@ a hyperparameter tweak; deferred as a deliberate next phase.
 - V3: `ai/v3/` — `frap_q_net.py`, `frap_dqn_agent.py`, `train_frap_dqn.py`
 - V3 docs: `ai/v3/PLAN_BEAT_NATIVE.md`, `ai/v3/RESULTS.md`, this file
 - Eval harness: `ai/eval_network.py` (fixed-time / native / V1 / V2 / V3,
-  identical seeds). Best V3 checkpoint:
-  `ai/runs/v3_frap_dqn_combined/checkpoints/best.pth`.
+  identical seeds). Best V3 checkpoints (committed):
+  `ai/v3/model_best.pth` (30-ep combined),
+  `ai/v3/model_di2_best.pth` (di2 — production best).
 - Specs/plans: `docs/design/specs/`, `docs/design/plans/`.
 
 ---

@@ -8,9 +8,12 @@ corridor — verifiably, on both throughput and delay.
 
 ```bash
 python ai/eval_network.py --sumo-cfg sim_calibrated.sumocfg \
-  --v3-ckpt ai/runs/v3_frap_dqn_combined/checkpoints/best.pth \
+  --v3-ckpt ai/v3/model_best.pth \
   --episodes 5 --time-limit 1200 --fixed-green-seconds 25
 ```
+
+(`ai/v3/model_best.pth` is the committed copy of that run's best
+checkpoint, so this works on a fresh clone.)
 
 | controller | throughput (arrived) | wait/veh (s) | backlog |
 |---|---:|---:|---:|
@@ -56,6 +59,17 @@ three training campaigns. **None matched the pre-audit di2 checkpoint.**
 | run | config | best harvested (sel. seeds) | official 42–46 |
 |---|---|---:|---:|
 | v3_di2 (pre-audit) | raw state, di=2, eff. wait-diff | 4,593 / 1,940 | **5,044 / 1,924** |
+
+The di2 model is committed at `ai/v3/model_di2_best.pth`. Reproduce its
+official eval (matching the regime it was measured under —
+`ai/logs/eval_di2.txt`):
+
+```bash
+python ai/eval_network.py --sumo-cfg sim_calibrated.sumocfg \
+  --v3-ckpt ai/v3/model_di2_best.pth --episodes 5 --time-limit 1200 \
+  --decision-interval 2 --yellow-time 5 --fixed-green-seconds 25
+```
+
 | v4_stage0 | F1–F4, di=5, alpha=1 | 5,912 / 1,751 | 6,806 / 1,710 (gate FAIL) |
 | v4_stage1 | + n-step 3, eps/2, lpd 2 | 9,016 / 1,725 | (collapsed by ep 60) |
 | v4_b | di2 regime exactly + V4 state | 17,697 / 1,512 | (not worth evaling) |

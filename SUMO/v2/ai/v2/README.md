@@ -1,6 +1,6 @@
 # V2 MAPPO Corridor Controller - Training Session Findings & Diagnostics
 
-This README documents the results, findings, and technical diagnoses from the latest **V2 MAPPO** training session (`v2_mappo_retrain4`) on the Bellevue corridor. It is intended for **Claude Code** to inspect and use as a starting point to implement the next training iteration.
+This README documents the results, findings, and technical diagnoses from the latest **V2 MAPPO** training session (`v2_mappo_retrain4`) on the Bellevue corridor. It is the starting point for implementing the next training iteration.
 
 ---
 
@@ -71,7 +71,7 @@ It completely lacks the components of the DQN baseline's coordinated `max_pressu
 
 ---
 
-## 5. Next Steps for Claude Code
+## 5. Next Steps
 
 To close the gap and successfully clear the honest gate, the reward structure must be updated to align with the coordinated corridor objective:
 

@@ -1,7 +1,7 @@
 # PLAN V4 — Execution Plan (post-audit fixes → beat native-actuated)
 
-**Who this is for:** the executing agent (Opus 4.8). This plan was authored by the
-"main brain" session after a full code audit. You do NOT need to re-derive any
+**Who this is for:** whoever executes the plan. It was authored after a full
+code audit. You do NOT need to re-derive any
 finding — every claim is verified in `ai/TRAINING_REVIEW.md` with file:line anchors.
 Your job is to implement the tasks below exactly, run the listed verification, and
 report numbers at each gate.
@@ -29,7 +29,8 @@ fixed in Stage 0.
    than grepping the repo.
 3. **NEVER read these** (multi-MB, zero signal for this work): `*.rou.xml`,
    `*.net.xml` (use `grep -m1 -A12 'tlLogic id="<TLS>"'` if you need one program
-   block), `ai/runs/`, `ai/logs/`, `*.pth`, `Open_Source_Data.ipynb`.
+   block), `ai/runs/`, `ai/logs/`, `*.pth`,
+   `docs/archive/early-prototypes/Open_Source_Data.ipynb`.
 4. **One task = one commit.** Run only the verification listed in the task.
    Don't refactor beyond the task spec. All commands run from `SUMO/v2/`.
 5. **Stop at every STAGE GATE** and report the numbers (pass or fail). Do not
@@ -240,7 +241,7 @@ green-progress × 2 neighbors) — V3 just never feeds it to the network.
 **STAGE 2a GATE (= project goal T2):** 5-seed eval — **wait/veh < 5,504
 (native-actuated) on ≥ 3/5 seeds.** Report regardless. If clearly missed
 (wait still > 6,000), STOP: Stage 2b (GAT green-wave) needs a separate plan
-from the main-brain session — do not improvise a GAT.
+— do not improvise a GAT.
 
 ---
 

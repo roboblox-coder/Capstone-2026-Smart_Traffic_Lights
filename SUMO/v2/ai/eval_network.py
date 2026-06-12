@@ -177,6 +177,8 @@ def load_coordinated_agents_v2(ckpt_path: str, env: MultiTlsEnv):
     so callers can fall back the same way V1's missing-checkpoint path
     does.
     """
+    if not ckpt_path:
+        return None, None
     if not os.path.exists(ckpt_path):
         print(f"  [v2 fallback] no checkpoint at {ckpt_path}")
         return None, None
@@ -239,11 +241,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--ckpt-dir", default="ai/runs/coordinated/checkpoints")
     p.add_argument("--ckpt-name", default="best.pth",
                    help="Checkpoint file per TLS (best.pth or last.pth).")
-    p.add_argument("--v2-ckpt",
-                   default="ai/runs/v2_mappo/checkpoints/best.pth",
-                   help="Corridor-level V2 (FRAP/GAT/MAPPO) checkpoint. "
-                        "Compared as 'coordinated_v2_frap' alongside V1 "
-                        "and native when the file exists.")
+    p.add_argument("--v2-ckpt", default="",
+                   help="Corridor-level V2 (FRAP/GAT/MAPPO) checkpoint; "
+                        "compared as 'coordinated_v2_frap' when given. "
+                        "Off by default: the V2 model predates the "
+                        "5-feature FRAP state and is shape-incompatible "
+                        "with it.")
     p.add_argument("--v3-ckpt",
                    default="ai/v3/model_best.pth",
                    help="V3 FRAP-DQN checkpoint (committed default works "

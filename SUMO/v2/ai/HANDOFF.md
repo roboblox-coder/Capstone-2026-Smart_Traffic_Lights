@@ -42,10 +42,11 @@ The plan documents below remain the reference for Stage 2a/3:
    hygiene), with per-task code sketches, verification commands, and
    stop-and-report gates. Includes cheap-execution rules: which files
    to read, which to never read.
-3. **`graphify-out/GRAPH_REPORT.md`** — committed knowledge graph of
-   the codebase (god-nodes, community map). Use it for orientation
-   instead of grepping; `graphify query "..."` works against
-   `graphify-out/graph.json`.
+3. **`graphify-out/GRAPH_REPORT.md`** — local (gitignored) knowledge
+   graph of the codebase (god-nodes, community map), useful for
+   orientation instead of grepping when present on the machine;
+   `graphify query "..."` works against `graphify-out/graph.json`.
+   Regenerable; not part of the repo.
 
 History/context if needed: `ai/DECISIONS_V1_V2_V3.md` (V1→V2→V3 +
 audit addendum), `ai/v3/RESULTS.md` (current verified numbers).
