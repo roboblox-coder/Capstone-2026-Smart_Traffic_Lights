@@ -209,7 +209,7 @@ a hyperparameter tweak; deferred as a deliberate next phase.
 - Eval harness: `ai/eval_network.py` (fixed-time / native / V1 / V2 / V3,
   identical seeds). Best V3 checkpoint:
   `ai/runs/v3_frap_dqn_combined/checkpoints/best.pth`.
-- Specs/plans: `docs/superpowers/specs/`, `docs/superpowers/plans/`.
+- Specs/plans: `docs/design/specs/`, `docs/design/plans/`.
 
 ---
 
