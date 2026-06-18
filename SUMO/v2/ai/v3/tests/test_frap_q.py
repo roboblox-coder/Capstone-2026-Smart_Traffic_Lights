@@ -139,6 +139,23 @@ def test_agent_learn_step_runs():
     assert moved, "online params did not update"
 
 
+def test_load_for_inference_infers_feat_dim():
+    """load_for_inference must rebuild the net at the checkpoint's
+    movement-feature dim, not the (changed) constructor default, so older
+    3-feature models still load. Regression: V4 bumped the default 3 -> 5,
+    which broke loading model_best.pth in the live demo + eval."""
+    import tempfile
+    import os as _os
+    from v3.frap_dqn_agent import FRAPDQNAgent
+    ag = FRAPDQNAgent(mov_feat_dim=3, p_max=P_MAX, m_max=M_MAX,
+                      embed_dim=EMBED, batch_size=8)
+    with tempfile.TemporaryDirectory() as d:
+        p = _os.path.join(d, "m3.pth")
+        ag.save(p)
+        ld = FRAPDQNAgent.load_for_inference(p, device="cpu")
+    assert ld.online.encoder.movement_mlp[0].in_features == 3
+
+
 if __name__ == "__main__":
     test_phase_embeddings_batched_shape()
     test_q_per_phase_discrimination()

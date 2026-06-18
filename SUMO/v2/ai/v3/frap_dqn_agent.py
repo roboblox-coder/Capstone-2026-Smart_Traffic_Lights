@@ -183,9 +183,18 @@ class FRAPDQNAgent:
         dev = torch.device(
             device or ("cuda" if torch.cuda.is_available() else "cpu"))
         ckpt = torch.load(path, map_location=dev, weights_only=False)
-        ag = cls(p_max=int(ckpt["p_max"]), m_max=int(ckpt["m_max"]),
+        sd = ckpt["state_dict"]
+        # Infer the movement-feature dim from the checkpoint, not the
+        # constructor default: checkpoints don't record it and the default
+        # changed 3 -> 5 in V4, so older 3-feature models (and any other
+        # width) must be rebuilt at their own dim to load.
+        mov_feat_dim = next(
+            (w.shape[1] for k, w in sd.items()
+             if k.endswith("movement_mlp.0.weight")), 5)
+        ag = cls(mov_feat_dim=int(mov_feat_dim),
+                 p_max=int(ckpt["p_max"]), m_max=int(ckpt["m_max"]),
                  device=str(dev))
-        ag.online.load_state_dict(ckpt["state_dict"])
+        ag.online.load_state_dict(sd)
         ag.online.eval()
         ag.target.load_state_dict(ag.online.state_dict())
         return ag
