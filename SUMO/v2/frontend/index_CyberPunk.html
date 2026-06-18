@@ -247,7 +247,18 @@
     <!-- Top Bar -->
     <div id="top-bar">
         <h1>NEON <span>SUMO</span> Live City Viewer</h1>
-        <span id="status-badge">● Offline</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <label style="font-size:.72rem;color:rgba(0,243,255,.6);letter-spacing:1px;">AI.MODEL</label>
+            <select id="model-select" title="Switch the active AI controller live"
+                style="font-size:.74rem;padding:4px 8px;border-radius:6px;background:#0a0a18;color:#00f3ff;border:1px solid rgba(0,243,255,.4);cursor:pointer;">
+                <option value="">(loading…)</option>
+            </select>
+            <span id="ai-badge" title="AI controller status"
+                style="font-size:.76rem;padding:4px 12px;border-radius:20px;background:rgba(0,243,255,.10);color:rgba(0,243,255,.5);border:1px solid rgba(0,243,255,.25);">
+                AI: idle
+            </span>
+            <span id="status-badge">● Offline</span>
+        </div>
     </div>
 
     <div id="main-wrap">
@@ -263,6 +274,11 @@
 
         <!-- Right Sidebar -->
         <aside>
+            <h2>AI Decisions <span id="ai-dec-model" style="font-size:.7rem;color:#ff00aa;font-weight:400;"></span></h2>
+            <div id="ai-decisions"
+                style="font-family:ui-monospace,Menlo,monospace;font-size:.72rem;line-height:1.5;max-height:200px;overflow-y:auto;background:#05050f;border:1px solid rgba(0,243,255,.2);border-radius:8px;padding:8px;margin-bottom:12px;">
+                <em style="color:rgba(0,243,255,.5)">Awaiting AI datastream…</em>
+            </div>
             <h2>Traffic Control</h2>
             <div id="tl-panel"><em style="font-size:.78rem;color:#00f3ff; opacity: 0.5;">Awaiting datastream…</em></div>
             <div id="log-wrap">
@@ -319,6 +335,70 @@
         const tlPanel = document.getElementById('tl-panel');
         const logEl = document.getElementById('log');
         const canvasContainer = document.getElementById('canvas-container');
+
+        // === AI overlay (keep in sync with index.html) ===
+        const aiBadge = document.getElementById('ai-badge');
+        const modelSelect = document.getElementById('model-select');
+        const aiDecisionsEl = document.getElementById('ai-decisions');
+        const aiDecModelEl = document.getElementById('ai-dec-model');
+        const MODEL_LABEL = { v1: 'V1 · DQN', v2: 'V2 · MAPPO', v3: 'V3 · FRAP-DQN' };
+        let _modelsPopulated = '';
+        if (modelSelect) modelSelect.addEventListener('change', () => {
+            const m = modelSelect.value;
+            if (m && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'selectModel', model: m }));
+                wsLog(`→ selectModel(${m})`);
+            }
+        });
+        function aiColors(status) {
+            const s = status || 'idle';
+            if (s === 'active') return ['rgba(0,243,255,.18)', '#00f3ff'];
+            if (s.startsWith('fallback')) return ['rgba(255,0,170,.20)', '#ff00aa'];
+            if (s === 'manual_override') return ['rgba(252,238,10,.20)', '#fcee0a'];
+            return ['rgba(0,243,255,.10)', 'rgba(0,243,255,.5)'];
+        }
+        function updateAiBadge(summary) {
+            if (!summary || !aiBadge) return;
+            const active = summary.active || 0, total = summary.total || 0;
+            const [bg, fg] = aiColors(active > 0 ? 'active' : 'idle');
+            aiBadge.style.background = bg; aiBadge.style.color = fg;
+            aiBadge.textContent = `AI: ${active}/${total} active`;
+        }
+        function updateModelSelect(summary) {
+            if (!modelSelect) return;
+            const avail = (summary && summary.availableModels) || [];
+            const key = avail.join(',');
+            if (key !== _modelsPopulated) {
+                modelSelect.innerHTML = '';
+                if (avail.length === 0) {
+                    const o = document.createElement('option');
+                    o.value = ''; o.textContent = '(none loaded)';
+                    modelSelect.appendChild(o);
+                }
+                for (const m of avail) {
+                    const o = document.createElement('option');
+                    o.value = m; o.textContent = MODEL_LABEL[m] || m;
+                    modelSelect.appendChild(o);
+                }
+                _modelsPopulated = key;
+            }
+            if (summary && summary.activeModel && document.activeElement !== modelSelect) {
+                modelSelect.value = summary.activeModel;
+            }
+        }
+        function renderDecisions(log, activeModel) {
+            if (!aiDecisionsEl) return;
+            if (aiDecModelEl) aiDecModelEl.textContent = activeModel ? `(${(MODEL_LABEL[activeModel] || activeModel)})` : '';
+            if (!log || log.length === 0) return;
+            const rows = log.slice().reverse().map(d => {
+                if (d.event) return `<div style="color:#fcee0a;">⟳ step ${d.step} · ${d.event}</div>`;
+                return `<div><span style="color:rgba(0,243,255,.5);">step ${d.step}</span> · `
+                    + `light <span style="color:#e0faff;">${d.light}</span> `
+                    + `→ <span style="color:#00f3ff;">green slot ${d.slot}</span></div>`;
+            });
+            aiDecisionsEl.innerHTML = rows.join('');
+        }
+        // === end AI overlay ===
 
         // Cyberpunk Palette
         const C_CYAN = 0x00f3ff;
@@ -1149,12 +1229,16 @@
             vehMesh.instanceMatrix.needsUpdate = true;
             if (vehMesh.instanceColor) vehMesh.instanceColor.needsUpdate = true;
 
-            updateTLPanel(msg.trafficLights);
+            updateAiBadge(msg.aiSummary);
+            updateModelSelect(msg.aiSummary);
+            renderDecisions(msg.decisionsLog, msg.aiSummary && msg.aiSummary.activeModel);
+            updateTLPanel(msg.trafficLights, msg.ai);
         }
 
         // --- Traffic-Light Sidebar ---
         let knownTLs = {};
-        function updateTLPanel(tls) {
+        function updateTLPanel(tls, ai) {
+            ai = ai || {};
             for (const tl of tls) {
                 if (!knownTLs[tl.id]) {
                     const card = document.createElement('div');
@@ -1163,6 +1247,7 @@
                         <div>
                             <div class="tl-id">${tl.id}</div>
                             <div class="tl-state" id="tl-state-${tl.id}">${tl.state}</div>
+                            <div class="tl-state" id="tl-ai-${tl.id}" style="margin-top:3px;font-size:.7rem;padding:2px 8px;border-radius:12px;display:inline-block;">AI: —</div>
                         </div>
                         <div class="tl-btns" id="tl-btns-${tl.id}"></div>`;
                     if (tlPanel.querySelector('em')) tlPanel.innerHTML = '';
@@ -1180,6 +1265,17 @@
                 }
                 const stateEl = document.getElementById(`tl-state-${tl.id}`);
                 if (stateEl) stateEl.textContent = `Phase ${tl.phase}  ${tl.state}`;
+
+                const aiEl = document.getElementById(`tl-ai-${tl.id}`);
+                const a = ai[tl.id];
+                if (aiEl && a) {
+                    const [bg, fg] = aiColors(a.status);
+                    aiEl.style.background = bg; aiEl.style.color = fg;
+                    const y = a.inYellow ? ' Y' : '';
+                    const slot = a.currentGreenSlot !== undefined ? ` slot=${a.currentGreenSlot}` : '';
+                    const dec = a.decisions !== undefined ? ` Δ=${a.decisions}` : '';
+                    aiEl.textContent = `AI: ${a.status}${slot}${y}${dec}`;
+                }
             }
         }
 
