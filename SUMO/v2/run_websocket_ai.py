@@ -457,13 +457,38 @@ def main() -> None:
                 try:
                     if action_name == "selectModel":
                         m = cmd.get("model")
-                        if m in model_decide:
+                        if m in model_decide and m != active["name"]:
+                            # Swapping models reloads the sim from step 0 so
+                            # each controller is showcased on a clean run
+                            # instead of inheriting the previous model's
+                            # traffic state.
                             active["name"] = m
+                            traci.load(sumo_cmd[1:])
+                            for t in tls_ids:
+                                slot[t] = 0
+                                tip[t] = 0
+                                in_yellow[t] = False
+                                yellow_left[t] = 0
+                                pending[t] = 0
+                                since_decision[t] = DECISION_INTERVAL
+                                decisions[t] = 0
+                                manual_override[t] = False
+                                traci.trafficlight.setRedYellowGreenState(
+                                    t, struct[t]["phase_states"][
+                                        struct[t]["green"][0]])
+                                prev_obs_state[t] = (
+                                    traci.trafficlight
+                                    .getRedYellowGreenState(t))
+                            step = 0
+                            no_vehicle_counter = 0
+                            decisions_log.clear()
                             decisions_log.append({
-                                "step": step, "light": "—",
-                                "slot": -1, "model": m,
-                                "event": f"switched to {m.upper()}"})
-                            print(f"[model] switched active -> {m}")
+                                "step": 0, "light": "—", "slot": -1,
+                                "model": m,
+                                "event": f"reloaded with {m.upper()}"})
+                            print(f"[model] reloaded sim with active -> {m}")
+                        elif m in model_decide:
+                            active["name"] = m   # same model: no reload
                     elif action_name == "setPhase":
                         cid = cmd["tlsId"]
                         traci.trafficlight.setPhase(cid, int(cmd["phase"]))

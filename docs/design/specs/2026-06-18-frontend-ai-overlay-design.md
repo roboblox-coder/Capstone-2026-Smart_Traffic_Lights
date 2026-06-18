@@ -38,6 +38,9 @@ index.html) ===` block so the three stay reconcilable:
    `aiSummary.availableModels` (labelled V1·DQN / V2·MAPPO / V3·FRAP-DQN);
    `change` → `ws.send({action:'selectModel', model})`. Reflects
    `activeModel` from the backend. `updateModelSelect(msg.aiSummary)`.
+   Swapping to a *different* model reloads the sim from step 0 runner-side
+   (`traci.load` + per-light state reset) so each controller is shown on a
+   clean run rather than inheriting the previous model's traffic.
 3. **AI decisions panel** in the sidebar/HUD — newest-first stream of the
    last ~25 `decisionsLog` rows. `renderDecisions(msg.decisionsLog,
    activeModel)`.
